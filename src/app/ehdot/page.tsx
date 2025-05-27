@@ -1,30 +1,21 @@
-export default function EhdotSivu() {
+export default function Kayttoehdot() {
   return (
-    <main className="p-6 max-w-3xl mx-auto">
+    <main className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-4">Käyttöehdot</h1>
-
       <p className="mb-4">
-        Käyttämällä Mainoskylä-palvelua sitoudut noudattamaan näitä käyttöehtoja. Palvelu on tarkoitettu yksityisille ja yrityksille, jotka haluavat mainostaa tuotteitaan tai palveluitaan Suomessa.
+        Mainoskylä.fi on käyttäjien ilmoituksia varten tarkoitettu markkinapaikka. Palvelun käyttö on maksutonta, ellei toisin mainita.
       </p>
-
-      <h2 className="text-xl font-semibold mt-4 mb-2">Ilmoitusten sisältö</h2>
       <p className="mb-4">
-        Ilmoitusten tulee olla totuudenmukaisia, asiallisia ja Suomen lakien mukaisia. Kiellettyjä ovat mm. vihapuhe, huijaus, laittomat tuotteet ja aikuisviihde.
+        Käyttäjä vastaa itse jättämästään ilmoituksesta ja sen sisällöstä. Ilmoitusten tulee noudattaa Suomen lakeja ja hyviä tapoja. Kiellettyjä ovat esimerkiksi laittomat tuotteet, harhaanjohtava mainonta ja tekijänoikeuksia rikkova sisältö.
       </p>
-
-      <h2 className="text-xl font-semibold mt-4 mb-2">Vastuut</h2>
       <p className="mb-4">
-        Käyttäjä vastaa itse ilmoituksensa sisällöstä. Mainoskylä ei ole osapuolena mahdollisissa kaupoissa eikä tarkista ilmoituksia etukäteen.
+        Ylläpitäjällä on oikeus poistaa ilmoituksia ilman erillistä ilmoitusta, mikäli ne rikkovat sääntöjä tai ovat muuten asiattomia.
       </p>
-
-      <h2 className="text-xl font-semibold mt-4 mb-2">Maksulliset palvelut</h2>
       <p className="mb-4">
-        Maksulliset ominaisuudet, kuten premium- ja nostopalvelut, aktivoituvat maksun jälkeen ja ovat voimassa valitun ajan. Maksuja ei palauteta jälkikäteen.
+        Palvelun ylläpitäjä ei vastaa ilmoitusten sisällöstä, käyttäjien välisistä kaupoista tai mahdollisista vahingoista. Käyttäjien tulee itse huolehtia kaupankäynnin turvallisuudesta.
       </p>
-
-      <h2 className="text-xl font-semibold mt-4 mb-2">Muuta</h2>
-      <p className="mb-4">
-        Mainoskylä pidättää oikeuden poistaa ilmoituksia tai käyttäjätilejä, jotka rikkovat ehtoja. Palveluehtoja voidaan päivittää ilman ennakkoilmoitusta.
+      <p>
+        Palvelun käyttö tarkoittaa näiden käyttöehtojen hyväksymistä.
       </p>
     </main>
   )

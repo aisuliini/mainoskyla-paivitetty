@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { Eye } from 'lucide-react'
+import Link from 'next/link'
 
 export default function ProfiiliSivu() {
   const router = useRouter()
@@ -100,11 +101,74 @@ export default function ProfiiliSivu() {
                   >
                     Poista
                   </button>
+
+                  <Link
+                    href={`/muokkaa/${ilmo.id}`}
+                    className="block text-center w-full px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                  >
+                    Muokkaa
+                  </Link>
                 </div>
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {/* Profiilin muokkauslomake */}
+      {user && (
+        <section className="mt-12 max-w-lg mx-auto border-t pt-6">
+          <h2 className="text-xl font-semibold mb-4">Profiilitiedot</h2>
+
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault()
+              const form = e.currentTarget
+              const nimi = form.nimi.value
+              const file = form.kuva.files[0]
+
+              let kuvaUrl = ''
+
+              if (file) {
+                const tiedostoNimi = `${Date.now()}-${file.name}`
+                const { error: uploadError } = await supabase.storage
+                  .from('kuvat')
+                  .upload(tiedostoNimi, file, { upsert: false })
+                if (!uploadError) {
+                  const { data } = supabase.storage.from('kuvat').getPublicUrl(tiedostoNimi)
+                  kuvaUrl = data.publicUrl
+                }
+              }
+
+              await supabase
+                .from('profiles')
+                .upsert({
+                  id: user.id,
+                  nimi,
+                  ...(kuvaUrl ? { kuva_url: kuvaUrl } : {})
+                })
+
+              alert('Tallennettu!')
+            }}
+            className="space-y-4"
+          >
+            <input
+              name="nimi"
+              placeholder="Nimesi"
+              defaultValue=""
+              className="w-full border p-2 rounded"
+            />
+            <input
+              name="kuva"
+              type="file"
+              accept="image/*"
+              className="w-full border p-2 rounded"
+            />
+            <button type="submit" className="bg-green-600 text-white py-2 px-4 rounded">
+              Tallenna profiili
+            </button>
+          </form>
+        </section>
       )}
     </main>
   )
