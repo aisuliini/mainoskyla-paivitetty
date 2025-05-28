@@ -5,14 +5,32 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
+import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 import { Eye } from 'lucide-react'
 import ehdotukset from '@/data/ehdotusdata.json'
 
 export default function Home() {
   const router = useRouter()
   const [hakusana, setHakusana] = useState('')
-  const [premiumIlmoitukset, setPremiumIlmoitukset] = useState<any[]>([])
   const [suositukset, setSuositukset] = useState<string[]>([])
+  const [premiumIlmoitukset, setPremiumIlmoitukset] = useState<any[]>([])
+
+  const hae = () => {
+    if (hakusana.trim()) {
+      router.push(`/aluehaku?sijainti=${encodeURIComponent(hakusana.trim())}`)
+    }
+  }
+
+  useEffect(() => {
+    if (hakusana.length > 1) {
+      const filtered = ehdotukset.filter((e) =>
+        e.toLowerCase().includes(hakusana.toLowerCase())
+      )
+      setSuositukset(filtered.slice(0, 5))
+    } else {
+      setSuositukset([])
+    }
+  }, [hakusana])
 
   useEffect(() => {
     const nyt = new Date().toISOString()
@@ -29,42 +47,6 @@ export default function Home() {
     }
     haePremiumit()
   }, [])
-
-  useEffect(() => {
-    if (hakusana.length > 1) {
-      const filtered = ehdotukset.filter((e) =>
-        e.toLowerCase().includes(hakusana.toLowerCase())
-      )
-      setSuositukset(filtered.slice(0, 5))
-    } else {
-      setSuositukset([])
-    }
-  }, [hakusana])
-
-  const hae = () => {
-    if (hakusana.trim()) {
-      router.push(`/aluehaku?sijainti=${encodeURIComponent(hakusana.trim())}`)
-    }
-  }
-
-  const avaaIlmoitus = async (ilmo: any) => {
-    try {
-      await supabase
-        .from('ilmoitukset')
-        .update({ nayttoja: (ilmo.nayttoja || 0) + 1 })
-        .eq('id', ilmo.id)
-    } catch (e) {
-      console.warn('Klikkausmäärän päivitys epäonnistui:', e)
-    } finally {
-      router.push(`/ilmoitukset/${ilmo.id}`)
-    }
-  }
-
-  const kategoriat = [
-    'Pientuottajat', 'Palvelut', 'Käsityöläiset',
-    'Kurssit', 'Juhlatilat', 'Hyvinvointi',
-    'Tapahtumat', 'Vapaa-aika', 'Muut'
-  ]
 
   const urlSafeKategoria = (kategoria: string) =>
     encodeURIComponent(kategoria.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/\s+/g, '-'))
@@ -116,7 +98,7 @@ export default function Home() {
               </div>
 
               <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-4">
-                {kategoriat.map((kategoria) => (
+                {["Pientuottajat", "Palvelut", "Käsityöläiset", "Kurssit", "Juhlatilat", "Hyvinvointi", "Tapahtumat", "Vapaa-aika", "Muut"].map((kategoria) => (
                   <button
                     key={kategoria}
                     onClick={() => router.push(`/kategoriat/${urlSafeKategoria(kategoria)}`)}
@@ -158,7 +140,7 @@ export default function Home() {
                       </div>
                       <button
                         className="mt-2 w-full px-3 py-1 text-xs bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
-                        onClick={() => avaaIlmoitus(ilmo)}
+                        onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
                       >
                         Näytä
                       </button>
@@ -180,6 +162,17 @@ export default function Home() {
             <Link href="/tietosuoja" className="hover:underline">Tietosuoja</Link>
             <Link href="/yhteystiedot" className="hover:underline">Yhteystiedot</Link>
           </nav>
+          <div className="flex justify-center gap-6 text-xl">
+            <a href="https://facebook.com/mainoskyla" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+              <FaFacebookF className="hover:text-blue-600" />
+            </a>
+            <a href="https://tiktok.com/@mainoskyla" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+              <FaTiktok className="hover:text-black" />
+            </a>
+            <a href="https://instagram.com/mainoskyla" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <FaInstagram className="hover:text-pink-500" />
+            </a>
+          </div>
           <p>&copy; {new Date().getFullYear()} Mainoskylä</p>
         </div>
       </footer>

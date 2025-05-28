@@ -1,5 +1,5 @@
 import './globals.css'
-import Header from '@/components/Header'
+import MobiiliHeader from '@/components/Header' // uusi header tähän
 
 export const metadata = {
   title: 'Mainoskylä – Paikallista mainontaa helposti',
@@ -14,11 +14,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fi">
       <body className="bg-white text-gray-800">
-        <Header />
+        <MobiiliHeader /> {/* käytetään uutta headeria */}
         {children}
       </body>
     </html>
   )
 }
-
-
