@@ -1,20 +1,23 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 
 const PER_PAGE = 12
-const MAX_PREMIUM = 3
+const MAX_PREMIUM_KATEGORIA = 6
+const MAX_TARJOUKSET_KATEGORIA = 3
 
-export default function HyvinvointiPage() {
+export default function EläinpalvelutPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [ilmoitukset, setIlmoitukset] = useState<any[]>([])
   const [premiumit, setPremiumit] = useState<any[]>([])
+  const [tarjoukset, setTarjoukset] = useState<any[]>([])
   const [page, setPage] = useState<number>(1)
   const [hasMore, setHasMore] = useState(false)
   const [jarjestys, setJarjestys] = useState<'uusin' | 'vanhin' | 'suosituin'>('uusin')
-  const [sijainti, setSijainti] = useState('')
+  const [sijainti, setSijainti] = useState(searchParams.get('sijainti') || '')
 
   useEffect(() => {
     const haeIlmoitukset = async () => {
@@ -24,7 +27,7 @@ export default function HyvinvointiPage() {
       let query = supabase
         .from('ilmoitukset')
         .select('*')
-        .eq('kategoria', 'Palvelut')
+        .eq('kategoria', 'Eläinpalvelut')
 
       if (jarjestys === 'uusin') query = query.order('luotu', { ascending: false })
       if (jarjestys === 'vanhin') query = query.order('luotu', { ascending: true })
@@ -47,39 +50,37 @@ export default function HyvinvointiPage() {
   useEffect(() => {
     const haePremiumit = async () => {
       const nyt = new Date().toISOString()
-
-      const { data: ehdokkaat } = await supabase
+      const { data } = await supabase
         .from('ilmoitukset')
         .select('*')
         .eq('premium', true)
         .eq('premium_tyyppi', 'kategoria')
-        .eq('premium_kategoria', 'Hyvinvointi')
+        .eq('premium_kategoria', 'Eläinpalvelut')
         .lte('premium_alku', nyt)
         .gte('premium_loppu', nyt)
         .order('premium_alku', { ascending: true })
 
-      const taydelliset = ehdokkaat?.slice(0, MAX_PREMIUM) ?? []
+      setPremiumit(data || [])
+    }
 
-      while (taydelliset.length < MAX_PREMIUM) {
-        taydelliset.push({
-          id: `tyhja-${taydelliset.length}`,
-          otsikko: 'Vapaa mainospaikka',
-          kuvaus: 'Tämä paikka voi olla sinun!',
-          sijainti: '',
-          kuva_url: '',
-          nayttoja: 0
-        })
-      }
+    const haeTarjoukset = async () => {
+      const { data } = await supabase
+        .from('ilmoitukset')
+        .select('*')
+        .eq('tarjous', true)
+        .eq('kategoria', 'Eläinpalvelut')
+        .order('luotu', { ascending: false })
 
-      setPremiumit(taydelliset)
+      setTarjoukset((data || []).slice(0, MAX_TARJOUKSET_KATEGORIA))
     }
 
     haePremiumit()
+    haeTarjoukset()
   }, [])
 
   return (
     <main className="max-w-screen-xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Palvelut</h1>
+      <h1 className="text-2xl font-bold mb-6">Eläinpalvelut</h1>
 
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <select
@@ -107,25 +108,45 @@ export default function HyvinvointiPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
             {premiumit.map((ilmo) => (
               <div key={ilmo.id} className="bg-[#f2f8f3] border border-[#3f704d] rounded-lg shadow-sm overflow-hidden">
-                {ilmo.kuva_url ? (
+                {ilmo.kuva_url && (
                   <img src={ilmo.kuva_url} alt={ilmo.otsikko} className="h-32 w-full object-cover" />
-                ) : (
-                  <div className="h-32 w-full bg-gray-100 flex items-center justify-center">
-                    <span className="text-xs text-gray-400">{ilmo.otsikko}</span>
-                  </div>
                 )}
                 <div className="p-4">
                   <h3 className="font-semibold text-lg truncate">{ilmo.otsikko}</h3>
                   <p className="text-sm text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
                   <p className="text-xs text-gray-500">{ilmo.sijainti}</p>
-                  {ilmo.id.toString().startsWith('tyhja') ? null : (
-                    <button
-                      onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
-                      className="mt-3 px-4 py-2 text-sm bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
-                    >
-                      Näytä
-                    </button>
-                  )}
+                  <button
+                    onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
+                    className="mt-3 px-4 py-2 text-sm bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
+                  >
+                    Näytä
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {tarjoukset.length > 0 && (
+        <>
+          <h2 className="text-xl font-semibold text-[#8c4b2f] mb-2">Tarjoukset</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
+            {tarjoukset.map((ilmo) => (
+              <div key={ilmo.id} className="bg-[#fff9e6] border border-[#8c4b2f] rounded-lg shadow-sm overflow-hidden">
+                {ilmo.kuva_url && (
+                  <img src={ilmo.kuva_url} alt={ilmo.otsikko} className="h-32 w-full object-cover" />
+                )}
+                <div className="p-4">
+                  <h3 className="font-semibold text-lg truncate">{ilmo.otsikko}</h3>
+                  <p className="text-sm text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
+                  <p className="text-xs text-gray-500">{ilmo.sijainti}</p>
+                  <button
+                    onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
+                    className="mt-3 px-4 py-2 text-sm bg-[#8c4b2f] text-white rounded hover:bg-[#5c2e1d]"
+                  >
+                    Näytä
+                  </button>
                 </div>
               </div>
             ))}

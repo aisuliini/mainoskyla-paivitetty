@@ -63,13 +63,18 @@ export default function ProfiiliSivu() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {ilmoitukset.map((ilmo) => (
             <div key={ilmo.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
-              {ilmo.kuva_url && (
-                <img
-                  src={ilmo.kuva_url}
-                  alt={ilmo.otsikko}
-                  className="h-40 w-full object-cover"
-                />
-              )}
+              <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
+  {ilmo.kuva_url ? (
+    <img
+      src={ilmo.kuva_url}
+      alt={ilmo.otsikko}
+      className="h-full w-full object-cover"
+    />
+  ) : (
+    <span className="text-xs text-gray-400">Ei kuvaa</span>
+  )}
+</div>
+
               <div className="p-4">
                 <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>
                 <p className="text-sm text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
@@ -113,62 +118,6 @@ export default function ProfiiliSivu() {
             </div>
           ))}
         </div>
-      )}
-
-      {/* Profiilin muokkauslomake */}
-      {user && (
-        <section className="mt-12 max-w-lg mx-auto border-t pt-6">
-          <h2 className="text-xl font-semibold mb-4">Profiilitiedot</h2>
-
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault()
-              const form = e.currentTarget
-              const nimi = form.nimi.value
-              const file = form.kuva.files[0]
-
-              let kuvaUrl = ''
-
-              if (file) {
-                const tiedostoNimi = `${Date.now()}-${file.name}`
-                const { error: uploadError } = await supabase.storage
-                  .from('kuvat')
-                  .upload(tiedostoNimi, file, { upsert: false })
-                if (!uploadError) {
-                  const { data } = supabase.storage.from('kuvat').getPublicUrl(tiedostoNimi)
-                  kuvaUrl = data.publicUrl
-                }
-              }
-
-              await supabase
-                .from('profiles')
-                .upsert({
-                  id: user.id,
-                  nimi,
-                  ...(kuvaUrl ? { kuva_url: kuvaUrl } : {})
-                })
-
-              alert('Tallennettu!')
-            }}
-            className="space-y-4"
-          >
-            <input
-              name="nimi"
-              placeholder="Nimesi"
-              defaultValue=""
-              className="w-full border p-2 rounded"
-            />
-            <input
-              name="kuva"
-              type="file"
-              accept="image/*"
-              className="w-full border p-2 rounded"
-            />
-            <button type="submit" className="bg-green-600 text-white py-2 px-4 rounded">
-              Tallenna profiili
-            </button>
-          </form>
-        </section>
       )}
     </main>
   )

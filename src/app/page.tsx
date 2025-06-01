@@ -5,21 +5,33 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
-import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 import { Eye } from 'lucide-react'
+import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 import ehdotukset from '@/data/ehdotusdata.json'
 
 export default function Home() {
   const router = useRouter()
   const [hakusana, setHakusana] = useState('')
-  const [suositukset, setSuositukset] = useState<string[]>([])
   const [premiumIlmoitukset, setPremiumIlmoitukset] = useState<any[]>([])
+  const [suositukset, setSuositukset] = useState<string[]>([])
 
-  const hae = () => {
-    if (hakusana.trim()) {
-      router.push(`/aluehaku?sijainti=${encodeURIComponent(hakusana.trim())}`)
+  useEffect(() => {
+    const nyt = new Date().toISOString()
+    const haePremiumit = async () => {
+      const { data, error } = await supabase
+        .from('ilmoitukset')
+        .select('*')
+        .eq('premium', true)
+        .lte('premium_alku', nyt)
+        .gte('premium_loppu', nyt)
+        .order('premium_alku', { ascending: true })
+        .order('id', { ascending: true })
+        .limit(12)
+
+      if (!error && data) setPremiumIlmoitukset(data)
     }
-  }
+    haePremiumit()
+  }, [])
 
   useEffect(() => {
     if (hakusana.length > 1) {
@@ -32,21 +44,42 @@ export default function Home() {
     }
   }, [hakusana])
 
-  useEffect(() => {
-    const nyt = new Date().toISOString()
-    const haePremiumit = async () => {
-      const { data, error } = await supabase
-        .from('ilmoitukset')
-        .select('*')
-        .eq('premium', true)
-        .lte('premium_alku', nyt)
-        .gte('premium_loppu', nyt)
-        .order('premium_alku', { ascending: true })
-        .limit(12)
-      if (!error && data) setPremiumIlmoitukset(data)
+  const hae = () => {
+    if (hakusana.trim()) {
+      router.push(`/aluehaku?sijainti=${encodeURIComponent(hakusana.trim())}`)
     }
-    haePremiumit()
-  }, [])
+  }
+
+  const avaaIlmoitus = async (ilmo: any) => {
+    try {
+      await supabase
+        .from('ilmoitukset')
+        .update({ nayttoja: (ilmo.nayttoja || 0) + 1 })
+        .eq('id', ilmo.id)
+    } catch (e) {
+      console.warn('Klikkausmäärän päivitys epäonnistui:', e)
+    } finally {
+      router.push(`/ilmoitukset/${ilmo.id}`)
+    }
+  }
+
+  const kategoriat = [
+  'Palvelut',
+  'Hyvinvointi ja Kauneus',
+  'Koti ja Remontointi',
+  'Eläinpalvelut',
+  'Pientuottajat',
+  'Käsityöläiset',
+  'Media ja Luovuus',
+  'Kurssit ja Koulutukset',
+  'Vuokratilat ja Juhlapaikat',
+  'Ilmoitustaulu',
+  'Tapahtumat',
+  'Vapaa-aika',
+  'Muut'
+]
+
+
 
   const urlSafeKategoria = (kategoria: string) =>
     encodeURIComponent(kategoria.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/\s+/g, '-'))
@@ -98,7 +131,7 @@ export default function Home() {
               </div>
 
               <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-4">
-                {["Pientuottajat", "Palvelut", "Käsityöläiset", "Kurssit", "Juhlatilat", "Hyvinvointi", "Tapahtumat", "Vapaa-aika", "Muut"].map((kategoria) => (
+                {kategoriat.map((kategoria) => (
                   <button
                     key={kategoria}
                     onClick={() => router.push(`/kategoriat/${urlSafeKategoria(kategoria)}`)}
@@ -117,38 +150,31 @@ export default function Home() {
         <div className="max-w-screen-xl mx-auto">
           <h2 className="text-xl font-semibold text-[#2f5332] mb-4">Etusivun Premium-ilmoitukset</h2>
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 12 }).map((_, i) => {
-              const ilmo = premiumIlmoitukset[i]
-              return (
-                <div key={ilmo?.id || `placeholder-${i}`} className="bg-[#e6f4ea] border border-[#3f704d] rounded-xl p-3 shadow-sm">
-                  {ilmo?.kuva_url ? (
-                    <img src={ilmo.kuva_url} alt={ilmo.otsikko} className="h-32 w-full object-cover rounded mb-2" />
-                  ) : (
-                    <div className="h-32 bg-white rounded mb-2" />
-                  )}
-                  <h3 className="font-semibold text-sm text-gray-900 truncate">
-                    {ilmo?.otsikko || 'Vapaa mainospaikka'}
-                  </h3>
-                  <p className="text-xs text-gray-600 line-clamp-2">
-                    {ilmo?.kuvaus || 'Tämä paikka voi olla sinun ilmoituksesi – näkyvyyttä etusivulla!'}
-                  </p>
-                  {ilmo?.id && (
-                    <>
-                      <div className="flex items-center text-xs text-gray-500 mt-2 gap-1">
-                        <Eye size={14} className="inline-block" />
-                        {ilmo.nayttoja || 0} katselukertaa
-                      </div>
-                      <button
-                        className="mt-2 w-full px-3 py-1 text-xs bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
-                        onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
-                      >
-                        Näytä
-                      </button>
-                    </>
-                  )}
+            {premiumIlmoitukset.map((ilmo) => (
+              <div key={ilmo.id} className="bg-[#e6f4ea] border border-[#3f704d] rounded-xl p-3 shadow-sm">
+                {ilmo.kuva_url ? (
+                  <img src={ilmo.kuva_url} alt={ilmo.otsikko} className="h-32 w-full object-cover rounded mb-2" />
+                ) : (
+                  <div className="h-32 bg-white rounded mb-2" />
+                )}
+                <h3 className="font-semibold text-sm text-gray-900 truncate">
+                  {ilmo.otsikko || 'Vapaa mainospaikka'}
+                </h3>
+                <p className="text-xs text-gray-600 line-clamp-2">
+                  {ilmo.kuvaus || 'Tämä paikka voi olla sinun ilmoituksesi – näkyvyyttä etusivulla!'}
+                </p>
+                <div className="flex items-center text-xs text-gray-500 mt-2 gap-1">
+                  <Eye size={14} className="inline-block" />
+                  {ilmo.nayttoja || 0} katselukertaa
                 </div>
-              )
-            })}
+                <button
+                  className="mt-2 w-full px-3 py-1 text-xs bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
+                  onClick={() => avaaIlmoitus(ilmo)}
+                >
+                  Näytä
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       </section>

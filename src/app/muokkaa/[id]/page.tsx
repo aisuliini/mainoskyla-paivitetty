@@ -8,6 +8,7 @@ export default function MuokkaaIlmoitus() {
   const router = useRouter()
   const { id } = useParams()
   const [ilmoitus, setIlmoitus] = useState<any>(null)
+  const [userId, setUserId] = useState<string>('')
   const [otsikko, setOtsikko] = useState('')
   const [kuvaus, setKuvaus] = useState('')
   const [sijainti, setSijainti] = useState('')
@@ -16,13 +17,11 @@ export default function MuokkaaIlmoitus() {
   const [kuvaPreview, setKuvaPreview] = useState<string>('')
 
   useEffect(() => {
-    const haeIlmoitus = async () => {
-      const { data } = await supabase
-        .from('ilmoitukset')
-        .select('*')
-        .eq('id', id)
-        .single()
+    const haeData = async () => {
+      const { data: userData } = await supabase.auth.getUser()
+      setUserId(userData?.user?.id || '')
 
+      const { data } = await supabase.from('ilmoitukset').select('*').eq('id', id).single()
       if (data) {
         setIlmoitus(data)
         setOtsikko(data.otsikko || '')
@@ -32,23 +31,19 @@ export default function MuokkaaIlmoitus() {
         setKuvaPreview(data.kuva_url || '')
       }
     }
-
-    if (id) haeIlmoitus()
+    if (id) haeData()
   }, [id])
 
   const paivitaIlmoitus = async (e: any) => {
     e.preventDefault()
+    if (ilmoitus?.user_id !== userId) return alert('Et voi muokata tätä ilmoitusta.')
 
     let uusiKuvaUrl = kuvaPreview
-
     if (kuvaFile) {
       const tiedostoNimi = `${Date.now()}-${kuvaFile.name}`
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('kuvat')
-        .upload(tiedostoNimi, kuvaFile, {
-          cacheControl: '3600',
-          upsert: false
-        })
+        .upload(tiedostoNimi, kuvaFile, { cacheControl: '3600', upsert: false })
 
       if (!uploadError) {
         const { data } = supabase.storage.from('kuvat').getPublicUrl(tiedostoNimi)
@@ -58,19 +53,14 @@ export default function MuokkaaIlmoitus() {
 
     await supabase
       .from('ilmoitukset')
-      .update({
-        otsikko,
-        kuvaus,
-        sijainti,
-        kuva_url: uusiKuvaUrl,
-        kategoria,
-      })
+      .update({ otsikko, kuvaus, sijainti, kuva_url: uusiKuvaUrl, kategoria })
       .eq('id', id)
 
     router.push('/profiili')
   }
 
   if (!ilmoitus) return <p className="p-6">Ladataan ilmoitusta...</p>
+  if (ilmoitus.user_id !== userId) return <p className="p-6 text-red-600">Sinulla ei ole oikeutta muokata tätä ilmoitusta.</p>
 
   return (
     <section className="max-w-xl mx-auto py-8 px-4">
@@ -97,7 +87,6 @@ export default function MuokkaaIlmoitus() {
           className="w-full border p-2 rounded"
         />
 
-        {/* Kategoria-valinta */}
         <select
           value={kategoria}
           onChange={(e) => setKategoria(e.target.value)}
@@ -111,7 +100,6 @@ export default function MuokkaaIlmoitus() {
           <option value="Muu">Muu</option>
         </select>
 
-        {/* Kuva */}
         {kuvaPreview && (
           <img src={kuvaPreview} alt="Nykyinen kuva" className="w-full h-40 object-cover rounded" />
         )}

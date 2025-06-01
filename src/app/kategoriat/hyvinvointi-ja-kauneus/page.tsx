@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabaseClient'
 const PER_PAGE = 12
 const MAX_PREMIUM = 3
 
-export default function HyvinvointiPage() {
+export default function HyvinvointiJaKauneusPage() {
   const router = useRouter()
   const [ilmoitukset, setIlmoitukset] = useState<any[]>([])
   const [premiumit, setPremiumit] = useState<any[]>([])
@@ -24,7 +24,7 @@ export default function HyvinvointiPage() {
       let query = supabase
         .from('ilmoitukset')
         .select('*')
-        .eq('kategoria', 'Palvelut')
+        .eq('kategoria', 'HyvinvointiJaKauneus')
 
       if (jarjestys === 'uusin') query = query.order('luotu', { ascending: false })
       if (jarjestys === 'vanhin') query = query.order('luotu', { ascending: true })
@@ -53,7 +53,7 @@ export default function HyvinvointiPage() {
         .select('*')
         .eq('premium', true)
         .eq('premium_tyyppi', 'kategoria')
-        .eq('premium_kategoria', 'Hyvinvointi')
+        .eq('premium_kategoria', 'HyvinvointiJaKauneus')
         .lte('premium_alku', nyt)
         .gte('premium_loppu', nyt)
         .order('premium_alku', { ascending: true })
@@ -79,7 +79,7 @@ export default function HyvinvointiPage() {
 
   return (
     <main className="max-w-screen-xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Palvelut</h1>
+      <h1 className="text-2xl font-bold mb-6">Hyvinvointi & Kauneus</h1>
 
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <select

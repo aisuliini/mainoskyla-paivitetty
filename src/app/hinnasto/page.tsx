@@ -1,40 +1,46 @@
-export default function HinnastoSivu() {
+'use client'
+
+export default function HinnastoPage() {
   return (
-    <main className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Hinnasto</h1>
+    <main className="bg-[#f9f5eb] text-[#333333] min-h-screen font-sans py-12 px-6 max-w-3xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6 text-[#2f5332]">Hinnasto</h1>
 
-      <p className="mb-6">
-        Mainoskylä on maksuton palvelu peruskäyttäjille. Tarjoamme lisänäkyvyyttä ja erottumista tukevia maksullisia vaihtoehtoja niille, jotka haluavat enemmän näkyvyyttä.
-      </p>
+      <section className="space-y-8">
+        <div>
+          <h2 className="text-xl font-semibold mb-2">🟢 Perusilmoitus</h2>
+          <p className="mb-1">(Kampanjassa nyt ilmainen, normaalisti alla olevin hinnoin)</p>
+          <ul className="list-disc list-inside ml-4 text-sm">
+            <li>7 päivää: 0,90 €</li>
+            <li>14 päivää: 1,40 €</li>
+            <li>30 päivää: 1,90 €</li>
+          </ul>
+        </div>
 
-      <h2 className="text-xl font-semibold mt-6 mb-2">Perusilmoitus – 0 €</h2>
-      <ul className="list-disc list-inside mb-4">
-        <li>Ilmoitus näkyy kategoriasivulla ja haussa</li>
-        <li>1 kuva ja vapaamuotoinen kuvaus</li>
-        <li>Voimassa 30 päivää</li>
-      </ul>
+        <div>
+          <h2 className="text-xl font-semibold mb-2">⭐ Etusivun Premium</h2>
+          <p className="mb-1">(Näkyy etusivun yläosassa, max 12 paikkaa)</p>
+          <ul className="list-disc list-inside ml-4 text-sm">
+            <li>7 päivää: 6,90 €</li>
+            <li>14 päivää: 9,90 €</li>
+            <li>30 päivää: 14,90 €</li>
+          </ul>
+        </div>
 
-      <h2 className="text-xl font-semibold mt-6 mb-2">Premium-näkyvyys – 9,90 €/kk</h2>
-      <ul className="list-disc list-inside mb-4">
-        <li>Ilmoitus näkyy etusivulla</li>
-        <li>Kuvake & korostus värillä</li>
-        <li>Jatkuva näkyvyys niin kauan kuin premium on voimassa</li>
-      </ul>
+        <div>
+          <h2 className="text-xl font-semibold mb-2">📂 Kategorian Premium</h2>
+          <p className="mb-1">(Näkyy kategorian yläosassa, max 6 paikkaa)</p>
+          <ul className="list-disc list-inside ml-4 text-sm">
+            <li>7 päivää: 4,90 €</li>
+            <li>14 päivää: 6,90 €</li>
+            <li>30 päivää: 9,90 €</li>
+          </ul>
+        </div>
 
-      <h2 className="text-xl font-semibold mt-6 mb-2">Nosto – 1,90 € / kerta</h2>
-      <ul className="list-disc list-inside mb-4">
-        <li>Ilmoitus nousee kategorian kärkeen 7 päiväksi</li>
-        <li>Voit tehdä nostoja koska tahansa</li>
-      </ul>
-
-      <h2 className="text-xl font-semibold mt-6 mb-2">Yrityspaketti – 29,90 €/kk</h2>
-      <ul className="list-disc list-inside mb-4">
-        <li>Rajoittamaton määrä ilmoituksia</li>
-        <li>Kaikki ilmoitukset näkyvät etusivulla</li>
-        <li>Yhteydenottolomake ja yritysprofiili</li>
-      </ul>
-
-      <p className="mt-6 text-sm text-gray-600">Kaikki hinnat sisältävät ALV 24 %. Palvelun tarjoaa Mainoskylä Oy.</p>
+        <div>
+          <h2 className="text-xl font-semibold mb-2">🔼 Nosto</h2>
+          <p className="text-sm ml-4">Kertanosto listan kärkeen: 0,90 €</p>
+        </div>
+      </section>
     </main>
   )
 }
