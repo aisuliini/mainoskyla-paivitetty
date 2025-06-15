@@ -7,9 +7,8 @@ import { supabase } from '@/lib/supabaseClient'
 export default function AluehakuPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [ilmoitukset, setIlmoitukset] = useState<any[]>([])
-
   const hakusana = searchParams.get('sijainti') || ''
+  const [ilmoitukset, setIlmoitukset] = useState<any[]>([])
 
   useEffect(() => {
     const hae = async () => {
@@ -28,6 +27,22 @@ export default function AluehakuPage() {
 
   return (
     <main className="max-w-screen-xl mx-auto p-6">
+      {/* 🆕 Hakukenttä aluehaun yläosaan */}
+      <div className="mb-6 max-w-md">
+        <input
+          type="text"
+          placeholder="Hae paikkakunta tai sana..."
+          value={hakusana}
+          onChange={(e) => {
+            const uusi = e.target.value
+            const params = new URLSearchParams()
+            if (uusi) params.set('sijainti', uusi)
+            router.push(`/aluehaku?${params.toString()}`)
+          }}
+          className="w-full px-4 py-2 border rounded"
+        />
+      </div>
+
       <h1 className="text-2xl font-bold mb-4">Hakutulokset: {hakusana}</h1>
 
       {ilmoitukset.length === 0 ? (

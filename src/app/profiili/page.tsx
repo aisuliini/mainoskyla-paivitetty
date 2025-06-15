@@ -6,21 +6,29 @@ import { supabase } from '@/lib/supabaseClient'
 import { Eye } from 'lucide-react'
 import Link from 'next/link'
 
+type SupaUser = {
+  id: string
+  [key: string]: any
+}
+
+
 export default function ProfiiliSivu() {
   const router = useRouter()
   const [ilmoitukset, setIlmoitukset] = useState<any[]>([])
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<SupaUser | null>(null)
+
 
   useEffect(() => {
     const haeKayttajaJaIlmoitukset = async () => {
-      const { data: authData } = await supabase.auth.getUser()
-      if (!authData?.user) return router.push('/kirjaudu')
-      setUser(authData.user)
+      const { data: authData } = await supabase.auth.getSession()
+if (!authData?.session?.user) return router.push('/kirjaudu')
+setUser(authData.session.user)
+
 
       const { data, error } = await supabase
         .from('ilmoitukset')
         .select('*')
-        .eq('user_id', authData.user.id)
+        .eq('user_id', authData.session.user.id)
         .order('luotu', { ascending: false })
 
       if (!error && data) setIlmoitukset(data)

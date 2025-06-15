@@ -1,46 +1,32 @@
-'use client'
+// app/hinnasto/page.tsx
 
-export default function HinnastoPage() {
+export default function Hinnasto() {
   return (
-    <main className="bg-[#f9f5eb] text-[#333333] min-h-screen font-sans py-12 px-6 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-[#2f5332]">Hinnasto</h1>
+    <div className="max-w-2xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-4">Hinnasto</h1>
+      <p>
+        Mainoskylä on tällä hetkellä <strong>opiskelijaprojekti ja testivaiheessa</strong>. Kaikki ilmoitukset ovat maksuttomia.
+      </p>
 
-      <section className="space-y-8">
-        <div>
-          <h2 className="text-xl font-semibold mb-2">🟢 Perusilmoitus</h2>
-          <p className="mb-1">(Kampanjassa nyt ilmainen, normaalisti alla olevin hinnoin)</p>
-          <ul className="list-disc list-inside ml-4 text-sm">
-            <li>7 päivää: 0,90 €</li>
-            <li>14 päivää: 1,40 €</li>
-            <li>30 päivää: 1,90 €</li>
-          </ul>
-        </div>
+      <h2 className="mt-6 font-semibold">Tällä hetkellä ilmaisia:</h2>
+      <ul className="list-disc ml-6">
+        <li>Tavallinen ilmoitus</li>
+        <li>Premium-näkyvyys (jos tarjolla)</li>
+        <li>Palvelun käyttö</li>
+      </ul>
 
-        <div>
-          <h2 className="text-xl font-semibold mb-2">⭐ Etusivun Premium</h2>
-          <p className="mb-1">(Näkyy etusivun yläosassa, max 12 paikkaa)</p>
-          <ul className="list-disc list-inside ml-4 text-sm">
-            <li>7 päivää: 6,90 €</li>
-            <li>14 päivää: 9,90 €</li>
-            <li>30 päivää: 14,90 €</li>
-          </ul>
-        </div>
+      <h2 className="mt-6 font-semibold">Tulevaisuudessa mahdollisesti maksullisia:</h2>
+      <ul className="list-disc ml-6">
+        <li>Ilmoituksen nosto</li>
+        <li>Premium-paikat (esim. etusivu tai kärkeen)</li>
+        <li>Yrityksille näkyvyyspaketit</li>
+      </ul>
 
-        <div>
-          <h2 className="text-xl font-semibold mb-2">📂 Kategorian Premium</h2>
-          <p className="mb-1">(Näkyy kategorian yläosassa, max 6 paikkaa)</p>
-          <ul className="list-disc list-inside ml-4 text-sm">
-            <li>7 päivää: 4,90 €</li>
-            <li>14 päivää: 6,90 €</li>
-            <li>30 päivää: 9,90 €</li>
-          </ul>
-        </div>
+      <p className="mt-4">
+        Kaikista muutoksista tiedotetaan etukäteen. Tällä hetkellä maksullisia toimintoja ei ole.
+      </p>
 
-        <div>
-          <h2 className="text-xl font-semibold mb-2">🔼 Nosto</h2>
-          <p className="text-sm ml-4">Kertanosto listan kärkeen: 0,90 €</p>
-        </div>
-      </section>
-    </main>
+      <p className="text-sm mt-6 text-gray-500">Päivitetty: 8.6.2025</p>
+    </div>
   )
 }

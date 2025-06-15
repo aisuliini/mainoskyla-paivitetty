@@ -11,7 +11,7 @@ type Ilmoitus = {
   sijainti: string
   kuva_url: string
   kategoria: string
-  created_at: string
+  luotu: string
 }
 
 export default function IlmoituksetSivu() {
@@ -27,7 +27,14 @@ export default function IlmoituksetSivu() {
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (!error && data) setIlmoitukset(data)
+      if (!error && data) {
+  const muunnetut = data.map((ilmo) => ({
+    ...ilmo,
+    luotu: ilmo.created_at,
+  }))
+  setIlmoitukset(muunnetut)
+}
+
       setLoading(false)
     }
 
@@ -90,11 +97,27 @@ export default function IlmoituksetSivu() {
                   className="w-full h-40 object-cover rounded mb-2"
                 />
               )}
-              <h2 className="font-semibold text-lg text-[#4a7c59]">{ilmoitus.otsikko}</h2>
+              <h2 className="font-semibold text-lg text-[#4a7c59] break-words line-clamp-2">
+  {ilmoitus.otsikko}
+</h2>
+
               <p className="text-sm text-[#333]">{ilmoitus.kuvaus}</p>
               <p className="text-xs text-[#777] mt-2">{ilmoitus.sijainti}</p>
-              <p className="text-xs text-[#aaa]">{new Date(ilmoitus.created_at).toLocaleString('fi-FI')}</p>
+              <p className="text-xs text-[#aaa]">Julkaistu: {new Date(ilmoitus.luotu).toLocaleDateString('fi-FI', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+})}{' klo '}
+{new Date(ilmoitus.luotu).toLocaleTimeString('fi-FI', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+})}
+
+</p>
+
               <p className="text-xs text-[#444] mt-1 italic">{ilmoitus.kategoria}</p>
+
 
               <Link
                 href={`/ilmoitukset/${ilmoitus.id}`}

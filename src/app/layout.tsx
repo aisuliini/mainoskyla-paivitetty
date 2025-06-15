@@ -1,5 +1,11 @@
 import './globals.css'
-import MobiiliHeader from '@/components/Header' // uusi header tähän
+import MobiiliHeader from '@/components/Header'
+import { Rubik } from 'next/font/google'
+
+const rubik = Rubik({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'], // voit lisätä esim. '300' tai '800' tarpeen mukaan
+})
 
 export const metadata = {
   title: 'Mainoskylä – Paikallista mainontaa helposti',
@@ -13,8 +19,8 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fi">
-      <body className="bg-white text-gray-800">
-        <MobiiliHeader /> {/* käytetään uutta headeria */}
+      <body className={`${rubik.className} bg-white text-gray-800`}>
+        <MobiiliHeader />
         {children}
       </body>
     </html>
