@@ -10,11 +10,21 @@ import { Eye } from 'lucide-react'
 import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 import ehdotukset from '@/data/ehdotusdata.json'
 
+type PremiumIlmoitus = {
+  id: string
+  otsikko: string
+  kuvaus: string
+  sijaint: string
+  kuva_url?: string
+  nayttoja?: number
+}
+
+
 export default function Home() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [hakusana, setHakusana] = useState(searchParams.get('sijainti') || '')
-  const [premiumIlmoitukset, setPremiumIlmoitukset] = useState<any[]>([])
+  const [premiumIlmoitukset, setPremiumIlmoitukset] = useState<PremiumIlmoitus[]>([])
   const [suositukset, setSuositukset] = useState<string[]>([])
 
   useEffect(() => {
@@ -72,7 +82,8 @@ export default function Home() {
 
 
 
-  const avaaIlmoitus = (ilmo: any) => {
+  const avaaIlmoitus = (ilmo: PremiumIlmoitus) => {
+
   router.push(`/ilmoitukset/${ilmo.id}`)
 }
 
