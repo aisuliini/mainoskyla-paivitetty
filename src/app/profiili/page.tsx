@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { Eye } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 type SupaUser = {
   id: string
@@ -33,7 +34,7 @@ export default function ProfiiliSivu() {
       if (!authData?.session?.user) return router.push('/kirjaudu')
       setUser(authData.session.user)
 
-      const { data, error } = await supabase
+      const { error, data } = await supabase
         .from('ilmoitukset')
         .select('*')
         .eq('user_id', authData.session.user.id)
@@ -47,20 +48,14 @@ export default function ProfiiliSivu() {
   const julkaiseUudelleen = async (ilmo: Ilmoitus) => {
     if (!confirm('Julkaistaanko ilmoitus uudelleen ja veloitetaan uusi maksu?')) return
     const uusiPaiva = new Date().toISOString()
-    await supabase
-      .from('ilmoitukset')
-      .update({ luotu: uusiPaiva })
-      .eq('id', ilmo.id)
+    await supabase.from('ilmoitukset').update({ luotu: uusiPaiva }).eq('id', ilmo.id)
     location.reload()
   }
 
   const nostaIlmoitus = async (ilmo: Ilmoitus) => {
     if (!confirm('Nostetaanko ilmoitus haun kärkeen ja veloitetaan nosto?')) return
     const nyt = new Date().toISOString()
-    await supabase
-      .from('ilmoitukset')
-      .update({ nostettu_at: nyt })
-      .eq('id', ilmo.id)
+    await supabase.from('ilmoitukset').update({ nostettu_at: nyt }).eq('id', ilmo.id)
     location.reload()
   }
 
@@ -81,9 +76,11 @@ export default function ProfiiliSivu() {
             <div key={ilmo.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
               <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
                 {ilmo.kuva_url ? (
-                  <img
+                  <Image
                     src={ilmo.kuva_url}
                     alt={ilmo.otsikko}
+                    width={400}
+                    height={160}
                     className="h-full w-full object-cover"
                   />
                 ) : (
