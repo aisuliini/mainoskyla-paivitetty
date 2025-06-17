@@ -11,19 +11,27 @@ type SupaUser = {
   [key: string]: any
 }
 
+type Ilmoitus = {
+  id: string
+  otsikko: string
+  kuvaus: string
+  sijaint: string
+  kuva_url?: string
+  nayttoja?: number
+  luotu?: string
+  nostettu_at?: string
+}
 
 export default function ProfiiliSivu() {
   const router = useRouter()
-  const [ilmoitukset, setIlmoitukset] = useState<any[]>([])
+  const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
   const [user, setUser] = useState<SupaUser | null>(null)
-
 
   useEffect(() => {
     const haeKayttajaJaIlmoitukset = async () => {
       const { data: authData } = await supabase.auth.getSession()
-if (!authData?.session?.user) return router.push('/kirjaudu')
-setUser(authData.session.user)
-
+      if (!authData?.session?.user) return router.push('/kirjaudu')
+      setUser(authData.session.user)
 
       const { data, error } = await supabase
         .from('ilmoitukset')
@@ -31,12 +39,12 @@ setUser(authData.session.user)
         .eq('user_id', authData.session.user.id)
         .order('luotu', { ascending: false })
 
-      if (!error && data) setIlmoitukset(data)
+      if (!error && data) setIlmoitukset(data as Ilmoitus[])
     }
     haeKayttajaJaIlmoitukset()
   }, [router])
 
-  const julkaiseUudelleen = async (ilmo: any) => {
+  const julkaiseUudelleen = async (ilmo: Ilmoitus) => {
     if (!confirm('Julkaistaanko ilmoitus uudelleen ja veloitetaan uusi maksu?')) return
     const uusiPaiva = new Date().toISOString()
     await supabase
@@ -46,7 +54,7 @@ setUser(authData.session.user)
     location.reload()
   }
 
-  const nostaIlmoitus = async (ilmo: any) => {
+  const nostaIlmoitus = async (ilmo: Ilmoitus) => {
     if (!confirm('Nostetaanko ilmoitus haun kärkeen ja veloitetaan nosto?')) return
     const nyt = new Date().toISOString()
     await supabase
@@ -56,7 +64,7 @@ setUser(authData.session.user)
     location.reload()
   }
 
-  const poistaIlmoitus = async (ilmo: any) => {
+  const poistaIlmoitus = async (ilmo: Ilmoitus) => {
     if (!confirm('Poistetaanko ilmoitus pysyvästi?')) return
     await supabase.from('ilmoitukset').delete().eq('id', ilmo.id)
     setIlmoitukset((prev) => prev.filter((i) => i.id !== ilmo.id))
@@ -72,21 +80,21 @@ setUser(authData.session.user)
           {ilmoitukset.map((ilmo) => (
             <div key={ilmo.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
               <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
-  {ilmo.kuva_url ? (
-    <img
-      src={ilmo.kuva_url}
-      alt={ilmo.otsikko}
-      className="h-full w-full object-cover"
-    />
-  ) : (
-    <span className="text-xs text-gray-400">Ei kuvaa</span>
-  )}
-</div>
+                {ilmo.kuva_url ? (
+                  <img
+                    src={ilmo.kuva_url}
+                    alt={ilmo.otsikko}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-xs text-gray-400">Ei kuvaa</span>
+                )}
+              </div>
 
               <div className="p-4">
                 <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>
                 <p className="text-sm text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
-                <p className="text-xs text-gray-500">{ilmo.sijainti}</p>
+                <p className="text-xs text-gray-500">{ilmo.sijaint}</p>
 
                 <div className="flex items-center text-xs text-gray-500 mt-2 gap-1">
                   <Eye size={14} className="inline-block" />
