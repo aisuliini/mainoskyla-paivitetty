@@ -28,6 +28,7 @@ export default function ProfiiliSivu() {
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
   const [user, setUser] = useState<SupaUser | null>(null)
 
+
   useEffect(() => {
     const haeKayttajaJaIlmoitukset = async () => {
       const { data: authData } = await supabase.auth.getSession()
