@@ -9,6 +9,8 @@ import 'react-day-picker/dist/style.css'
 import { addDays } from 'date-fns'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import imageCompression from 'browser-image-compression'
+import Image from 'next/image'
+
 
 
 
@@ -114,7 +116,8 @@ const handleUpload = async () => {
   // Lataa kuva jos valittu
   if (kuva) {
     const tiedostonimi = `${Date.now()}_${kuva.name}`
-    const { data, error } = await supabase.storage.from('kuvat').upload(tiedostonimi, kuva)
+    const { error } = await supabase.storage.from('kuvat').upload(tiedostonimi, kuva)
+
     if (!error) {
       const { data: publicUrl } = supabase.storage.from('kuvat').getPublicUrl(tiedostonimi)
       kuvaUrl = publicUrl.publicUrl
@@ -318,7 +321,14 @@ const handleUpload = async () => {
 />
 
 
-          {esikatselu && <img src={esikatselu} alt="Esikatselu" className="h-32 rounded shadow" />}
+          {esikatselu && (
+  <img
+    src={esikatselu}
+    alt="Esikatselu"
+    className="h-32 rounded shadow object-cover"
+  />
+)}
+
 
           <label className="block font-medium">Valitse ilmoitustyyppi:</label>
           <select value={tyyppi} onChange={(e) => setTyyppi(e.target.value)} className="w-full border px-4 py-2 rounded">
