@@ -4,9 +4,19 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 
+type TapahtumaIlmoitus = {
+  id: string
+  otsikko: string
+  kuvaus: string
+  sijainti: string
+  kuva_url?: string
+  tapahtuma_alku?: string
+  tapahtuma_loppu?: string
+}
+
 
 export default function TapahtumatPage() {
-  const [ilmoitukset, setIlmoitukset] = useState<any[]>([])
+  const [ilmoitukset, setIlmoitukset] = useState<TapahtumaIlmoitus[]>([])
   const [jarjestys, setJarjestys] = useState<'uusin' | 'vanhin' | 'tulevat'>('tulevat')
   const [haku, setHaku] = useState('')
   const [alkuPaiva, setAlkuPaiva] = useState('')
@@ -35,7 +45,8 @@ export default function TapahtumatPage() {
     const { data, error } = await query
 
     if (!error && data) {
-      const suodatetut = data.filter((ilmo) =>
+      const suodatetut = data.filter((ilmo: TapahtumaIlmoitus) =>
+
         ilmo.otsikko.toLowerCase().includes(haku.toLowerCase()) ||
         ilmo.kuvaus.toLowerCase().includes(haku.toLowerCase()) ||
         ilmo.sijainti.toLowerCase().includes(haku.toLowerCase())
@@ -45,7 +56,8 @@ export default function TapahtumatPage() {
   }
 
   hae()
-}, [jarjestys, haku, alkuPaiva, loppuPaiva])
+  }, [jarjestys, haku, alkuPaiva, loppuPaiva, router])
+
 
 
   return (
@@ -95,11 +107,12 @@ export default function TapahtumatPage() {
                 <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>
                 <p className="text-sm text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
                 <p className="text-xs text-gray-500 mt-1">{ilmo.sijainti}</p>
-                {ilmo.tapahtuma_alku && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    {new Date(ilmo.tapahtuma_alku).toLocaleDateString('fi-FI')} – {new Date(ilmo.tapahtuma_loppu).toLocaleDateString('fi-FI')}
-                  </p>
-                )}
+                {ilmo.tapahtuma_alku && ilmo.tapahtuma_loppu && (
+  <p className="text-xs text-gray-400 mt-1">
+    {new Date(ilmo.tapahtuma_alku).toLocaleDateString('fi-FI')} – {new Date(ilmo.tapahtuma_loppu).toLocaleDateString('fi-FI')}
+  </p>
+)}
+
                 <button
                   onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
                   className="mt-3 px-4 py-2 text-sm bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
