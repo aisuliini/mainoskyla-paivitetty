@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -13,7 +13,7 @@ type Ilmoitus = {
   luotu?: string
 }
 
-export default function AluehakuPage() {
+function AluehakuSisalto() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const hakusana = searchParams.get('sijainti') || ''
@@ -78,5 +78,13 @@ export default function AluehakuPage() {
         </div>
       )}
     </main>
+  )
+}
+
+export default function AluehakuPage() {
+  return (
+    <Suspense fallback={<div className="p-6">Ladataan hakua...</div>}>
+      <AluehakuSisalto />
+    </Suspense>
   )
 }
