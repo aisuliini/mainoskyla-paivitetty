@@ -5,9 +5,19 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { Eye } from 'lucide-react'
 
+type Ilmoitus = {
+  id: string
+  otsikko: string
+  kuvaus: string
+  sijainti: string
+  kuva_url?: string
+  nayttoja?: number
+}
+
 export default function IlmoitusLista() {
-  const [ilmoitukset, setIlmoitukset] = useState<any[]>([])
   const router = useRouter()
+
+const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
 
   useEffect(() => {
     const hae = async () => {

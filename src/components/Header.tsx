@@ -5,11 +5,13 @@ import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
+import type { User } from '@supabase/supabase-js'
+
 
 export default function Header() {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [hakusana, setHakusana] = useState('')
 
   useEffect(() => {

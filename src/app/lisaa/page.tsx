@@ -74,14 +74,21 @@ useEffect(() => {
 
     const paivaLaskuri: { [päivä: string]: number } = {}
 
-    data?.forEach((ilmo: any) => {
-      const alku = new Date(ilmo.premium_alku)
-      const loppu = new Date(ilmo.premium_loppu)
-      for (let d = alku; d <= loppu; d = addDays(d, 1)) {
-        const key = d.toISOString().split('T')[0]
-        paivaLaskuri[key] = (paivaLaskuri[key] || 0) + 1
-      }
-    })
+
+    type PremiumIlmoitus = {
+  premium_alku: string
+  premium_loppu: string
+}
+
+data?.forEach((ilmo: PremiumIlmoitus) => {
+  const alku = new Date(ilmo.premium_alku)
+  const loppu = new Date(ilmo.premium_loppu)
+  for (let d = alku; d <= loppu; d = addDays(d, 1)) {
+    const key = d.toISOString().split('T')[0]
+    paivaLaskuri[key] = (paivaLaskuri[key] || 0) + 1
+  }
+})
+
 
     const punaiset = Object.entries(paivaLaskuri)
       .filter(([_, count]) => count >= 20) // Näytä punaisena vain jos 20+ varattu
