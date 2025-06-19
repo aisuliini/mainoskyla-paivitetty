@@ -18,6 +18,11 @@ export default function LisaaIlmoitus() {
   const [kuvaus, setKuvaus] = useState('')
   const [sijainti, setSijainti] = useState('')
   const [kuva, setKuva] = useState<File | null>(null)
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault()
+  await handleUpload()
+}
+
   const [esikatselu, setEsikatselu] = useState<string>('')
   const [tyyppi, setTyyppi] = useState('perus')
   const [alku, setAlku] = useState<Date | undefined>()
@@ -27,7 +32,22 @@ export default function LisaaIlmoitus() {
   const [sijaintiehdotukset, setSijaintiehdotukset] = useState<string[]>([])
   const [tapahtumaAlku, setTapahtumaAlku] = useState<Date | undefined>()
 const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | undefined>()
-const [user, setUser] = useState<any>(null)
+const [user, setUser] = useState<{ id: string } | null>(null)
+
+useEffect(() => {
+  if (sijainti.length === 0) {
+    setSijaintiehdotukset([])
+    return
+  }
+
+  const ehdotukset = paikkakunnat
+    .filter((nimi: string) =>
+      nimi.toLowerCase().startsWith(sijainti.toLowerCase())
+    )
+    .slice(0, 10)
+
+  setSijaintiehdotukset(ehdotukset)
+}, [sijainti])
 
 
 
@@ -75,24 +95,7 @@ const [user, setUser] = useState<any>(null)
   }
 }, [tyyppi])
 
-
-
-useEffect(() => {
-  if (sijainti.length === 0) {
-    setSijaintiehdotukset([])
-    return
-  }
-
-  const ehdotukset = paikkakunnat.filter((nimi: string) =>
-    nimi.toLowerCase().startsWith(sijainti.toLowerCase())
-  ).slice(0, 10)
-
-  setSijaintiehdotukset(ehdotukset)
-}, [sijainti])
-
-
-const handleSubmit = async (e: any) => {
-  e.preventDefault()
+const handleUpload = async () => {
   const nykyhetki = new Date()
   let kuvaUrl = ''
 
@@ -114,46 +117,39 @@ const handleSubmit = async (e: any) => {
   const loppuDate = alku ? new Date(alku.getTime() + parseInt(kesto) * 86400000) : null
 
   if (tyyppi === 'premium' && alku && loppuDate) {
-    // Etusivun paikkarajoitus
-    if (true) {
-      const { data: aktiiviset } = await supabase
-  .from('ilmoitukset')
-  .select('premium_alku, premium_loppu')
-  .eq('premium', true)
-  .eq('premium_tyyppi', 'etusivu')
-  .not('premium_alku', 'is', null)
-  .not('premium_loppu', 'is', null)
+    const { data: aktiiviset } = await supabase
+      .from('ilmoitukset')
+      .select('premium_alku, premium_loppu')
+      .eq('premium', true)
+      .eq('premium_tyyppi', 'etusivu')
+      .not('premium_alku', 'is', null)
+      .not('premium_loppu', 'is', null)
 
-const paivaLaskuri: { [päivä: string]: number } = {}
+    const paivaLaskuri: { [päivä: string]: number } = {}
+    aktiiviset?.forEach((ilmo) => {
+      const alkuPvm = new Date(ilmo.premium_alku)
+      const loppuPvm = new Date(ilmo.premium_loppu)
+      for (let d = new Date(alkuPvm); d <= loppuPvm; d = addDays(d, 1)) {
+        const key = d.toISOString().split('T')[0]
+        paivaLaskuri[key] = (paivaLaskuri[key] || 0) + 1
+      }
+    })
 
-aktiiviset?.forEach((ilmo) => {
-  const alkuPvm = new Date(ilmo.premium_alku)
-  const loppuPvm = new Date(ilmo.premium_loppu)
-
-  for (let d = new Date(alkuPvm); d <= loppuPvm; d = addDays(d, 1)) {
-    const key = d.toISOString().split('T')[0]
-    paivaLaskuri[key] = (paivaLaskuri[key] || 0) + 1
-  }
-})
-
-const valitutPaivat: Date[] = []
-for (let d = new Date(alku); d <= loppuDate; d = addDays(d, 1)) {
-  valitutPaivat.push(new Date(d))
-}
-
-const ylitykset = valitutPaivat.filter((p) => {
-  const key = p.toISOString().split('T')[0]
-  const maara = paivaLaskuri[key] || 0
-  return maara >= 20
-})
-
-if (ylitykset.length > 0) {
-  alert('Valituilla päivillä ei ole enää vapaata premium-näkyvyyspaikkaa.')
-  return
-}
+    const valitutPaivat: Date[] = []
+    for (let d = new Date(alku); d <= loppuDate; d = addDays(d, 1)) {
+      valitutPaivat.push(new Date(d))
     }
 
-    // Kalenterirajoitus
+    const ylitykset = valitutPaivat.filter((p) => {
+      const key = p.toISOString().split('T')[0]
+      const maara = paivaLaskuri[key] || 0
+      return maara >= 20
+    })
+
+    if (ylitykset.length > 0) {
+      alert('Valituilla päivillä ei ole enää vapaata premium-näkyvyyspaikkaa.')
+      return
+    }
   }
 
   const ilmoitus = {
