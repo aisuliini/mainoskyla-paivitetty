@@ -17,8 +17,8 @@ export default function KuvanLataaja({ onUrl }: Props) {
     setUploading(true)
     const fileName = `${Date.now()}_${file.name}`
 
-    const { data, error } = await supabase.storage
-      .from('ilmoitukset') // varmista että bucketin nimi on tämä
+    const { error } = await supabase.storage
+      .from('ilmoitukset')
       .upload(fileName, file)
 
     if (error) {
@@ -44,14 +44,14 @@ export default function KuvanLataaja({ onUrl }: Props) {
         className="mb-2"
       />
       {file && (
-  <div className="mb-4">
-    <img
-      src={URL.createObjectURL(file)}
-      alt="Esikatselu"
-      className="h-32 w-auto rounded shadow"
-    />
-  </div>
-)}
+        <div className="mb-4">
+          <img
+            src={URL.createObjectURL(file)}
+            alt="Esikatselu"
+            className="h-32 w-auto rounded shadow"
+          />
+        </div>
+      )}
 
       <button
         onClick={handleUpload}

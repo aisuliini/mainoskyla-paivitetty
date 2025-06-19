@@ -63,7 +63,7 @@ export default function AdminPage() {
     }
 
     fetchUserAndData()
-  }, [])
+  }, [router])
 
   const toggleVisible = async (id: string, visible: boolean) => {
     await supabase.from('ilmoitukset').update({ visible: !visible }).eq('id', id)

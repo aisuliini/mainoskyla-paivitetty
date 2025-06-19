@@ -9,7 +9,6 @@ import 'react-day-picker/dist/style.css'
 import { addDays } from 'date-fns'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import imageCompression from 'browser-image-compression'
-import Image from 'next/image'
 
 
 
@@ -93,7 +92,7 @@ data?.forEach((ilmo: PremiumIlmoitus) => {
 
 
     const punaiset = Object.entries(paivaLaskuri)
-      .filter(([_, count]) => count >= 20) // Näytä punaisena vain jos 20+ varattu
+      .filter(([, count]) => count >= 20) // Näytä punaisena vain jos 20+ varattu
       .map(([päivä]) => new Date(päivä))
 
     setVaratutPaivat(punaiset)
