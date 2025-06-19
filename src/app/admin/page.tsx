@@ -19,11 +19,6 @@ type Profiili = {
   admin?: boolean
 }
 
-type SupaUser = {
-  id: string
-  email?: string
-}
-
 export default function AdminPage() {
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
   const [profiilit, setProfiilit] = useState<Profiili[]>([])

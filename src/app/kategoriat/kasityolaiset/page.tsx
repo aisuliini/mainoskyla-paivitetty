@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 
 const PER_PAGE = 12
-const MAX_PREMIUM_KATEGORIA = 3
+
 
 type Ilmoitus = {
   id: string
