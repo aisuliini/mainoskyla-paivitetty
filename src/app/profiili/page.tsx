@@ -6,13 +6,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { Eye } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import type { User } from '@supabase/supabase-js'
 
-
-type SupaUser = {
-  id: string
-  [key: string]: unknown
-}
 
 type Ilmoitus = {
   id: string
@@ -29,7 +23,6 @@ type Ilmoitus = {
 export default function ProfiiliSivu() {
   const router = useRouter()
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
-  const [user, setUser] = useState<User | null>(null)
 
 
   useEffect(() => {
@@ -38,7 +31,7 @@ export default function ProfiiliSivu() {
       const currentUser = authData?.session?.user
       if (!currentUser) return router.push('/kirjaudu')
 
-      setUser(currentUser)
+      // setUser(currentUser) // Removed: no setUser defined or needed
 
       const { error, data } = await supabase
         .from('ilmoitukset')

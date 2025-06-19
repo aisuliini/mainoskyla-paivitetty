@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
-import { format, addDays, isSameDay } from 'date-fns'
 import { fi } from 'date-fns/locale'
 import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
+import { addDays } from 'date-fns'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import imageCompression from 'browser-image-compression'
 
@@ -14,7 +14,6 @@ import imageCompression from 'browser-image-compression'
 
 export default function LisaaIlmoitus() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
   const [otsikko, setOtsikko] = useState('')
   const [kuvaus, setKuvaus] = useState('')
   const [sijainti, setSijainti] = useState('')
@@ -24,20 +23,21 @@ export default function LisaaIlmoitus() {
   const [alku, setAlku] = useState<Date | undefined>()
   const [kesto, setKesto] = useState('7')
   const [kategoria, setKategoria] = useState('')
-  const [premiumTyyppi, setPremiumTyyppi] = useState('etusivu')
   const [varatutPaivat, setVaratutPaivat] = useState<Date[]>([])
-  const [hinta, setHinta] = useState('0 €')
   const [sijaintiehdotukset, setSijaintiehdotukset] = useState<string[]>([])
   const [tapahtumaAlku, setTapahtumaAlku] = useState<Date | undefined>()
 const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | undefined>()
+const [user, setUser] = useState<any>(null)
+
 
 
   useEffect(() => {
   const haeKayttaja = async () => {
     const { data: sessionData } = await supabase.auth.getSession()
     if (sessionData?.session?.user) {
-      setUser(sessionData.session.user)
-    }
+  setUser(sessionData.session.user)
+}
+
   }
   haeKayttaja()
 }, [])
@@ -91,20 +91,6 @@ useEffect(() => {
 }, [sijainti])
 
 
-  useEffect(() => {
-    if (tyyppi === 'perus') {
-      if (kesto === '7') setHinta('0,90 €')
-      else if (kesto === '14') setHinta('1,40 €')
-      else if (kesto === '30') setHinta('1,90 €')
-    } else if (tyyppi === 'nosto') setHinta('0,90 €')
-    else if (tyyppi === 'premium') {
-  if (kesto === '7') setHinta('6,90 €')
-  else if (kesto === '14') setHinta('9,90 €')
-  else if (kesto === '30') setHinta('14,90 €')
-    }
-  }, [tyyppi, kesto])
-
-
 const handleSubmit = async (e: any) => {
   e.preventDefault()
   const nykyhetki = new Date()
@@ -129,7 +115,7 @@ const handleSubmit = async (e: any) => {
 
   if (tyyppi === 'premium' && alku && loppuDate) {
     // Etusivun paikkarajoitus
-    if (premiumTyyppi === 'etusivu') {
+    if (true) {
       const { data: aktiiviset } = await supabase
   .from('ilmoitukset')
   .select('premium_alku, premium_loppu')

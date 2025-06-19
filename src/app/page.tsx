@@ -6,7 +6,6 @@ import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
-import { Eye } from 'lucide-react'
 import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 import ehdotukset from '@/data/ehdotusdata.json'
 

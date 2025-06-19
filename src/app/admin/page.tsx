@@ -27,7 +27,6 @@ type SupaUser = {
 export default function AdminPage() {
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
   const [profiilit, setProfiilit] = useState<Profiili[]>([])
-  const [user, setUser] = useState<SupaUser | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -48,8 +47,6 @@ export default function AdminPage() {
         router.push('/')
         return
       }
-
-      setUser(user)
 
       const { data: ilmoituksetData } = await supabase
         .from('ilmoitukset')

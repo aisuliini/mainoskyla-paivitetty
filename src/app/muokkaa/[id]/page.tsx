@@ -70,7 +70,6 @@ export default function MuokkaaIlmoitus() {
   }
 
   if (!ilmoitus) return <p className="p-6">Ladataan ilmoitusta...</p>
-  if (ilmoitus.user_id !== userId) return <p className="p-6 text-red-600">Sinulla ei ole oikeutta muokata tätä ilmoitusta.</p>
 
   return (
     <section className="max-w-xl mx-auto py-8 px-4">
