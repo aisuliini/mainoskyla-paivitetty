@@ -4,17 +4,37 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 
+type Ilmoitus = {
+  id: string
+  otsikko: string
+  paikkakunta?: string
+  created_at: string
+  visible: boolean
+  premium: boolean
+}
+
+type Profiili = {
+  id: string
+  nimi?: string
+  admin?: boolean
+}
+
+type SupaUser = {
+  id: string
+  email?: string
+}
+
 export default function AdminPage() {
-  const [ilmoitukset, setIlmoitukset] = useState<any[]>([])
-  const [profiilit, setProfiilit] = useState<any[]>([])
-  const [user, setUser] = useState<any>(null)
+  const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
+  const [profiilit, setProfiilit] = useState<Profiili[]>([])
+  const [user, setUser] = useState<SupaUser | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     const fetchUserAndData = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        router.push('/') // ei kirjautunut
+        router.push('/')
         return
       }
 
@@ -25,7 +45,7 @@ export default function AdminPage() {
         .single()
 
       if (profileError || !profile?.admin) {
-        router.push('/') // ei admin
+        router.push('/')
         return
       }
 
@@ -37,7 +57,7 @@ export default function AdminPage() {
         .order('created_at', { ascending: false })
 
       if (ilmoituksetData) {
-        setIlmoitukset(ilmoituksetData)
+        setIlmoitukset(ilmoituksetData as Ilmoitus[])
       }
 
       const { data: profiilitData } = await supabase
@@ -46,7 +66,7 @@ export default function AdminPage() {
         .order('created_at', { ascending: false })
 
       if (profiilitData) {
-        setProfiilit(profiilitData)
+        setProfiilit(profiilitData as Profiili[])
       }
     }
 

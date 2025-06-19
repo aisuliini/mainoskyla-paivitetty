@@ -4,10 +4,20 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 
+type Ilmoitus = {
+  id: string
+  user_id: string
+  otsikko: string
+  kuvaus: string
+  sijainti: string
+  kategoria: string
+  kuva_url?: string
+}
+
 export default function MuokkaaIlmoitus() {
   const router = useRouter()
-  const { id } = useParams()
-  const [ilmoitus, setIlmoitus] = useState<any>(null)
+  const { id } = useParams() as { id: string }
+  const [ilmoitus, setIlmoitus] = useState<Ilmoitus | null>(null)
   const [userId, setUserId] = useState<string>('')
   const [otsikko, setOtsikko] = useState('')
   const [kuvaus, setKuvaus] = useState('')
@@ -34,14 +44,14 @@ export default function MuokkaaIlmoitus() {
     if (id) haeData()
   }, [id])
 
-  const paivitaIlmoitus = async (e: any) => {
+  const paivitaIlmoitus = async (e: React.FormEvent) => {
     e.preventDefault()
     if (ilmoitus?.user_id !== userId) return alert('Et voi muokata tätä ilmoitusta.')
 
     let uusiKuvaUrl = kuvaPreview
     if (kuvaFile) {
       const tiedostoNimi = `${Date.now()}-${kuvaFile.name}`
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('kuvat')
         .upload(tiedostoNimi, kuvaFile, { cacheControl: '3600', upsert: false })
 

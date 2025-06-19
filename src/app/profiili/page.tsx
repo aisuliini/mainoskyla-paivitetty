@@ -6,10 +6,12 @@ import { supabase } from '@/lib/supabaseClient'
 import { Eye } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import type { User } from '@supabase/supabase-js'
+
 
 type SupaUser = {
   id: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 type Ilmoitus = {
@@ -21,28 +23,32 @@ type Ilmoitus = {
   nayttoja?: number
   luotu?: string
   nostettu_at?: string
+  user_id?: string
 }
 
 export default function ProfiiliSivu() {
   const router = useRouter()
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
-  const [user, setUser] = useState<SupaUser | null>(null)
+  const [user, setUser] = useState<User | null>(null)
 
 
   useEffect(() => {
     const haeKayttajaJaIlmoitukset = async () => {
       const { data: authData } = await supabase.auth.getSession()
-      if (!authData?.session?.user) return router.push('/kirjaudu')
-      setUser(authData.session.user)
+      const currentUser = authData?.session?.user
+      if (!currentUser) return router.push('/kirjaudu')
+
+      setUser(currentUser)
 
       const { error, data } = await supabase
         .from('ilmoitukset')
         .select('*')
-        .eq('user_id', authData.session.user.id)
+        .eq('user_id', currentUser.id)
         .order('luotu', { ascending: false })
 
-      if (!error && data) setIlmoitukset(data as Ilmoitus[])
+      if (!error && data) setIlmoitukset(data)
     }
+
     haeKayttajaJaIlmoitukset()
   }, [router])
 
@@ -69,6 +75,7 @@ export default function ProfiiliSivu() {
   return (
     <main className="max-w-screen-xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Omat ilmoitukset</h1>
+
       {ilmoitukset.length === 0 ? (
         <p>Sinulla ei ole vielä ilmoituksia.</p>
       ) : (

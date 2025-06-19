@@ -28,6 +28,9 @@ export default function LisaaIlmoitus() {
   const [varatutPaivat, setVaratutPaivat] = useState<Date[]>([])
   const [hinta, setHinta] = useState('0 €')
   const [sijaintiehdotukset, setSijaintiehdotukset] = useState<string[]>([])
+  const [tapahtumaAlku, setTapahtumaAlku] = useState<Date | undefined>()
+const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | undefined>()
+
 
   useEffect(() => {
   const haeKayttaja = async () => {
@@ -165,29 +168,6 @@ if (ylitykset.length > 0) {
     }
 
     // Kalenterirajoitus
-    // Kalenterirajoitus
-const valitutPaivat: Date[] = []
-const paivaLaskuri: { [päivä: string]: number } = {}
-
-for (let d = new Date(alku); d <= loppuDate; d = addDays(d, 1)) {
-  valitutPaivat.push(new Date(d))
-}
-
-varatutPaivat.forEach((p) => {
-  const key = p.toISOString().split('T')[0]
-  paivaLaskuri[key] = (paivaLaskuri[key] || 0) + 1
-})
-
-const ylitykset = valitutPaivat.filter((p) => {
-  const key = p.toISOString().split('T')[0]
-  const maara = paivaLaskuri[key] || 0
-  return maara >= 20
-})
-
-if (ylitykset.length > 0) {
-  alert('Valituilla päivillä ei ole enää vapaata premium-näkyvyyspaikkaa.')
-  return
-}
   }
 
   const ilmoitus = {
@@ -202,7 +182,10 @@ if (ylitykset.length > 0) {
     premium_alku: tyyppi === 'premium' ? alku?.toISOString() : null,
     premium_loppu: tyyppi === 'premium' ? loppuDate?.toISOString() : null,
     premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
-    luotu: nykyhetki.toISOString()
+    nayttoja: 0,
+    luotu: nykyhetki.toISOString(),
+    tapahtuma_alku: kategoria === 'Tapahtumat' ? tapahtumaAlku?.toISOString() : null,
+    tapahtuma_loppu: kategoria === 'Tapahtumat' ? tapahtumaLoppu?.toISOString() : null,
   }
 
   const { error } = await supabase.from('ilmoitukset').insert(ilmoitus)
@@ -283,6 +266,7 @@ if (ylitykset.length > 0) {
           </div>
 
           <select value={kategoria} onChange={(e) => setKategoria(e.target.value)} required className="w-full border px-4 py-2 rounded">
+
             <option value="">Valitse kategoria</option>
             <option value="Palvelut">Palvelut</option>
             <option value="Hyvinvointi ja Kauneus">Hyvinvointi ja Kauneus</option>
@@ -298,6 +282,27 @@ if (ylitykset.length > 0) {
             <option value="Vapaa-aika">Vapaa-aika</option>
             <option value="Muut">Muut</option>
           </select>
+
+          { kategoria === 'Tapahtumat' && (
+  <>
+    <label className="block">Tapahtuman alkupäivä:</label>
+    <DayPicker
+      mode="single"
+      selected={tapahtumaAlku}
+      onSelect={setTapahtumaAlku}
+      locale={fi}
+    />
+
+    <label className="block">Tapahtuman loppupäivä:</label>
+    <DayPicker
+      mode="single"
+      selected={tapahtumaLoppu}
+      onSelect={setTapahtumaLoppu}
+      locale={fi}
+    />
+  </>
+)}
+
 
           <input
   type="file"

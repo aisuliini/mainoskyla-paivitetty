@@ -82,10 +82,28 @@ export default function Home() {
 
 
 
-  const avaaIlmoitus = (ilmo: PremiumIlmoitus) => {
+  const avaaIlmoitus = async (ilmo: PremiumIlmoitus) => {
+  if (!ilmo.id.startsWith('tyhja-')) {
+    const { data, error } = await supabase
+      .from('ilmoitukset')
+      .update({ nayttoja: (ilmo.nayttoja || 0) + 1 })
+      .eq('id', ilmo.id)
+      .select('nayttoja')
+      .single()
+
+    if (!error && data) {
+      setPremiumIlmoitukset((prev) =>
+        prev.map((i) =>
+          i.id === ilmo.id ? { ...i, nayttoja: data.nayttoja } : i
+        )
+      )
+    }
+  }
 
   router.push(`/ilmoitukset/${ilmo.id}`)
 }
+
+
 
 
   const kategoriat = [

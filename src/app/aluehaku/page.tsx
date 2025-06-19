@@ -4,11 +4,20 @@ import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 
+type Ilmoitus = {
+  id: string
+  otsikko: string
+  kuvaus: string
+  sijainti: string
+  kuva_url?: string
+  luotu?: string
+}
+
 export default function AluehakuPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const hakusana = searchParams.get('sijainti') || ''
-  const [ilmoitukset, setIlmoitukset] = useState<any[]>([])
+  const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
 
   useEffect(() => {
     const hae = async () => {
@@ -20,14 +29,13 @@ export default function AluehakuPage() {
         .or(`sijainti.ilike.*${hakusana}*,otsikko.ilike.*${hakusana}*,kuvaus.ilike.*${hakusana}*`)
         .order('luotu', { ascending: false })
 
-      if (!error && data) setIlmoitukset(data)
+      if (!error && data) setIlmoitukset(data as Ilmoitus[])
     }
     hae()
-  }, [hakusana])
+  }, [hakusana, router])
 
   return (
     <main className="max-w-screen-xl mx-auto p-6">
-      {/* 🆕 Hakukenttä aluehaun yläosaan */}
       <div className="mb-6 max-w-md">
         <input
           type="text"

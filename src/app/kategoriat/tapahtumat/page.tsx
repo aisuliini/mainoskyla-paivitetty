@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
+import type { User } from '@supabase/supabase-js'
+
 
 export default function TapahtumatPage() {
   const [ilmoitukset, setIlmoitukset] = useState<any[]>([])
@@ -13,34 +15,39 @@ export default function TapahtumatPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const hae = async () => {
-      const nyt = new Date().toISOString()
-      let query = supabase.from('ilmoitukset').select('*').eq('kategoria', 'Tapahtumat')
+  const hae = async () => {
+    const nyt = new Date().toISOString()
+    let query = supabase.from('ilmoitukset').select('*').eq('kategoria', 'Tapahtumat')
 
-      if (jarjestys === 'tulevat') {
-        query = query.gte('tapahtuma_loppu', nyt).order('tapahtuma_alku', { ascending: true })
-      } else if (jarjestys === 'uusin') {
-        query = query.order('luotu', { ascending: false })
-      } else if (jarjestys === 'vanhin') {
-        query = query.order('luotu', { ascending: true })
-      }
-
-      if (alkuPaiva) query = query.gte('tapahtuma_alku', alkuPaiva)
-      if (loppuPaiva) query = query.lte('tapahtuma_loppu', loppuPaiva)
-
-      const { data, error } = await query
-
-      if (!error && data) {
-        const suodatetut = data.filter((ilmo) =>
-          ilmo.otsikko.toLowerCase().includes(haku.toLowerCase()) ||
-          ilmo.kuvaus.toLowerCase().includes(haku.toLowerCase()) ||
-          ilmo.sijainti.toLowerCase().includes(haku.toLowerCase())
-        )
-        setIlmoitukset(suodatetut)
-      }
+    // Järjestys
+    if (jarjestys === 'tulevat') {
+      query = query.gte('tapahtuma_loppu', nyt).order('tapahtuma_alku', { ascending: true })
+    } else if (jarjestys === 'uusin') {
+      query = query.order('luotu', { ascending: false })
+    } else if (jarjestys === 'vanhin') {
+      query = query.order('luotu', { ascending: true })
     }
-    hae()
-  }, [jarjestys, haku, alkuPaiva, loppuPaiva])
+
+    // Päivämäärähaku: näytä tapahtumat, jotka osuvat hakuajanjaksoon
+    if (alkuPaiva && loppuPaiva) {
+      query = query.or(`and(tapahtuma_alku.lte.${loppuPaiva},tapahtuma_loppu.gte.${alkuPaiva})`)
+    }
+
+    const { data, error } = await query
+
+    if (!error && data) {
+      const suodatetut = data.filter((ilmo) =>
+        ilmo.otsikko.toLowerCase().includes(haku.toLowerCase()) ||
+        ilmo.kuvaus.toLowerCase().includes(haku.toLowerCase()) ||
+        ilmo.sijainti.toLowerCase().includes(haku.toLowerCase())
+      )
+      setIlmoitukset(suodatetut)
+    }
+  }
+
+  hae()
+}, [jarjestys, haku, alkuPaiva, loppuPaiva])
+
 
   return (
     <main className="max-w-screen-xl mx-auto p-6">
@@ -49,7 +56,8 @@ export default function TapahtumatPage() {
       <div className="mb-4 flex flex-wrap items-center gap-4">
         <div>
           <label className="mr-2">Järjestä:</label>
-          <select value={jarjestys} onChange={(e) => setJarjestys(e.target.value as any)} className="border px-3 py-1 rounded">
+          <select value={jarjestys} onChange={(e) => setJarjestys(e.target.value as 'uusin' | 'vanhin' | 'tulevat')}
+           className="border px-3 py-1 rounded">
             <option value="tulevat">Seuraavat tapahtumat</option>
             <option value="uusin">Uusin ensin</option>
             <option value="vanhin">Vanhin ensin</option>

@@ -5,13 +5,14 @@ import { supabase } from '@/lib/supabaseClient'
 import Link from 'next/link'
 
 type Ilmoitus = {
-  id: number
+  id: string
   otsikko: string
   kuvaus: string
   sijainti: string
   kuva_url: string
   kategoria: string
   luotu: string
+  nayttoja?: number 
 }
 
 export default function IlmoituksetSivu() {
@@ -25,15 +26,11 @@ export default function IlmoituksetSivu() {
       const { data, error } = await supabase
         .from('ilmoitukset')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('luotu', { ascending: false })
 
       if (!error && data) {
-  const muunnetut = data.map((ilmo) => ({
-    ...ilmo,
-    luotu: ilmo.created_at,
-  }))
-  setIlmoitukset(muunnetut)
-}
+        setIlmoitukset(data as Ilmoitus[])
+      }
 
       setLoading(false)
     }
@@ -98,26 +95,30 @@ export default function IlmoituksetSivu() {
                 />
               )}
               <h2 className="font-semibold text-lg text-[#4a7c59] break-words line-clamp-2">
-  {ilmoitus.otsikko}
-</h2>
+                {ilmoitus.otsikko}
+              </h2>
 
               <p className="text-sm text-[#333]">{ilmoitus.kuvaus}</p>
               <p className="text-xs text-[#777] mt-2">{ilmoitus.sijainti}</p>
-              <p className="text-xs text-[#aaa]">Julkaistu: {new Date(ilmoitus.luotu).toLocaleDateString('fi-FI', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-})}{' klo '}
-{new Date(ilmoitus.luotu).toLocaleTimeString('fi-FI', {
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-})}
 
-</p>
+              <p className="text-xs text-[#aaa]">
+                Julkaistu:{' '}
+                {new Date(ilmoitus.luotu).toLocaleDateString('fi-FI', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                })}{' klo '}
+                {new Date(ilmoitus.luotu).toLocaleTimeString('fi-FI', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false,
+                })}
+              </p>
 
               <p className="text-xs text-[#444] mt-1 italic">{ilmoitus.kategoria}</p>
-
+                <p className="text-xs text-gray-500 mt-1">
+                👁️ {ilmoitus.nayttoja || 0} katselukertaa
+                </p>
 
               <Link
                 href={`/ilmoitukset/${ilmoitus.id}`}

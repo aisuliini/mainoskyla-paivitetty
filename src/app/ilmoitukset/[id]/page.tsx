@@ -4,30 +4,48 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 
+type Ilmoitus = {
+  id: string
+  otsikko: string
+  kuvaus: string
+  kuva_url?: string
+  nayttoja?: number
+  luotu: string
+}
+
 export default function IlmoitusSivu() {
   const params = useParams()
-  const [ilmoitus, setIlmoitus] = useState<any>(null)
+  const id = typeof params.id === 'string' ? params.id : Array.isArray(params.id) ? params.id[0] : ''
+  const [ilmoitus, setIlmoitus] = useState<Ilmoitus | null>(null)
 
   useEffect(() => {
     const haeJaKasvata = async () => {
-      const { data } = await supabase
+      if (!id) return
+
+      const { data: alkuData } = await supabase
         .from('ilmoitukset')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', id)
         .single()
 
-      if (data) {
-        setIlmoitus(data)
-
+      if (alkuData) {
         await supabase
           .from('ilmoitukset')
-          .update({ nayttoja: (data.nayttoja || 0) + 1 })
-          .eq('id', data.id)
+          .update({ nayttoja: (alkuData.nayttoja || 0) + 1 })
+          .eq('id', id)
+
+        const { data: uusiData } = await supabase
+          .from('ilmoitukset')
+          .select('*')
+          .eq('id', id)
+          .single()
+
+        if (uusiData) setIlmoitus(uusiData as Ilmoitus)
       }
     }
 
-    if (params.id) haeJaKasvata()
-  }, [params.id])
+    haeJaKasvata()
+  }, [id])
 
   if (!ilmoitus) return <p className="p-6">Ladataan ilmoitusta...</p>
 
@@ -43,8 +61,8 @@ export default function IlmoitusSivu() {
       <h1 className="text-2xl font-bold mb-2 break-words line-clamp-2">{ilmoitus.otsikko}</h1>
 
       <p className="text-sm text-gray-500 mb-2">
-  Julkaistu: {new Date(ilmoitus.luotu).toLocaleString('fi-FI')}
-</p>
+        Julkaistu: {new Date(ilmoitus.luotu).toLocaleString('fi-FI')}
+      </p>
 
       <p className="text-gray-800 mb-4">{ilmoitus.kuvaus}</p>
       <p className="text-xs text-gray-500">{ilmoitus.nayttoja || 0} katselukertaa</p>
