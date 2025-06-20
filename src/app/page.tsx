@@ -1,4 +1,5 @@
-import { Suspense } from 'react'
+'use client'
+
 import dynamic from 'next/dynamic'
 
 const Etusivu = dynamic(() => import('./Etusivu').then(mod => mod.default), {
@@ -6,9 +7,5 @@ const Etusivu = dynamic(() => import('./Etusivu').then(mod => mod.default), {
 })
 
 export default function Page() {
-  return (
-    <Suspense fallback={<div>Ladataan...</div>}>
-      <Etusivu />
-    </Suspense>
-  )
+  return <Etusivu />
 }
