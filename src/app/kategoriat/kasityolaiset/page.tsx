@@ -1,3 +1,6 @@
+'use client'
+
+
 import dynamic from 'next/dynamic'
 
 const KasityolaisetClient = dynamic(() => import('./KasityolaisetClient').then(mod => mod.default), {

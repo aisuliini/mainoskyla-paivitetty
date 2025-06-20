@@ -1,3 +1,5 @@
+'use client'
+
 import dynamic from 'next/dynamic'
 
 const VapaaAikaClient = dynamic(() => import('./VapaaAikaClient').then(mod => mod.default), {

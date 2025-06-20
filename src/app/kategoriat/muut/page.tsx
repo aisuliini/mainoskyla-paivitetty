@@ -1,3 +1,5 @@
+'use client'
+
 import dynamic from 'next/dynamic'
 
 const MuutClient = dynamic(() => import('./MuutClient').then(mod => mod.default), {

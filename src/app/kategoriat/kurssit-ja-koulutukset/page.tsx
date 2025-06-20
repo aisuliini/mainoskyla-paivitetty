@@ -1,3 +1,5 @@
+'use client'
+
 import dynamic from 'next/dynamic'
 
 const KurssitJaKoulutuksetClient = dynamic(() => import('./KurssitJaKoulutuksetClient').then(mod => mod.default), {

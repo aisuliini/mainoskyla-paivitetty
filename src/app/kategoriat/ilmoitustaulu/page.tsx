@@ -1,3 +1,5 @@
+'use client'
+
 import dynamic from 'next/dynamic'
 
 const IlmoitustauluClient = dynamic(() => import('./IlmoitustauluClient').then(mod => mod.default), {
