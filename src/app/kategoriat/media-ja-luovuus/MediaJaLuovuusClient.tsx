@@ -16,7 +16,7 @@ type Ilmoitus = {
   luotu?: string
 }
 
-export default function MediaJaLuovuusPage() {
+export default function MediaJaLuovuusClientPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])

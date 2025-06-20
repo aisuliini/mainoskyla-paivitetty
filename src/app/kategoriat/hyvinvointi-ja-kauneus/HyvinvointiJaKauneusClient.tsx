@@ -16,7 +16,7 @@ type Ilmoitus = {
   luotu?: string
 }
 
-export default function HyvinvointiJaKauneusPage() {
+export default function HyvinvointiJaKauneusClientPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])

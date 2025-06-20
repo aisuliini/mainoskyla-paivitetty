@@ -17,7 +17,7 @@ type Ilmoitus = {
   luotu?: string
 }
 
-export default function KurssitJAKoulutuksetPage() {
+export default function KurssitJAKoulutuksetClientPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])

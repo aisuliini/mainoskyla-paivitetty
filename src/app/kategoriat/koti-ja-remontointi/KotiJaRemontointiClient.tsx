@@ -16,7 +16,7 @@ type Ilmoitus = {
   luotu?: string
 }
 
-export default function KotiJARemontointiPage() {
+export default function KotiJARemontointiClientPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])

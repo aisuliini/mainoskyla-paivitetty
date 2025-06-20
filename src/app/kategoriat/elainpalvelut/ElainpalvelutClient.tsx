@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
+ 
 
 const PER_PAGE = 12
 
@@ -16,7 +17,7 @@ type Ilmoitus = {
   luotu?: string
 }
 
-export default function EläinpalvelutPage() {
+export default function ElainpalvelutClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])

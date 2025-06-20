@@ -15,7 +15,7 @@ type TapahtumaIlmoitus = {
 }
 
 
-export default function TapahtumatPage() {
+export default function TapahtumatClientPage() {
   const [ilmoitukset, setIlmoitukset] = useState<TapahtumaIlmoitus[]>([])
   const [jarjestys, setJarjestys] = useState<'uusin' | 'vanhin' | 'tulevat'>('tulevat')
   const [haku, setHaku] = useState('')
