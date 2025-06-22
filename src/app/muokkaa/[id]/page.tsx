@@ -9,6 +9,10 @@ import { addDays } from 'date-fns'
 import { fi } from 'date-fns/locale'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import imageCompression from 'browser-image-compression'
+import Cropper from 'react-easy-crop'
+import getCroppedImg from '@/utils/cropImage'
+import { Area } from 'react-easy-crop'
+
 
 type Ilmoitus = {
   id: string
@@ -46,6 +50,10 @@ export default function MuokkaaIlmoitusta() {
   const [tapahtumaAlku, setTapahtumaAlku] = useState<Date | undefined>()
   const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | undefined>()
   const [sijaintiehdotukset, setSijaintiehdotukset] = useState<string[]>([])
+const [crop, setCrop] = useState({ x: 0, y: 0 })
+const [zoom, setZoom] = useState(1)
+const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
+const [showCropper, setShowCropper] = useState(false)
 
   useEffect(() => {
     if (!ilmoitusId) return
@@ -247,36 +255,70 @@ export default function MuokkaaIlmoitusta() {
         )}
 
         <input
-          type="file"
-          accept="image/*"
-          onChange={async (e) => {
-            const tiedosto = e.target.files?.[0]
-            if (!tiedosto) return
+  type="file"
+  accept="image/*"
+  onChange={async (e) => {
+    const tiedosto = e.target.files?.[0]
+    if (!tiedosto) return
 
-            try {
-              const pakattu = await imageCompression(tiedosto, {
-                maxSizeMB: 0.5,
-                maxWidthOrHeight: 1200,
-                useWebWorker: true,
-              })
+    try {
+      const pakattu = await imageCompression(tiedosto, {
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 1200,
+        useWebWorker: true,
+      })
 
-              setEsikatselu(URL.createObjectURL(pakattu))
-              setKuva(pakattu)
-            } catch (err) {
-              console.error('Kuvan pakkaus epäonnistui:', err)
-              alert('Kuvan pakkaus epäonnistui.')
-            }
-          }}
-          className="w-full"
-        />
+      const reader = new FileReader()
+      reader.readAsDataURL(pakattu)
+      reader.onload = () => {
+        setEsikatselu(reader.result as string)
+        setShowCropper(true)
+      }
 
-        {esikatselu && (
-          <img
-            src={esikatselu}
-            alt="Esikatselu"
-            className="h-32 rounded shadow object-cover"
-          />
-        )}
+    
+    } catch (err) {
+      console.error('Kuvan pakkaus epäonnistui:', err)
+      alert('Kuvan pakkaus epäonnistui.')
+    }
+  }}
+  className="w-full"
+/>
+
+{showCropper && esikatselu && (
+  <div className="relative w-full h-64 bg-gray-200">
+    <Cropper
+      image={esikatselu}
+      crop={crop}
+      zoom={zoom}
+      aspect={4 / 3}
+      onCropChange={setCrop}
+      onZoomChange={setZoom}
+      onCropComplete={(_: Area, croppedAreaPixels: Area) => setCroppedAreaPixels(croppedAreaPixels)}
+
+    />
+    <button
+      type="button"
+      onClick={async () => {
+        if (!esikatselu || !croppedAreaPixels) return
+        const croppedFile = await getCroppedImg(esikatselu, croppedAreaPixels)
+        setKuva(croppedFile)
+        setEsikatselu(URL.createObjectURL(croppedFile))
+        setShowCropper(false)
+      }}
+      className="absolute bottom-2 right-2 bg-green-600 text-white px-4 py-2 rounded"
+    >
+      Käytä rajattua kuvaa
+    </button>
+  </div>
+)}
+
+{esikatselu && !showCropper && (
+  <img
+    src={esikatselu}
+    alt="Esikatselu"
+    className="h-32 rounded shadow object-cover"
+  />
+)}
 
         <label>Valitse ilmoitustyyppi:</label>
         <select value={tyyppi} onChange={(e) => setTyyppi(e.target.value)} className="w-full border px-4 py-2 rounded">
