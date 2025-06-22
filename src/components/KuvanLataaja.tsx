@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import Cropper from 'react-easy-crop'
 import getCroppedImg from '../utils/cropImage'
+import type { Area } from 'react-easy-crop'
 
 type Props = {
   onImageCropped: (croppedFile: Blob) => void
 }
-
 
 const Button = (props: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
   <button
@@ -20,7 +20,7 @@ export default function KuvanLataaja({ onImageCropped }: Props) {
   const [imageSrc, setImageSrc] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -33,8 +33,8 @@ export default function KuvanLataaja({ onImageCropped }: Props) {
     }
   }
 
-  const onCropComplete = (_: any, croppedAreaPixels: any) => {
-    setCroppedAreaPixels(croppedAreaPixels)
+  const onCropComplete = (_: Area, cropped: Area) => {
+    setCroppedAreaPixels(cropped)
   }
 
   const handleDone = async () => {
@@ -43,7 +43,7 @@ export default function KuvanLataaja({ onImageCropped }: Props) {
     if (croppedBlob) {
       const file = new File([croppedBlob], 'cropped.jpg', { type: 'image/jpeg' })
       onImageCropped(file)
-      setImageSrc(null) // reset view
+      setImageSrc(null)
     }
   }
 

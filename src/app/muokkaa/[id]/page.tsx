@@ -269,11 +269,15 @@ const [showCropper, setShowCropper] = useState(false)
       })
 
       const reader = new FileReader()
-      reader.readAsDataURL(pakattu)
-      reader.onload = () => {
-        setEsikatselu(reader.result as string)
-        setShowCropper(true)
-      }
+reader.onload = (event: ProgressEvent<FileReader>) => {
+  const tulos = event.target?.result
+  if (typeof tulos === 'string') {
+    setEsikatselu(tulos)
+    setShowCropper(true)
+  }
+}
+reader.readAsDataURL(pakattu)
+
 
     
     } catch (err) {
