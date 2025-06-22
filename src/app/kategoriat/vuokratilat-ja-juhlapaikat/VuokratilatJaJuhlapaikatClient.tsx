@@ -33,7 +33,7 @@ export default function VuokraJaJuhlatilatClientPage() {
       let query = supabase
         .from('ilmoitukset')
         .select('*')
-        .eq('kategoria', 'Vuokratilat ja juhlatilat')
+        .eq('kategoria', 'Vuokratilat ja Juhlatilat')
 
       if (jarjestys === 'uusin') query = query.order('luotu', { ascending: false })
       if (jarjestys === 'vanhin') query = query.order('luotu', { ascending: true })

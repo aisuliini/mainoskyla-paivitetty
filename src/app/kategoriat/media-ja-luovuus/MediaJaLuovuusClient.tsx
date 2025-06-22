@@ -33,7 +33,7 @@ export default function MediaJaLuovuusClientPage() {
       let query = supabase
         .from('ilmoitukset')
         .select('*')
-        .eq('kategoria', 'Media ja luovuus')
+        .eq('kategoria', 'Media ja Luovuus')
 
       if (jarjestys === 'uusin') query = query.order('luotu', { ascending: false })
       if (jarjestys === 'vanhin') query = query.order('luotu', { ascending: true })

@@ -8,6 +8,8 @@ import { useRouter } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
 
 
+
+
 export default function Header() {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -112,13 +114,24 @@ export default function Header() {
               </button>
             </>
           ) : (
-            <Link
-              href="/kirjaudu"
-              onClick={() => setOpen(false)}
-              className="mt-2 block bg-green-700 text-white px-4 py-1 rounded hover:bg-green-800"
-            >
-              Kirjaudu
-            </Link>
+            <>
+  <Link
+    href="/kirjaudu"
+    onClick={() => setOpen(false)}
+    className="block mb-2 bg-green-700 text-white px-4 py-1 rounded hover:bg-green-800"
+  >
+    Kirjaudu
+  </Link>
+  <Link
+    href="/rekisteroidy"
+    onClick={() => setOpen(false)}
+    className="block bg-gray-100 text-gray-800 px-4 py-1 rounded hover:bg-gray-200"
+  >
+    Rekisteröidy
+  </Link>
+</>
+
+
           )}
         </div>
       )}

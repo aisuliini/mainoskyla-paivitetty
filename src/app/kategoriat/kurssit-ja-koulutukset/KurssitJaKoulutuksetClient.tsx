@@ -34,7 +34,7 @@ export default function KurssitJAKoulutuksetClientPage() {
       let query = supabase
         .from('ilmoitukset')
         .select('*')
-        .eq('kategoria', 'Kurssit ja koulutukset')
+        .eq('kategoria', 'Kurssit ja Koulutukset')
 
       if (jarjestys === 'uusin') query = query.order('luotu', { ascending: false })
       if (jarjestys === 'vanhin') query = query.order('luotu', { ascending: true })

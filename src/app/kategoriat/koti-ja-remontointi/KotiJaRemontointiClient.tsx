@@ -33,7 +33,7 @@ export default function KotiJARemontointiClientPage() {
       let query = supabase
         .from('ilmoitukset')
         .select('*')
-        .eq('kategoria', 'Koti ja remontointi')
+        .eq('kategoria', 'Koti ja Remontointi')
 
       if (jarjestys === 'uusin') query = query.order('luotu', { ascending: false })
       if (jarjestys === 'vanhin') query = query.order('luotu', { ascending: true })
