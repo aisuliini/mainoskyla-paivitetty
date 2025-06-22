@@ -10,12 +10,27 @@ import { fi } from 'date-fns/locale'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import imageCompression from 'browser-image-compression'
 
+type Ilmoitus = {
+  id: string
+  otsikko: string
+  kuvaus: string
+  sijainti: string
+  kategoria: string
+  maksuluokka: string
+  kuva_url: string | null
+  premium_alku?: string
+  premium_loppu?: string
+  premium_tyyppi?: string
+  tapahtuma_alku?: string
+  tapahtuma_loppu?: string
+}
+
 export default function MuokkaaIlmoitusta() {
   const router = useRouter()
   const params = useParams()
   const ilmoitusId = params?.id as string
 
-  const [ilmoitus, setIlmoitus] = useState<any>(null)
+  const [ilmoitus, setIlmoitus] = useState<Ilmoitus | null>(null)
   const [loading, setLoading] = useState(true)
 
   const [otsikko, setOtsikko] = useState('')
@@ -85,7 +100,7 @@ export default function MuokkaaIlmoitusta() {
         .gte('premium_loppu', nytISO)
 
       const paivaLaskuri: { [päivä: string]: number } = {}
-      data?.forEach((ilmo: any) => {
+      data?.forEach((ilmo: { premium_alku: string; premium_loppu: string }) => {
         const alku = new Date(ilmo.premium_alku)
         const loppu = new Date(ilmo.premium_loppu)
         for (let d = alku; d <= loppu; d = addDays(d, 1)) {
@@ -107,9 +122,15 @@ export default function MuokkaaIlmoitusta() {
   }, [tyyppi])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  e.preventDefault()
 
-    let kuvaUrl = ilmoitus.kuva_url
+  if (!ilmoitus) {
+    alert('Ilmoitus ei ole ladattu vielä.')
+    return
+  }
+
+  let kuvaUrl = ilmoitus.kuva_url
+
 
     if (kuva) {
       const tiedostonimi = `${Date.now()}_${kuva.name}`
