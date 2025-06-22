@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { Eye } from 'lucide-react'
+import Image from 'next/image'
+
 
 type Ilmoitus = {
   id: string
@@ -47,15 +49,17 @@ const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {ilmoitukset.map((ilmo) => (
               <div key={ilmo.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
-                {ilmo.kuva_url ? (
-                  <img
-                    src={ilmo.kuva_url}
-                    alt={ilmo.otsikko}
-                    className="h-40 w-full object-cover"
-                  />
-                ) : (
-                  <div className="h-40 w-full bg-gray-100" />
-                )}
+                <div className="relative w-full h-40 bg-gray-100 overflow-hidden">
+  <Image
+    src={ilmo.kuva_url || '/placeholder.jpg'}
+    alt={ilmo.otsikko}
+    fill
+    style={{ objectFit: 'cover' }}
+    className="rounded-t"
+    sizes="(max-width: 768px) 100vw, 33vw"
+  />
+</div>
+
                 <div className="p-4">
                   <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>
                   <p className="text-sm text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
+import Image from 'next/image'
 
 type Ilmoitus = {
   id: string
@@ -52,12 +53,16 @@ export default function IlmoitusSivu() {
   return (
     <main className="max-w-2xl mx-auto p-6 bg-white rounded shadow my-12">
       {ilmoitus.kuva_url && (
-        <img
-          src={ilmoitus.kuva_url}
-          alt={ilmoitus.otsikko}
-          className="w-full h-64 object-cover rounded mb-4"
-        />
-      )}
+  <div className="relative w-full h-64 rounded mb-4 overflow-hidden">
+    <Image
+      src={ilmoitus.kuva_url || '/placeholder.jpg'}
+      alt={ilmoitus.otsikko}
+      fill
+      style={{ objectFit: 'cover' }}
+      className="rounded"
+    />
+  </div>
+)}
       <h1 className="text-2xl font-bold mb-2 break-words line-clamp-2">{ilmoitus.otsikko}</h1>
 
       <p className="text-sm text-gray-500 mb-2">

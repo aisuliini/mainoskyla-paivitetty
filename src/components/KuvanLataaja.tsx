@@ -1,65 +1,77 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import Cropper from 'react-easy-crop'
+import getCroppedImg from '../utils/cropImage'
 
 type Props = {
-  onUrl: (url: string) => void
+  onImageCropped: (croppedFile: Blob) => void
 }
 
-export default function KuvanLataaja({ onUrl }: Props) {
-  const [file, setFile] = useState<File | null>(null)
-  const [uploading, setUploading] = useState(false)
 
-  const handleUpload = async () => {
-    if (!file) return
+const Button = (props: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+  <button
+    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+    {...props}
+  />
+)
 
-    setUploading(true)
-    const fileName = `${Date.now()}_${file.name}`
+export default function KuvanLataaja({ onImageCropped }: Props) {
+  const [imageSrc, setImageSrc] = useState<string | null>(null)
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
 
-    const { error } = await supabase.storage
-      .from('ilmoitukset')
-      .upload(fileName, file)
-
-    if (error) {
-      alert('Virhe kuvan latauksessa: ' + error.message)
-    } else {
-      const { publicUrl } = supabase
-        .storage
-        .from('ilmoitukset')
-        .getPublicUrl(fileName).data
-
-      onUrl(publicUrl)
+  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0]
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => {
+        setImageSrc(reader.result as string)
+      }
     }
+  }
 
-    setUploading(false)
+  const onCropComplete = (_: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels)
+  }
+
+  const handleDone = async () => {
+    if (!imageSrc || !croppedAreaPixels) return
+    const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels)
+    if (croppedBlob) {
+      const file = new File([croppedBlob], 'cropped.jpg', { type: 'image/jpeg' })
+      onImageCropped(file)
+      setImageSrc(null) // reset view
+    }
   }
 
   return (
-    <div className="mb-4">
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setFile(e.target.files?.[0] || null)}
-        className="mb-2"
-      />
-      {file && (
-        <div className="mb-4">
-          <img
-            src={URL.createObjectURL(file)}
-            alt="Esikatselu"
-            className="h-32 w-auto rounded shadow"
-          />
-        </div>
+    <div className="flex flex-col gap-4">
+      {!imageSrc ? (
+        <input
+          type="file"
+          accept="image/*"
+          onChange={onFileChange}
+          className="file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
+        />
+      ) : (
+        <>
+          <div className="relative w-full h-64 bg-black">
+            <Cropper
+              image={imageSrc}
+              crop={crop}
+              zoom={zoom}
+              aspect={4 / 3}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={onCropComplete}
+            />
+          </div>
+          <Button onClick={handleDone}>Rajaa ja käytä kuva</Button>
+        </>
       )}
-
-      <button
-        onClick={handleUpload}
-        disabled={!file || uploading}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
-        {uploading ? 'Ladataan...' : 'Lataa kuva'}
-      </button>
     </div>
   )
 }

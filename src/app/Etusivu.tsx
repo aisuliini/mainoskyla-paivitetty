@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
@@ -17,7 +16,6 @@ type PremiumIlmoitus = {
   kuva_url?: string
   nayttoja?: number
 }
-
 
 export default function Home() {
   const router = useRouter()
@@ -41,22 +39,19 @@ export default function Home() {
         .limit(20)
 
       if (!error && data) {
-  const taydelliset = [...data]
-
-  while (taydelliset.length < 20) {
-    taydelliset.push({
-      id: `tyhja-${taydelliset.length}`,
-      otsikko: 'Vapaa mainospaikka',
-      kuvaus: 'Tämä paikka voi olla sinun!',
-      sijainti: '',
-      kuva_url: '',
-      nayttoja: 0
-    })
-  }
-
-  setPremiumIlmoitukset(taydelliset)
-}
-
+        const taydelliset = [...data]
+        while (taydelliset.length < 20) {
+          taydelliset.push({
+            id: `tyhja-${taydelliset.length}`,
+            otsikko: 'Vapaa mainospaikka',
+            kuvaus: 'Tämä paikka voi olla sinun!',
+            sijainti: '',
+            kuva_url: '',
+            nayttoja: 0
+          })
+        }
+        setPremiumIlmoitukset(taydelliset)
+      }
     }
     haePremiumit()
   }, [])
@@ -73,55 +68,17 @@ export default function Home() {
   }, [hakusana])
 
   const hae = () => {
-  const query = hakusana.trim()
-  if (query) {
-    router.push(`/aluehaku?sijainti=${encodeURIComponent(query)}`)
-  }
-}
-
-
-
-  const avaaIlmoitus = async (ilmo: PremiumIlmoitus) => {
-  if (!ilmo.id.startsWith('tyhja-')) {
-    const { data, error } = await supabase
-      .from('ilmoitukset')
-      .update({ nayttoja: (ilmo.nayttoja || 0) + 1 })
-      .eq('id', ilmo.id)
-      .select('nayttoja')
-      .single()
-
-    if (!error && data) {
-      setPremiumIlmoitukset((prev) =>
-        prev.map((i) =>
-          i.id === ilmo.id ? { ...i, nayttoja: data.nayttoja } : i
-        )
-      )
+    const query = hakusana.trim()
+    if (query) {
+      router.push(`/aluehaku?sijainti=${encodeURIComponent(query)}`)
     }
   }
 
-  router.push(`/ilmoitukset/${ilmo.id}`)
-}
-
-
-
-
   const kategoriat = [
-  'Palvelut',
-  'Hyvinvointi ja Kauneus',
-  'Koti ja Remontointi',
-  'Eläinpalvelut',
-  'Pientuottajat',
-  'Käsityöläiset',
-  'Media ja Luovuus',
-  'Kurssit ja Koulutukset',
-  'Vuokratilat ja Juhlapaikat',
-  'Ilmoitustaulu',
-  'Tapahtumat',
-  'Vapaa-aika',
-  'Muut'
-]
-
-
+    'Palvelut', 'Hyvinvointi ja Kauneus', 'Koti ja Remontointi', 'Eläinpalvelut',
+    'Pientuottajat', 'Käsityöläiset', 'Media ja Luovuus', 'Kurssit ja Koulutukset',
+    'Vuokratilat ja Juhlapaikat', 'Ilmoitustaulu', 'Tapahtumat', 'Vapaa-aika', 'Muut'
+  ]
 
   const urlSafeKategoria = (kategoria: string) =>
     encodeURIComponent(kategoria.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/\s+/g, '-'))
@@ -134,16 +91,13 @@ export default function Home() {
             <div className="flex-shrink-0">
               <Image src="/logo.png" alt="Mainoskylä logo" width={140} height={140} className="mx-auto md:mx-0" />
             </div>
-
             <div className="w-full text-center md:text-left">
               <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4 text-[#2f5332] drop-shadow-sm">
                 Mainosta paikallisesti,<br />näy siellä missä olet.
               </h1>
-
-              {/* Tämä osuus on uusi */}
-            <p className="text-base md:text-lg text-gray-700 max-w-xl mx-auto md:mx-0">
-            <strong>Mainoskylä on kehitysvaiheessa. Ilmoitusten lisääminen ei vaadi maksua.</strong>
-             </p>
+              <p className="text-base md:text-lg text-gray-700 max-w-xl mx-auto md:mx-0">
+                <strong>Mainoskylä on kehitysvaiheessa. Ilmoitusten lisääminen ei vaadi maksua.</strong>
+              </p>
 
               <div className="relative max-w-lg mx-auto md:mx-0">
                 <div className="flex gap-2 mb-2">
@@ -164,7 +118,6 @@ export default function Home() {
                 </div>
                 {suositukset.length > 0 && (
                   <ul className="absolute bg-white border rounded shadow w-full mt-1 z-10 max-h-40 overflow-y-auto">
-
                     {suositukset.map((ehto, idx) => (
                       <li
                         key={idx}
@@ -198,47 +151,46 @@ export default function Home() {
         <div className="max-w-screen-xl mx-auto">
           <h2 className="text-xl font-semibold text-[#2f5332] mb-4">Etusivun Premium-ilmoitukset</h2>
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-
             {premiumIlmoitukset.map((ilmo) => (
-  <div key={ilmo.id} className="bg-[#e6f4ea] border border-[#3f704d] rounded-xl p-3 shadow-sm">
-    {ilmo.kuva_url ? (
-      <img src={ilmo.kuva_url} alt={ilmo.otsikko} className="h-32 w-full object-cover rounded mb-2" />
-    ) : (
-      <div className="h-32 bg-white rounded mb-2" />
-    )}
+              <div key={ilmo.id} className="bg-[#e6f4ea] border border-[#3f704d] rounded-xl p-3 shadow-sm">
+                {ilmo.kuva_url ? (
+                  <div className="relative w-full h-32 rounded overflow-hidden mb-2 bg-white">
+  <Image
+    src={ilmo.kuva_url || '/placeholder.jpg'}
+    alt={ilmo.otsikko}
+    fill
+    style={{ objectFit: 'cover' }}
+    className="rounded"
+    sizes="(max-width: 768px) 100vw, 20vw"
+  />
+</div>
 
-    <h3 className="font-semibold text-sm text-gray-900 truncate">
-      {ilmo.otsikko || 'Vapaa mainospaikka'}
-    </h3>
-    <p className="text-xs text-gray-600 line-clamp-2">
-      {ilmo.kuvaus || 'Tämä paikka voi olla sinun ilmoituksesi – näkyvyyttä etusivulla!'}
-    </p>
-    <div className="flex items-center text-xs text-gray-500 mt-2 gap-1">
-      👁️ {ilmo.nayttoja || 0} katselukertaa
-    </div>
-
-    {/* ✅ Näytä painike vain jos ilmoitus on oikea eikä placeholder */}
-    {'kuva_url' in ilmo && ilmo.id?.startsWith('tyhja-') === false && (
-      <button
-        className="mt-2 w-full px-3 py-1 text-xs bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
-        onClick={() => avaaIlmoitus(ilmo)}
-      >
-        Näytä
-      </button>
-    )}
-
-    {/* ✅ Jos haluat lisätä painikkeen “Lisää oma ilmoitus” tyhjille paikoille */}
-    {ilmo.id?.startsWith('tyhja-') && (
-      <button
-        onClick={() => router.push('/lisaa')}
-        className="mt-2 w-full px-3 py-1 text-xs bg-white text-[#3f704d] border border-[#3f704d] rounded hover:bg-[#e0f0e0]"
-      >
-        Lisää oma ilmoitus
-      </button>
-    )}
-  </div>
-))}
-
+                ) : (
+                  <div className="h-32 bg-white rounded mb-2" />
+                )}
+                <h3 className="font-semibold text-sm text-gray-900 truncate">{ilmo.otsikko}</h3>
+                <p className="text-xs text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
+                <div className="flex items-center text-xs text-gray-500 mt-2 gap-1">
+                  👁️ {ilmo.nayttoja || 0} katselukertaa
+                </div>
+                {!ilmo.id.startsWith('tyhja-') && (
+                  <button
+                    onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
+                    className="mt-2 w-full px-3 py-1 text-xs bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
+                  >
+                    Näytä
+                  </button>
+                )}
+                {ilmo.id.startsWith('tyhja-') && (
+                  <button
+                    onClick={() => router.push('/lisaa')}
+                    className="mt-2 w-full px-3 py-1 text-xs bg-white text-[#3f704d] border border-[#3f704d] rounded hover:bg-[#e0f0e0]"
+                  >
+                    Lisää oma ilmoitus
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -250,7 +202,7 @@ export default function Home() {
             <Link href="/hinnasto" className="hover:underline">Hinnasto</Link>
             <Link href="/ehdot" className="hover:underline">Käyttöehdot</Link>
             <Link href="/tietosuoja" className="hover:underline">Tietosuoja</Link>
-            <li><Link href="/turvallisuus" className="text-blue-600 underline">Turvallisuusohjeet</Link></li>
+            <Link href="/turvallisuus" className="text-blue-600 underline">Turvallisuusohjeet</Link>
             <Link href="/yhteystiedot" className="hover:underline">Yhteystiedot</Link>
           </nav>
           <div className="flex justify-center gap-6 text-xl">
@@ -265,12 +217,11 @@ export default function Home() {
             </a>
           </div>
           <div className="space-y-1">
-          <p className="text-xs text-gray-600">
-           Tämä sivusto on opiskelijaprojekti ja testiversio. Ilmoitukset ovat maksuttomia ja alusta on kehitysvaiheessa.
-          </p>
-         <p>&copy; {new Date().getFullYear()} Mainoskylä</p>
-        </div>
-
+            <p className="text-xs text-gray-600">
+              Tämä sivusto on opiskelijaprojekti ja testiversio. Ilmoitukset ovat maksuttomia ja alusta on kehitysvaiheessa.
+            </p>
+            <p>&copy; {new Date().getFullYear()} Mainoskylä</p>
+          </div>
         </div>
       </footer>
     </main>

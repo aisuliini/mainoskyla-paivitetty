@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
+import Image from 'next/image'
+
 
 const PER_PAGE = 12
 
@@ -33,7 +35,7 @@ export default function VuokraJaJuhlatilatClientPage() {
       let query = supabase
         .from('ilmoitukset')
         .select('*')
-        .eq('kategoria', 'Vuokratilat ja Juhlatilat')
+        .eq('kategoria', 'Vuokratilat ja Juhlapaikat')
 
       if (jarjestys === 'uusin') query = query.order('luotu', { ascending: false })
       if (jarjestys === 'vanhin') query = query.order('luotu', { ascending: true })
@@ -94,17 +96,17 @@ export default function VuokraJaJuhlatilatClientPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {ilmoitukset.map((ilmo) => (
             <div key={ilmo.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
-              <div className="h-48 bg-gray-100 flex items-center justify-center">
-                {ilmo.kuva_url ? (
-                  <img
-                    src={ilmo.kuva_url}
-                    alt={ilmo.otsikko}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="text-xs text-gray-400">Ei kuvaa</span>
-                )}
-              </div>
+              <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
+  <Image
+    src={ilmo.kuva_url || '/placeholder.jpg'}
+    alt={ilmo.otsikko}
+    fill
+    style={{ objectFit: 'cover' }}
+    sizes="(max-width: 768px) 100vw, 33vw"
+    className="rounded-t"
+  />
+</div>
+
 
               <div className="p-4">
                 <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>

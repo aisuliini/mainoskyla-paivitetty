@@ -9,6 +9,9 @@ import 'react-day-picker/dist/style.css'
 import { addDays } from 'date-fns'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import imageCompression from 'browser-image-compression'
+import Image from 'next/image'
+import KuvanLataaja from '@/components/KuvanLataaja'
+
 
 
 
@@ -295,12 +298,9 @@ const handleUpload = async () => {
 )}
 
 
-          <input
-  type="file"
-  accept="image/*"
-  onChange={async (e) => {
-    const tiedosto = e.target.files?.[0]
-    if (!tiedosto) return
+          <KuvanLataaja
+  onImageCropped={async (rajattuBlob) => {
+    const tiedosto = new File([rajattuBlob], 'rajaus.jpg', { type: 'image/jpeg' })
 
     try {
       const pakattu = await imageCompression(tiedosto, {
@@ -316,17 +316,22 @@ const handleUpload = async () => {
       alert('Kuvan pakkaus epäonnistui.')
     }
   }}
-  className="w-full"
 />
 
 
+
           {esikatselu && (
-  <img
-    src={esikatselu}
-    alt="Esikatselu"
-    className="h-32 rounded shadow object-cover"
-  />
+  <div className="relative aspect-[4/3] w-full bg-gray-100 rounded overflow-hidden mb-4">
+    <Image
+      src={esikatselu}
+      alt="Esikatselu"
+      fill
+      className="object-cover rounded shadow"
+      sizes="100vw"
+    />
+  </div>
 )}
+
 
 
           <label className="block font-medium">Valitse ilmoitustyyppi:</label>
