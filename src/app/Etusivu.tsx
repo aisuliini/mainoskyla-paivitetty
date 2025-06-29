@@ -7,6 +7,21 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
 import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 import ehdotukset from '@/data/ehdotusdata.json'
+import {
+  Hammer,
+  PawPrint,
+  Scissors,
+  Camera,
+  PartyPopper,
+  Heart,
+  Home as HomeIcon,
+  Book,
+  Megaphone,
+  Calendar,
+  Smile,
+  Package
+} from "lucide-react";
+
 
 type PremiumIlmoitus = {
   id: string
@@ -75,16 +90,40 @@ export default function Home() {
   }
 
   const kategoriat = [
-    'Palvelut', 'Hyvinvointi ja Kauneus', 'Koti ja Remontointi', 'Eläinpalvelut',
-    'Pientuottajat', 'Käsityöläiset', 'Media ja Luovuus', 'Kurssit ja Koulutukset',
-    'Vuokratilat ja Juhlapaikat', 'Ilmoitustaulu', 'Tapahtumat', 'Vapaa-aika', 'Muut'
-  ]
+  { nimi: "Palvelut", ikoni: <Hammer size={16} /> },
+  { nimi: "Eläinpalvelut", ikoni: <PawPrint size={16} /> },
+  { nimi: "Käsityöläiset", ikoni: <Scissors size={16} /> },
+  { nimi: "Media ja Luovuus", ikoni: <Camera size={16} /> },
+  { nimi: "Vuokratilat ja Juhlapaikat", ikoni: <PartyPopper size={16} /> },
+  { nimi: "Hyvinvointi ja Kauneus", ikoni: <Heart size={16} /> },
+  { nimi: "Koti ja Remontointi", ikoni: <HomeIcon size={16} /> },
+  { nimi: "Kurssit ja Koulutukset", ikoni: <Book size={16} /> },
+  { nimi: "Ilmoitustaulu", ikoni: <Megaphone size={16} /> },
+  { nimi: "Tapahtumat", ikoni: <Calendar size={16} /> },
+  { nimi: "Vapaa-aika", ikoni: <Smile size={16} /> },
+  { nimi: "Pientuottajat", ikoni: <Package size={16} /> },
+  { nimi: "Muut", ikoni: null }
+];
+
 
   const urlSafeKategoria = (kategoria: string) =>
     encodeURIComponent(kategoria.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/\s+/g, '-'))
 
   return (
-    <main className="bg-[#f9f5eb] text-[#333333] min-h-screen font-sans">
+<main
+  className="relative min-h-screen text-[#333333] font-sans"
+  style={{
+    background: `
+      radial-gradient(circle at 30% 30%, rgba(236, 229, 221, 0.6), transparent 40%),
+      radial-gradient(circle at 70% 70%, rgba(242, 209, 215, 0.4), transparent 40%),
+      linear-gradient(120deg, #f9f5eb 0%, #e6f4ea 100%)
+    `,
+    backgroundBlendMode: "screen, overlay, normal",
+    backgroundAttachment: "fixed",
+  }}
+>
+  <div className="absolute inset-0 backdrop-blur-sm"></div>
+  <div className="relative z-10">
       <section className="py-8 px-6">
         <div className="max-w-screen-xl mx-auto">
           <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12">
@@ -131,69 +170,77 @@ export default function Home() {
                 )}
               </div>
 
-              <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-4">
-                {kategoriat.map((kategoria) => (
-                  <button
-                    key={kategoria}
-                    onClick={() => router.push(`/kategoriat/${urlSafeKategoria(kategoria)}`)}
-                    className="bg-white border px-4 py-2 rounded-full text-sm shadow hover:bg-[#e0f0e0]"
-                  >
-                    {kategoria}
-                  </button>
-                ))}
-              </div>
+
+
+                <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-4">
+  {kategoriat.map((kategoria) => (
+    <button
+      key={kategoria.nimi}
+      onClick={() => router.push(`/kategoriat/${urlSafeKategoria(kategoria.nimi)}`)}
+      className="flex items-center gap-2 bg-white border px-4 py-2 rounded-full text-sm shadow hover:bg-[#e0f0e0]"
+    >
+      {kategoria.ikoni}
+      {kategoria.nimi}
+    </button>
+  ))}
+</div>
+
             </div>
           </div>
         </div>
       </section>
 
       <section className="bg-white px-6 py-8">
-        <div className="max-w-screen-xl mx-auto">
-          <h2 className="text-xl font-semibold text-[#2f5332] mb-4">Etusivun Premium-ilmoitukset</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-            {premiumIlmoitukset.map((ilmo) => (
-              <div key={ilmo.id} className="bg-[#e6f4ea] border border-[#3f704d] rounded-xl p-3 shadow-sm">
-                {ilmo.kuva_url ? (
-                  <div className="relative w-full h-32 rounded overflow-hidden mb-2 bg-white">
-  <Image
-    src={ilmo.kuva_url || '/placeholder.jpg'}
-    alt={ilmo.otsikko}
-    fill
-    style={{ objectFit: 'cover' }}
-    className="rounded"
-    sizes="(max-width: 768px) 100vw, 20vw"
-  />
-</div>
-
-                ) : (
-                  <div className="h-32 bg-white rounded mb-2" />
-                )}
-                <h3 className="font-semibold text-sm text-gray-900 truncate">{ilmo.otsikko}</h3>
-                <p className="text-xs text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
-                <div className="flex items-center text-xs text-gray-500 mt-2 gap-1">
-                  👁️ {ilmo.nayttoja || 0} katselukertaa
-                </div>
-                {!ilmo.id.startsWith('tyhja-') && (
-                  <button
-                    onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
-                    className="mt-2 w-full px-3 py-1 text-xs bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
-                  >
-                    Näytä
-                  </button>
-                )}
-                {ilmo.id.startsWith('tyhja-') && (
-                  <button
-                    onClick={() => router.push('/lisaa')}
-                    className="mt-2 w-full px-3 py-1 text-xs bg-white text-[#3f704d] border border-[#3f704d] rounded hover:bg-[#e0f0e0]"
-                  >
-                    Lisää oma ilmoitus
-                  </button>
-                )}
-              </div>
-            ))}
+  <div className="max-w-screen-xl mx-auto">
+    <h2 className="text-xl font-semibold text-[#2f5332] mb-4">Etusivun Premium-ilmoitukset</h2>
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+      {premiumIlmoitukset.map((ilmo) => (
+        <div key={ilmo.id} className="bg-[#e6f4ea] border border-[#3f704d] rounded-xl p-3 shadow-sm">
+          {ilmo.kuva_url ? (
+            <div className="relative w-full h-32 rounded overflow-hidden mb-2 bg-white">
+              <Image
+                src={ilmo.kuva_url || '/placeholder.jpg'}
+                alt={ilmo.otsikko}
+                fill
+                style={{ objectFit: 'cover' }}
+                className="rounded"
+                sizes="(max-width: 768px) 100vw, 20vw"
+              />
+            </div>
+          ) : (
+            <div className="h-32 bg-white rounded mb-2" />
+          )}
+          <h3 className="font-semibold text-sm text-gray-900 truncate">{ilmo.otsikko}</h3>
+          <p className="text-xs text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
+          <div className="flex items-center text-xs text-gray-500 mt-2 gap-1">
+            👁️ {ilmo.nayttoja || 0} katselukertaa
           </div>
+          {!ilmo.id.startsWith('tyhja-') && (
+            <button
+              onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
+              className="mt-2 w-full px-3 py-1 text-xs bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
+            >
+              Näytä
+            </button>
+          )}
+          {ilmo.id.startsWith('tyhja-') && (
+            <button
+              onClick={() => router.push('/lisaa')}
+              className="mt-2 w-full px-3 py-1 text-xs bg-white text-[#3f704d] border border-[#3f704d] rounded hover:bg-[#e0f0e0]"
+            >
+              Lisää oma ilmoitus
+            </button>
+          )}
         </div>
-      </section>
+      ))}
+    </div>
+  </div>
+</section>
+
+      <section className="px-6 py-4 bg-[#fff8f6] border-t border-[#f1c0bd] text-sm text-[#a94442] text-center">
+  ⚠️ Muistutus: Älä koskaan anna pankkitunnuksia tai siirrä rahaa ilmoittajalle. Ilmoituksiin liittyvät maksupyynnöt voivat olla huijausyrityksiä.
+</section>
+
 
       <footer className="bg-[#e6e2d8] text-sm text-[#2f5332] text-center py-8 mt-12">
         <div className="space-y-4">
@@ -218,12 +265,13 @@ export default function Home() {
           </div>
           <div className="space-y-1">
             <p className="text-xs text-gray-600">
-              Tämä sivusto on opiskelijaprojekti ja testiversio. Ilmoitukset ovat maksuttomia ja alusta on kehitysvaiheessa.
+              Ilmoitukset ovat maksuttomia ja alusta on vielä kehitysvaiheessa.
             </p>
             <p>&copy; {new Date().getFullYear()} Mainoskylä</p>
           </div>
         </div>
       </footer>
+      </div>
     </main>
-  )
+)
 }

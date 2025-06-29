@@ -60,11 +60,14 @@ export default function Header() {
 
       {/* Valikko / profiili / kirjautuminen */}
       <div className="hidden md:flex items-center space-x-4 text-sm">
+        <Link href="/ilmoitukset" className="hover:underline">Ilmoitukset</Link>
+
         <Link href="/lisaa" className="hover:underline">Ilmoita</Link>
         <Link href="/tietoa" className="hover:underline">Tietoa</Link>
         <Link href="/hinnasto" className="hover:underline">Hinnasto</Link>
         <Link href="/ehdot" className="hover:underline">Ehdot</Link>
         <Link href="/tietosuoja" className="hover:underline">Tietosuoja</Link>
+        <Link href="/turvallisuus" className="hover:underline">Turvallisuusohjeet</Link>
         <Link href="/yhteystiedot" className="hover:underline">Yhteystiedot</Link>
         {user ? (
           <>
@@ -102,6 +105,8 @@ export default function Header() {
           <Link href="/hinnasto" className="block mb-2" onClick={() => setOpen(false)}>Hinnasto</Link>
           <Link href="/ehdot" className="block mb-2" onClick={() => setOpen(false)}>Ehdot</Link>
           <Link href="/tietosuoja" className="block mb-2" onClick={() => setOpen(false)}>Tietosuoja</Link>
+          <Link href="/turvallisuus" className="block mb-2" onClick={() => setOpen(false)}>Turvallisuusohjeet</Link>
+
           <Link href="/yhteystiedot" className="block mb-2" onClick={() => setOpen(false)}>Yhteystiedot</Link>
           {user ? (
             <>

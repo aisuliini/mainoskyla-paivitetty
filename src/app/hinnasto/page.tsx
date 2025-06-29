@@ -4,29 +4,20 @@ export default function Hinnasto() {
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4">Hinnasto</h1>
+
       <p>
-        Mainoskylä on tällä hetkellä <strong>opiskelijaprojekti ja testivaiheessa</strong>. Kaikki ilmoitukset ovat maksuttomia.
+        <strong>Mainoskylä on kehitysvaiheessa ja täysin maksuton.</strong> Palvelun käyttö, ilmoitusten lisääminen ja selaaminen ei maksa tällä hetkellä mitään.
       </p>
 
-      <h2 className="mt-6 font-semibold">Tällä hetkellä ilmaisia:</h2>
-      <ul className="list-disc ml-6">
-        <li>Tavallinen ilmoitus</li>
-        <li>Premium-näkyvyys (jos tarjolla)</li>
-        <li>Palvelun käyttö</li>
-      </ul>
-
-      <h2 className="mt-6 font-semibold">Tulevaisuudessa mahdollisesti maksullisia:</h2>
-      <ul className="list-disc ml-6">
-        <li>Ilmoituksen nosto</li>
-        <li>Premium-paikat (esim. etusivu tai kärkeen)</li>
-        <li>Yrityksille näkyvyyspaketit</li>
-      </ul>
+      <p className="mt-4 text-red-600 font-semibold">
+        Älä koskaan anna pankkitunnuksia, maksukortin tietoja tai siirrä rahaa tuntemattomille. Ilmoituksiin liittyvät maksut tai rahapyynnöt voivat olla huijausyrityksiä.
+      </p>
 
       <p className="mt-4">
-        Kaikista muutoksista tiedotetaan etukäteen. Tällä hetkellä maksullisia toimintoja ei ole.
+        Mikäli maksullisia toimintoja otetaan käyttöön tulevaisuudessa, niistä tiedotetaan selkeästi etukäteen.
       </p>
 
-      <p className="text-sm mt-6 text-gray-500">Päivitetty: 8.6.2025</p>
+      <p className="text-sm mt-6 text-gray-500">Päivitetty: 23.6.2025</p>
     </div>
   )
 }

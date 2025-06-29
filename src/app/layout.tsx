@@ -4,7 +4,7 @@ import { Rubik } from 'next/font/google'
 
 const rubik = Rubik({
   subsets: ['latin'],
-  weight: ['400', '400', '600'], // voit lisätä esim. '300' tai '800' tarpeen mukaan
+  weight: ['400', '400', '600'], //  esim. '300' tai '800' tarpeen mukaan
 })
 
 export const metadata = {
