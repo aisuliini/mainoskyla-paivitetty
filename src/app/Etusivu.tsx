@@ -113,15 +113,19 @@ export default function Home() {
 <main
   className="relative min-h-screen text-[#333333] font-sans"
   style={{
-    background: `
-      radial-gradient(circle at 30% 30%, rgba(236, 229, 221, 0.6), transparent 40%),
-      radial-gradient(circle at 70% 70%, rgba(242, 209, 215, 0.4), transparent 40%),
-      linear-gradient(120deg, #f9f5eb 0%, #e6f4ea 100%)
+    backgroundImage: `
+      radial-gradient(circle at 20% 20%, rgba(230, 244, 234, 0.5), transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(242, 209, 215, 0.3), transparent 50%),
+      url('/tausta-kuvio.svg')
     `,
-    backgroundBlendMode: "screen, overlay, normal",
+    backgroundBlendMode: "screen, overlay, overlay",
+    backgroundSize: "cover",
+    backgroundRepeat: "no-repeat",
     backgroundAttachment: "fixed",
   }}
 >
+
+
   <div className="absolute inset-0 backdrop-blur-sm"></div>
   <div className="relative z-10">
       <section className="py-8 px-6">
@@ -131,7 +135,9 @@ export default function Home() {
               <Image src="/logo.png" alt="Mainoskylä logo" width={140} height={140} className="mx-auto md:mx-0" />
             </div>
             <div className="w-full text-center md:text-left">
-              <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4 text-[#2f5332] drop-shadow-sm">
+              <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4 bg-gradient-to-r from-[#2f5332] to-[#3e4d3f] text-transparent bg-clip-text
+                -transparent bg-clip-text drop-shadow-sm">
+
                 Mainosta paikallisesti,<br />näy siellä missä olet.
               </h1>
               <p className="text-base md:text-lg text-gray-700 max-w-xl mx-auto md:mx-0">
@@ -146,7 +152,8 @@ export default function Home() {
                     value={hakusana}
                     onChange={(e) => setHakusana(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && hae()}
-                    className="flex-grow px-6 py-3 border rounded-full shadow-sm bg-white text-lg w-full"
+                    className="flex-grow px-6 py-3 border rounded-full shadow focus:ring-2 focus:ring-[#9b3c51]/50 bg-white text-lg w-full transition"
+
                   />
                   <button
                     onClick={hae}
@@ -177,7 +184,8 @@ export default function Home() {
     <button
       key={kategoria.nimi}
       onClick={() => router.push(`/kategoriat/${urlSafeKategoria(kategoria.nimi)}`)}
-      className="flex items-center gap-2 bg-white border px-4 py-2 rounded-full text-sm shadow hover:bg-[#e0f0e0]"
+      className="flex items-center gap-2 bg-white border px-4 py-2 rounded-full text-sm shadow hover:bg-[#f7e7ea] hover:text-[#9b3c51] transition-colors duration-300"
+
     >
       {kategoria.ikoni}
       {kategoria.nimi}
@@ -195,7 +203,7 @@ export default function Home() {
     <h2 className="text-xl font-semibold text-[#2f5332] mb-4">Etusivun Premium-ilmoitukset</h2>
     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
       {premiumIlmoitukset.map((ilmo) => (
-        <div key={ilmo.id} className="bg-[#e6f4ea] border border-[#3f704d] rounded-xl p-3 shadow-sm">
+<div key={ilmo.id} className="bg-white/60 backdrop-blur-sm border border-[#c4d7c0] rounded-xl p-4 shadow hover:shadow-lg transition duration-300">
           {ilmo.kuva_url ? (
             <div className="relative w-full h-32 rounded overflow-hidden mb-2 bg-white">
               <Image
@@ -242,7 +250,8 @@ export default function Home() {
 </section>
 
 
-      <footer className="bg-[#e6e2d8] text-sm text-[#2f5332] text-center py-8 mt-12">
+      <footer className="bg-[#f9f5eb] text-sm text-[#2f5332] text-center py-8 mt-12">
+
         <div className="space-y-4">
           <nav className="flex flex-wrap justify-center gap-4 font-medium">
             <Link href="/tietoa" className="hover:underline">Tietoa meistä</Link>
