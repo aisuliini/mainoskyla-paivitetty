@@ -38,6 +38,11 @@ export default function LisaaIlmoitus() {
 const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | undefined>()
 const [user, setUser] = useState<{ id: string } | null>(null)
 
+
+const ilmoituksenAlku = alku || new Date()
+const loppuDate = new Date(ilmoituksenAlku.getTime() + parseInt(kesto) * 86400000)
+
+
 useEffect(() => {
   if (sijainti.length === 0) {
     setSijaintiehdotukset([])
@@ -126,7 +131,6 @@ const handleUpload = async () => {
     }
   }
 
-  const loppuDate = alku ? new Date(alku.getTime() + parseInt(kesto) * 86400000) : null
 
   if (tyyppi === 'premium' && alku && loppuDate) {
     const { data: aktiiviset } = await supabase
@@ -165,22 +169,25 @@ const handleUpload = async () => {
   }
 
   const ilmoitus = {
-    user_id: user.id,
-    otsikko,
-    kuvaus,
-    sijainti,
-    kuva_url: kuvaUrl,
-    maksuluokka: tyyppi,
-    kategoria,
-    premium: tyyppi === 'premium',
-    premium_alku: tyyppi === 'premium' ? alku?.toISOString() : null,
-    premium_loppu: tyyppi === 'premium' ? loppuDate?.toISOString() : null,
-    premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
-    nayttoja: 0,
-    luotu: nykyhetki.toISOString(),
-    tapahtuma_alku: kategoria === 'Tapahtumat' ? tapahtumaAlku?.toISOString() : null,
-    tapahtuma_loppu: kategoria === 'Tapahtumat' ? tapahtumaLoppu?.toISOString() : null,
-  }
+  user_id: user.id,
+  otsikko,
+  kuvaus,
+  sijainti,
+  kuva_url: kuvaUrl,
+  maksuluokka: tyyppi,
+  kategoria,
+  premium: tyyppi === 'premium',
+  premium_alku: tyyppi === 'premium' ? alku?.toISOString() : null,
+  premium_loppu: tyyppi === 'premium' ? loppuDate?.toISOString() : null,
+  voimassa_alku: tyyppi !== 'premium' ? nykyhetki.toISOString() : null,
+  voimassa_loppu: tyyppi !== 'premium' ? loppuDate?.toISOString() : null,
+  premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
+  nayttoja: 0,
+  luotu: nykyhetki.toISOString(),
+  tapahtuma_alku: kategoria === 'Tapahtumat' ? tapahtumaAlku?.toISOString() : null,
+  tapahtuma_loppu: kategoria === 'Tapahtumat' ? tapahtumaLoppu?.toISOString() : null,
+}
+
 
   const { error } = await supabase.from('ilmoitukset').insert(ilmoitus)
   if (!error) {
@@ -341,6 +348,24 @@ const handleUpload = async () => {
             <option value="premium">Premium näkyvyys</option>
           </select>
 
+          {tyyppi === 'perus' && (
+  <>
+    <label className="block">Näkyvyysaika (päiviä):</label>
+    <select
+      value={kesto}
+      onChange={(e) => setKesto(e.target.value)}
+      className="w-full border px-4 py-2 rounded"
+    >
+      <option value="7">7 päivää</option>
+      <option value="14">14 päivää</option>
+      <option value="30">30 päivää</option>
+      <option value="60">60 päivää</option>
+      <option value="90">90 päivää</option>
+    </select>
+  </>
+)}
+
+
           {tyyppi === 'premium' && (
             <>
               <label className="block">Näkyvyysaika:</label>
@@ -348,6 +373,8 @@ const handleUpload = async () => {
                 <option value="7">7 päivää</option>
                 <option value="14">14 päivää</option>
                 <option value="30">30 päivää</option>
+                <option value="60">60 päivää</option>
+                <option value="90">90 päivää</option>
               </select>
 
               <label className="block">Valitse premium-alkupäivä:</label>
@@ -363,6 +390,18 @@ const handleUpload = async () => {
           )}
 
           {/* <p className="text-right font-semibold text-sm">Hinta: {hinta}</p> */}
+          {tyyppi === 'perus' && (
+  <p className="text-sm text-gray-700">
+    Ilmoituksesi näkyy ajalla:
+    <strong>
+      {' '}
+      {ilmoituksenAlku.toLocaleDateString('fi-FI')} – {loppuDate.toLocaleDateString('fi-FI')}
+    </strong>
+  </p>
+)}
+
+
+
 
 
           <button type="submit" className="bg-[#3f704d] text-white px-6 py-2 rounded hover:bg-[#2f5332]">

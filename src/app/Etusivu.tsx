@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import Katselukerrat from '@/components/Katselukerrat';
 import { supabase } from '@/lib/supabaseClient'
 import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 import ehdotukset from '@/data/ehdotusdata.json'
@@ -220,9 +221,8 @@ export default function Home() {
           )}
           <h3 className="font-semibold text-sm text-gray-900 truncate">{ilmo.otsikko}</h3>
           <p className="text-xs text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
-          <div className="flex items-center text-xs text-gray-500 mt-2 gap-1">
-            👁️ {ilmo.nayttoja || 0} katselukertaa
-          </div>
+          <Katselukerrat count={ilmo.nayttoja || 0} small />
+
           {!ilmo.id.startsWith('tyhja-') && (
             <button
               onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
