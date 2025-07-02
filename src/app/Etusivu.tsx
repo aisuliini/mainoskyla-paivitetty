@@ -185,7 +185,7 @@ export default function Home() {
     <button
       key={kategoria.nimi}
       onClick={() => router.push(`/kategoriat/${urlSafeKategoria(kategoria.nimi)}`)}
-      className="flex items-center gap-2 bg-white border px-4 py-2 rounded-full text-sm shadow hover:bg-[#f7e7ea] hover:text-[#9b3c51] transition-colors duration-300"
+      className="flex items-center gap-2 bg-white border px-4 py-2 rounded-full text-sm shadow hover:bg-[#d6f2de] hover:text-[#9b3c51] transition-colors duration-300"
 
     >
       {kategoria.ikoni}
