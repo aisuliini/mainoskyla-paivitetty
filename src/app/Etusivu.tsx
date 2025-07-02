@@ -133,7 +133,7 @@ export default function Home() {
         <div className="max-w-screen-xl mx-auto">
           <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12">
             <div className="flex-shrink-0">
-              <Image src="/logo.png" alt="Mainoskylä logo" width={140} height={140} className="mx-auto md:mx-0" />
+              <Image src="/logo.png" alt="Mainoskylä logo" width={250} height={200} className="mx-auto md:mx-0" />
             </div>
             <div className="w-full text-center md:text-left">
               <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4 bg-gradient-to-r from-[#2f5332] to-[#3e4d3f] text-transparent bg-clip-text
