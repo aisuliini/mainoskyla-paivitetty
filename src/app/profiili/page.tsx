@@ -59,6 +59,38 @@ export default function ProfiiliSivu() {
     location.reload()
   }
 
+  const poistaTili = async () => {
+  const { data: sessionData } = await supabase.auth.getSession()
+  const user = sessionData?.session?.user
+
+  if (!user) {
+    alert('Et ole kirjautunut sisään.')
+    return
+  }
+
+  if (!confirm('Haluatko varmasti poistaa tilisi ja kaikki ilmoituksesi? Tätä ei voi perua.')) {
+    return
+  }
+
+  // Poista käyttäjän ilmoitukset
+  const { error: delError } = await supabase
+    .from('ilmoitukset')
+    .delete()
+    .eq('user_id', user.id)
+
+  if (delError) {
+    console.error('Virhe poistossa:', delError.message)
+    alert('Virhe poistossa. Yritä uudelleen.')
+    return
+  }
+
+  // Kirjaa käyttäjä ulos
+  await supabase.auth.signOut()
+
+  alert('Tili ja ilmoitukset poistettu. Jos haluat kokonaan poistaa kirjautumistilisi, ota yhteyttä ylläpitoon.')
+  router.push('/')
+}
+
   const poistaIlmoitus = async (ilmo: Ilmoitus) => {
     if (!confirm('Poistetaanko ilmoitus pysyvästi?')) return
     await supabase.from('ilmoitukset').delete().eq('id', ilmo.id)
@@ -133,6 +165,16 @@ export default function ProfiiliSivu() {
           ))}
         </div>
       )}
+
+      <div className="mt-8">
+  <button
+    onClick={poistaTili}
+    className="bg-red-700 text-white px-6 py-3 rounded hover:bg-red-800"
+  >
+    Poista käyttäjätili ja kaikki ilmoitukset
+  </button>
+</div>
+
     </main>
   )
 }
