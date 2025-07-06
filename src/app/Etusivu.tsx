@@ -136,32 +136,42 @@ export default function Home() {
               <Image src="/logo.png" alt="Mainoskylä logo" width={250} height={200} className="mx-auto md:mx-0" />
             </div>
             <div className="w-full text-center md:text-left">
-              <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4 bg-gradient-to-r from-[#2f5332] to-[#3e4d3f] text-transparent bg-clip-text
-                -transparent bg-clip-text drop-shadow-sm">
+              <h1
+  className="
+    text-3xl 
+    md:text-4xl 
+    font-extrabold 
+    leading-snug 
+    mb-6 
+    text-[#2f5332]
+    drop-shadow-md
+  "
+>
+  Löydä tai mainosta paikallisesti – Mainoskylä yhdistää ihmiset ja yritykset.
+</h1>
 
-                Mainosta paikallisesti,<br />näy siellä missä olet.
-              </h1>
-              <p className="text-base md:text-lg text-gray-700 max-w-xl mx-auto md:mx-0">
-                <strong>Mainoskylä on kehitysvaiheessa. Ilmoitusten lisääminen ei vaadi maksua.</strong>
-              </p>
 
-              <div className="relative max-w-lg mx-auto md:mx-0">
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    placeholder="Hae paikkakunta tai sana..."
-                    value={hakusana}
-                    onChange={(e) => setHakusana(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && hae()}
-                    className="flex-grow px-6 py-3 border rounded-full shadow focus:ring-2 focus:ring-[#9b3c51]/50 bg-white text-lg w-full transition"
+              <p className="text-base md:text-lg text-gray-700 mt-2">
+  Oletko paikallinen yrittäjä tai harrastaja? Liity mukaan Mainoskylään – juuri nyt kaikki ilmoitukset ovat ilmaisia!
+</p>
 
-                  />
-                  <button
-                    onClick={hae}
-                    className="bg-[#3f704d] text-white px-6 py-3 rounded-full text-lg hover:bg-[#2f5332]"
-                  >
-                    Hae
-                  </button>
+
+            <div className="relative max-w-lg mx-auto md:mx-0 mt-4 mb-6">
+  <div className="flex gap-2">
+    <input
+      type="text"
+      placeholder="Hae paikkakunta tai sana..."
+      value={hakusana}
+      onChange={(e) => setHakusana(e.target.value)}
+      onKeyDown={(e) => e.key === 'Enter' && hae()}
+      className="flex-grow px-6 py-3 border rounded-full shadow focus:ring-2 focus:ring-[#9b3c51]/50 bg-white text-lg w-full transition"
+    />
+    <button
+      onClick={hae}
+      className="bg-[#3f704d] text-white px-6 py-3 rounded-full text-lg hover:bg-[#2f5332]"
+    >
+      Hae
+    </button>
                 </div>
                 {suositukset.length > 0 && (
                   <ul className="absolute bg-white border rounded shadow w-full mt-1 z-10 max-h-40 overflow-y-auto">
