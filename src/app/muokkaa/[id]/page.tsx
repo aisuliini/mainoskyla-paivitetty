@@ -12,6 +12,8 @@ import imageCompression from 'browser-image-compression'
 import Cropper from 'react-easy-crop'
 import getCroppedImg from '@/utils/cropImage'
 import { Area } from 'react-easy-crop'
+import Image from 'next/image'
+
 
 
 type Ilmoitus = {
@@ -317,12 +319,18 @@ reader.readAsDataURL(pakattu)
 )}
 
 {esikatselu && !showCropper && (
-  <img
-    src={esikatselu}
-    alt="Esikatselu"
-    className="h-32 rounded shadow object-cover"
-  />
+  <div className="relative w-full h-32">
+    <Image
+      src={esikatselu}
+      alt="Esikatselu"
+      fill
+      style={{ objectFit: 'cover' }}
+      className="rounded shadow"
+      sizes="(max-width: 768px) 100vw, 33vw"
+    />
+  </div>
 )}
+
 
         <label>Valitse ilmoitustyyppi:</label>
         <select value={tyyppi} onChange={(e) => setTyyppi(e.target.value)} className="w-full border px-4 py-2 rounded">

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import Link from 'next/link'
+import Image from 'next/image'
+
 
 type Ilmoitus = {
   id: string
@@ -96,47 +98,54 @@ export default function IlmoituksetSivu() {
         <>
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {nykyisetIlmoitukset.map((ilmoitus) => (
-              <li key={ilmoitus.id} className="bg-[#f0e7e3] p-4 rounded shadow">
-                {ilmoitus.kuva_url && (
-                  <img
-                    src={ilmoitus.kuva_url}
-                    alt={ilmoitus.otsikko}
-                    className="w-full h-40 object-cover rounded mb-2"
-                  />
-                )}
-                <h2 className="font-semibold text-lg text-[#4a7c59] break-words line-clamp-2">
-                  {ilmoitus.otsikko}
-                </h2>
+<li key={ilmoitus.id} className="bg-[#f0e7e3] p-4 rounded shadow">
+  {ilmoitus.kuva_url && (
+    <div className="relative w-full h-40 mb-2">
+      <Image
+        src={ilmoitus.kuva_url}
+        alt={ilmoitus.otsikko}
+        fill
+        style={{ objectFit: 'cover' }}
+        className="rounded"
+        sizes="(max-width: 768px) 100vw, 33vw"
+      />
+    </div>
+  )}
 
-                <p className="text-sm text-[#333]">{ilmoitus.kuvaus}</p>
-                <p className="text-xs text-[#777] mt-2">{ilmoitus.sijainti}</p>
+  <h2 className="font-semibold text-lg text-[#4a7c59] break-words line-clamp-2">
+    {ilmoitus.otsikko}
+  </h2>
 
-                <p className="text-xs text-[#aaa]">
-                  Julkaistu:{' '}
-                  {new Date(ilmoitus.luotu).toLocaleDateString('fi-FI', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                  })}{' klo '}
-                  {new Date(ilmoitus.luotu).toLocaleTimeString('fi-FI', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false,
-                  })}
-                </p>
+  <p className="text-sm text-[#333]">{ilmoitus.kuvaus}</p>
+  <p className="text-xs text-[#777] mt-2">{ilmoitus.sijainti}</p>
 
-                <p className="text-xs text-[#444] mt-1 italic">{ilmoitus.kategoria}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  👁️ {ilmoitus.nayttoja || 0} katselukertaa
-                </p>
+  <p className="text-xs text-[#aaa]">
+    Julkaistu:{' '}
+    {new Date(ilmoitus.luotu).toLocaleDateString('fi-FI', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    })}{' klo '}
+    {new Date(ilmoitus.luotu).toLocaleTimeString('fi-FI', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })}
+  </p>
 
-                <Link
-                  href={`/ilmoitukset/${ilmoitus.id}`}
-                  className="inline-block mt-2 text-sm text-blue-600 underline"
-                >
-                  Katso ilmoitus
-                </Link>
-              </li>
+  <p className="text-xs text-[#444] mt-1 italic">{ilmoitus.kategoria}</p>
+  <p className="text-xs text-gray-500 mt-1">
+    👁️ {ilmoitus.nayttoja || 0} katselukertaa
+  </p>
+
+  <Link
+    href={`/ilmoitukset/${ilmoitus.id}`}
+    className="inline-block mt-2 text-sm text-blue-600 underline"
+  >
+    Katso ilmoitus
+  </Link>
+</li>
+
             ))}
           </ul>
 

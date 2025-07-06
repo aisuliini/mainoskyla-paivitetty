@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
+import Image from 'next/image'
 
 type TapahtumaIlmoitus = {
   id: string
@@ -101,8 +102,18 @@ export default function TapahtumatClientPage() {
           {ilmoitukset.map((ilmo) => (
             <div key={ilmo.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
               {ilmo.kuva_url && (
-                <img src={ilmo.kuva_url} alt={ilmo.otsikko} className="h-40 w-full object-cover" />
-              )}
+  <div className="relative w-full h-40">
+    <Image
+      src={ilmo.kuva_url}
+      alt={ilmo.otsikko}
+      fill
+      style={{ objectFit: 'cover' }}
+      sizes="(max-width: 768px) 100vw, 33vw"
+      className="rounded-t"
+    />
+  </div>
+)}
+
               <div className="p-4">
                 <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>
                 <p className="text-sm text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
