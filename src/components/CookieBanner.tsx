@@ -1,35 +1,53 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem('cookieConsent');
-    if (!consent) {
+    const accepted = localStorage.getItem('cookie-consent');
+    if (!accepted) {
       setVisible(true);
     }
   }, []);
 
-  const acceptCookies = () => {
-    localStorage.setItem('cookieConsent', 'true');
+  const acceptAll = () => {
+    localStorage.setItem('cookie-consent', 'all');
+    setVisible(false);
+    // tänne voisi laittaa esim. Google Analyticsin latauksen
+  };
+
+  const declineAll = () => {
+    localStorage.setItem('cookie-consent', 'necessary');
     setVisible(false);
   };
 
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-[#3f704d] text-white p-4 text-sm flex flex-col md:flex-row items-center justify-between z-50">
-      <p className="mb-2 md:mb-0">
-        Käytämme evästeitä käyttökokemuksen parantamiseksi. Lue lisää tietosuojasta.
+    <div className="fixed bottom-0 w-full bg-[#3f704d] text-white p-4 text-sm flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 z-50">
+      <p>
+        Käytämme evästeitä käyttökokemuksen parantamiseksi.{' '}
+        <Link href="/tietosuoja" className="underline text-white hover:text-gray-200">
+          Lue lisää tietosuojasta
+        </Link>.
       </p>
-      <button
-        onClick={acceptCookies}
-        className="bg-white text-[#3f704d] px-4 py-2 rounded font-semibold hover:bg-gray-200"
-      >
-        Hyväksy evästeet
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={declineAll}
+          className="bg-white text-[#3f704d] px-3 py-1 rounded"
+        >
+          Salli vain välttämättömät
+        </button>
+        <button
+          onClick={acceptAll}
+          className="bg-white text-[#3f704d] px-3 py-1 rounded font-semibold"
+        >
+          Hyväksy kaikki
+        </button>
+      </div>
     </div>
   );
 }
