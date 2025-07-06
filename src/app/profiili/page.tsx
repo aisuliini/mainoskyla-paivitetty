@@ -52,13 +52,6 @@ export default function ProfiiliSivu() {
     location.reload()
   }
 
-  const nostaIlmoitus = async (ilmo: Ilmoitus) => {
-    if (!confirm('Nostetaanko ilmoitus haun kärkeen ja veloitetaan nosto?')) return
-    const nyt = new Date().toISOString()
-    await supabase.from('ilmoitukset').update({ nostettu_at: nyt }).eq('id', ilmo.id)
-    location.reload()
-  }
-
   const poistaTili = async () => {
   const { data: sessionData } = await supabase.auth.getSession()
   const user = sessionData?.session?.user
