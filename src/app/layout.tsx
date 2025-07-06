@@ -1,20 +1,20 @@
 import './globals.css'
 import MobiiliHeader from '@/components/Header'
 import { Rubik } from 'next/font/google'
+import CookieBanner from '@/components/CookieBanner';
 
 const rubik = Rubik({
   subsets: ['latin'],
-  weight: ['400', '400', '600'], //  esim. '300' tai '800' tarpeen mukaan
-})
+  weight: ['400', '600'],
+});
 
 export const metadata = {
   title: 'Mainoskylä – Paikallista mainontaa helposti',
-  description:
-    'Ilmoita ja löydä paikalliset palvelut, tuotteet ja tapahtumat yhdestä paikasta. Mainoskylä yhdistää asiakkaat ja tekijät koko Suomessa.',
+  description: 'Ilmoita ja löydä paikalliset palvelut...',
   icons: {
     icon: '/favicon.ico',
   },
-}
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -22,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${rubik.className} bg-white text-gray-800`}>
         <MobiiliHeader />
         {children}
+        <CookieBanner /> 
       </body>
     </html>
   )

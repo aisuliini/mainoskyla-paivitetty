@@ -185,7 +185,7 @@ export default function Home() {
     <button
       key={kategoria.nimi}
       onClick={() => router.push(`/kategoriat/${urlSafeKategoria(kategoria.nimi)}`)}
-      className="flex items-center gap-2 bg-white border px-4 py-2 rounded-full text-sm shadow hover:bg-[#d6f2de] hover:text-[#9b3c51] transition-colors duration-300"
+      className="flex items-center gap-2 bg-white border px-4 py-2 rounded-full text-sm shadow hover:bg-[#d6f2de] hover:text-[#2f5332] transition-colors duration-300"
 
     >
       {kategoria.ikoni}
@@ -202,7 +202,8 @@ export default function Home() {
       <section className="bg-white px-6 py-8">
   <div className="max-w-screen-xl mx-auto">
     <h2 className="text-xl font-semibold text-[#2f5332] mb-4">Etusivun Premium-ilmoitukset</h2>
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+
       {premiumIlmoitukset.map((ilmo) => (
 <div key={ilmo.id} className="bg-white/60 backdrop-blur-sm border border-[#c4d7c0] rounded-xl p-4 shadow hover:shadow-lg transition duration-300">
           {ilmo.kuva_url ? (
