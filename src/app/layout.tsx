@@ -2,7 +2,8 @@ import './globals.css'
 import MobiiliHeader from '@/components/Header'
 import { Rubik } from 'next/font/google'
 import CookieBanner from '@/components/CookieBanner';
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from '@vercel/analytics/react'
+
 
 const rubik = Rubik({
   subsets: ['latin'],
