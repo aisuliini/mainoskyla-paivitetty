@@ -335,7 +335,6 @@ reader.readAsDataURL(pakattu)
         <label>Valitse ilmoitustyyppi:</label>
         <select value={tyyppi} onChange={(e) => setTyyppi(e.target.value)} className="w-full border px-4 py-2 rounded">
           <option value="perus">Perusilmoitus</option>
-          <option value="nosto">Nosto haun kärkeen</option>
           <option value="premium">Premium näkyvyys</option>
         </select>
 

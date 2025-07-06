@@ -2,6 +2,7 @@ import './globals.css'
 import MobiiliHeader from '@/components/Header'
 import { Rubik } from 'next/font/google'
 import CookieBanner from '@/components/CookieBanner';
+import { Analytics } from "@vercel/analytics/next"
 
 const rubik = Rubik({
   subsets: ['latin'],
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MobiiliHeader />
         {children}
         <CookieBanner /> 
+        <Analytics />
       </body>
     </html>
   )
