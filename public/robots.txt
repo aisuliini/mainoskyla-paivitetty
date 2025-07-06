@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://mainoskyla.fi
+
+# Sitemaps
+Sitemap: https://mainoskyla.fi/sitemap.xml
