@@ -151,8 +151,8 @@ export default function Home() {
  bg-white text-lg w-full transition"
     />
     <button
-  className="bbg-[#1E3A41] text-white px-6 py-3 rounded-full text-lg hover:bg-[#27494e]
- transition"
+  className="w-full md:w-auto bg-[#1E3A41] text-white px-6 py-3 rounded-full text-lg hover:bg-[#27494e] transition"
+
 >
   Hae
 </button>
@@ -225,7 +225,7 @@ export default function Home() {
           {!ilmo.id.startsWith('tyhja-') && (
             <button
   onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
-  className="mt-2 w-full px-3 py-1 text-sm bg-[#FDF6EF] text-[#1E3A41] border border-[#1E3A41] rounded hover:bg-[#1E3A41] hover:text-white transition hover:shadow-lg"
+  className="mt-2 w-full px-3 py-1 text-xs bg-[#FDF6EF] text-[#1E3A41] border border-[#1E3A41] rounded hover:bg-[#1E3A41] hover:text-white transition hover:shadow-lg"
 >
   Näytä
 </button>
@@ -236,7 +236,7 @@ export default function Home() {
           {ilmo.id.startsWith('tyhja-') && (
             <button
   onClick={() => router.push('/lisaa')}
-  className="mt-2 w-full px-3 py-1 text-sm bg-[#FDF6EF] text-[#1E3A41] border border-[#1E3A41] rounded hover:bg-[#1E3A41] hover:text-white transition hover:shadow-lg"
+  className="mt-2 w-full px-3 py-1 text-xs bg-[#FDF6EF] text-[#1E3A41] border border-[#1E3A41] rounded hover:bg-[#1E3A41] hover:text-white transition hover:shadow-lg"
 >
   Lisää oma ilmoitus
 </button>
