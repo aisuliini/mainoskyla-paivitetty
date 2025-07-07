@@ -21,7 +21,8 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fi">
-      <body className={`${rubik.className} bg-white text-gray-800`}>
+      <body className={`${rubik.className} bg-[#F7FAF9] text-[#1E3A41]`}>
+
         <MobiiliHeader />
         {children}
         <CookieBanner /> 

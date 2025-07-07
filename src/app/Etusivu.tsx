@@ -111,20 +111,10 @@ export default function Home() {
     encodeURIComponent(kategoria.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/\s+/g, '-'))
 
   return (
-<main
-  className="relative min-h-screen text-[#333333] font-sans"
-  style={{
-    backgroundImage: `
-      radial-gradient(circle at 20% 20%, rgba(230, 244, 234, 0.5), transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(242, 209, 215, 0.3), transparent 50%),
-      url('/tausta-kuvio.svg')
-    `,
-    backgroundBlendMode: "screen, overlay, overlay",
-    backgroundSize: "cover",
-    backgroundRepeat: "no-repeat",
-    backgroundAttachment: "fixed",
-  }}
->
+<main className="min-h-screen font-sans text-[#1E3A41] bg-[#F7FAF9]">
+
+
+
 
 
   <div className="absolute inset-0 backdrop-blur-sm"></div>
@@ -133,20 +123,13 @@ export default function Home() {
         <div className="max-w-screen-xl mx-auto">
           <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12">
             <div className="flex-shrink-0">
-              <Image src="/logo.png" alt="Mainoskylä logo" width={250} height={200} className="mx-auto md:mx-0" />
+              <Image src="/mainoskylalogo.svg" alt="Mainoskylä" width={250} height={200} className="mx-auto md:mx-0" />
             </div>
             <div className="w-full text-center md:text-left">
               <h1
-  className="
-    text-3xl 
-    md:text-4xl 
-    font-extrabold 
-    leading-snug 
-    mb-6 
-    text-[#2f5332]
-    drop-shadow-md
-  "
+  className="text-3xl md:text-4xl font-extrabold leading-snug mb-6 text-[#1E3A41] drop-shadow-sm"
 >
+
   Löydä tai mainosta paikallisesti – Mainoskylä yhdistää ihmiset ja yritykset.
 </h1>
 
@@ -164,14 +147,16 @@ export default function Home() {
       value={hakusana}
       onChange={(e) => setHakusana(e.target.value)}
       onKeyDown={(e) => e.key === 'Enter' && hae()}
-      className="flex-grow px-6 py-3 border rounded-full shadow focus:ring-2 focus:ring-[#9b3c51]/50 bg-white text-lg w-full transition"
+      className="flex-grow px-6 py-3 border rounded-full shadow focus:ring-2 focus:ring-[#1E3A41]/30
+ bg-white text-lg w-full transition"
     />
     <button
-      onClick={hae}
-      className="bg-[#3f704d] text-white px-6 py-3 rounded-full text-lg hover:bg-[#2f5332]"
-    >
-      Hae
-    </button>
+  className="bbg-[#1E3A41] text-white px-6 py-3 rounded-full text-lg hover:bg-[#27494e]
+ transition"
+>
+  Hae
+</button>
+
                 </div>
                 {suositukset.length > 0 && (
                   <ul className="absolute bg-white border rounded shadow w-full mt-1 z-10 max-h-40 overflow-y-auto">
@@ -195,7 +180,9 @@ export default function Home() {
     <button
       key={kategoria.nimi}
       onClick={() => router.push(`/kategoriat/${urlSafeKategoria(kategoria.nimi)}`)}
-      className="flex items-center gap-2 bg-white border px-4 py-2 rounded-full text-sm shadow hover:bg-[#d6f2de] hover:text-[#2f5332] transition-colors duration-300"
+      className="flex items-center gap-2 bg-white border border-[#D1E2D2] text-[#1E3A41] px-4 py-2 rounded-full text-sm shadow-sm hover:bg-[#D9EDE3] hover:border-[#D9EDE3] hover:text-[#1E3A41] transition-colors"
+
+
 
     >
       {kategoria.ikoni}
@@ -215,7 +202,8 @@ export default function Home() {
     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 
       {premiumIlmoitukset.map((ilmo) => (
-<div key={ilmo.id} className="bg-white/60 backdrop-blur-sm border border-[#c4d7c0] rounded-xl p-4 shadow hover:shadow-lg transition duration-300">
+<div key={ilmo.id} className="bg-white/60 backdrop-blur-sm border border-[#D9EDE3]
+ rounded-xl p-4 shadow hover:shadow-lg transition duration-300">
           {ilmo.kuva_url ? (
             <div className="relative w-full h-32 rounded overflow-hidden mb-2 bg-white">
               <Image
@@ -236,19 +224,25 @@ export default function Home() {
 
           {!ilmo.id.startsWith('tyhja-') && (
             <button
-              onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
-              className="mt-2 w-full px-3 py-1 text-xs bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
-            >
-              Näytä
-            </button>
+  onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
+  className="mt-2 w-full px-3 py-1 text-sm bg-[#FDF6EF] text-[#1E3A41] border border-[#1E3A41] rounded hover:bg-[#1E3A41] hover:text-white transition hover:shadow-lg"
+>
+  Näytä
+</button>
+
+
+
           )}
           {ilmo.id.startsWith('tyhja-') && (
             <button
-              onClick={() => router.push('/lisaa')}
-              className="mt-2 w-full px-3 py-1 text-xs bg-white text-[#3f704d] border border-[#3f704d] rounded hover:bg-[#e0f0e0]"
-            >
-              Lisää oma ilmoitus
-            </button>
+  onClick={() => router.push('/lisaa')}
+  className="mt-2 w-full px-3 py-1 text-sm bg-[#FDF6EF] text-[#1E3A41] border border-[#1E3A41] rounded hover:bg-[#1E3A41] hover:text-white transition hover:shadow-lg"
+>
+  Lisää oma ilmoitus
+</button>
+
+
+
           )}
         </div>
       ))}
@@ -261,7 +255,8 @@ export default function Home() {
 </section>
 
 
-      <footer className="bg-[#f9f5eb] text-sm text-[#2f5332] text-center py-8 mt-12">
+      <footer className="bg-[#F7FAF9] text-sm text-[#1E3A41]
+ text-center py-8 mt-12">
 
         <div className="space-y-4">
           <nav className="flex flex-wrap justify-center gap-4 font-medium">

@@ -42,8 +42,9 @@ export default function Header() {
     <header className="bg-white border-b px-4 py-2 flex items-center justify-between sticky top-0 z-50">
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2">
-        <Image src="/logo.png" alt="Mainoskylä" width={36} height={36} />
-        <span className="text-lg font-semibold text-[#3f704d]">Mainoskylä</span>
+        <Image src="/mainoskylalogo.svg" alt="Mainoskylä" width={36} height={36} />
+        <span className="text-lg font-semibold text-[#1E3A41]">Mainoskylä</span>
+
       </Link>
 
       {/* Hakukenttä */}
@@ -81,11 +82,13 @@ export default function Header() {
           </>
         ) : (
           <Link
-            href="/kirjaudu"
-            className="bg-green-700 text-white px-4 py-1 rounded hover:bg-green-800"
-          >
-            Kirjaudu
-          </Link>
+  href="/kirjaudu"
+  className="bg-[#EB8FA1] text-white px-4 py-1 rounded hover:bg-[#d86c83]"
+>
+  Kirjaudu
+</Link>
+
+
         )}
       </div>
 
@@ -121,12 +124,14 @@ export default function Header() {
           ) : (
             <>
   <Link
-    href="/kirjaudu"
-    onClick={() => setOpen(false)}
-    className="block mb-2 bg-green-700 text-white px-4 py-1 rounded hover:bg-green-800"
-  >
-    Kirjaudu
-  </Link>
+  href="/kirjaudu"
+  onClick={() => setOpen(false)}
+  className="block mb-2 bg-[#EB8FA1] text-white px-4 py-1 rounded hover:bg-[#d86c83]"
+>
+  Kirjaudu
+</Link>
+
+
   <Link
     href="/rekisteroidy"
     onClick={() => setOpen(false)}
