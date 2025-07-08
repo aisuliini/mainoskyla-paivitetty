@@ -8,7 +8,6 @@ import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
-import type { User } from '@supabase/supabase-js'
 
 
 
