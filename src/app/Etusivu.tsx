@@ -123,7 +123,14 @@ export default function Home() {
         <div className="max-w-screen-xl mx-auto">
           <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12">
             <div className="flex-shrink-0">
-              <Image src="/mainoskylalogo.svg" alt="Mainoskylä" width={250} height={200} className="mx-auto md:mx-0" />
+              <Image
+  src="/mainoskylalogo.svg"
+  alt="Mainoskylä"
+  width={250}
+  height={200}
+  className="w-full max-w-[250px] h-auto mx-auto md:mx-0"
+/>
+
             </div>
             <div className="w-full text-center md:text-left">
               <h1
@@ -140,7 +147,7 @@ export default function Home() {
 
 
             <div className="relative max-w-lg mx-auto md:mx-0 mt-4 mb-6">
-  <div className="flex gap-2">
+  <div className="flex flex-col md:flex-row gap-2">
     <input
       type="text"
       placeholder="Hae paikkakunta tai sana..."
@@ -151,11 +158,12 @@ export default function Home() {
  bg-white text-lg w-full transition"
     />
     <button
-  className="w-full md:w-auto bg-[#1E3A41] text-white px-6 py-3 rounded-full text-lg hover:bg-[#27494e] transition"
-
+  onClick={hae}
+  className="bg-[#1E3A41] text-white px-6 py-3 rounded-full text-lg hover:bg-[#27494e] transition"
 >
   Hae
 </button>
+
 
                 </div>
                 {suositukset.length > 0 && (
