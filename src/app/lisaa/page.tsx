@@ -39,7 +39,11 @@ const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | undefined>()
 const [user, setUser] = useState<{ id: string } | null>(null)
 
 
-const ilmoituksenAlku = alku || new Date()
+const ilmoituksenAlku =
+  tyyppi === 'premium'
+    ? alku || new Date()
+    : new Date()
+
 const loppuDate = new Date(ilmoituksenAlku.getTime() + parseInt(kesto) * 86400000)
 
 
@@ -76,10 +80,12 @@ useEffect(() => {
   const haePremiumKalenteri = async () => {
     const nytISO = new Date().toISOString()
     const { data } = await supabase
-      .from('ilmoitukset')
-      .select('premium_alku, premium_loppu, premium_tyyppi')
-      .eq('premium_tyyppi', 'etusivu')
-      .gte('premium_loppu', nytISO)
+  .from('ilmoitukset')
+  .select('*')
+  .eq('premium', true)
+  .eq('premium_tyyppi', 'etusivu')
+  .lte('premium_alku', nytISO)   
+  .gte('premium_loppu', nytISO)
 
     const paivaLaskuri: { [päivä: string]: number } = {}
 
@@ -394,10 +400,11 @@ const handleUpload = async () => {
     Ilmoituksesi näkyy ajalla:
     <strong>
       {' '}
-      {ilmoituksenAlku.toLocaleDateString('fi-FI')} – {loppuDate.toLocaleDateString('fi-FI')}
+      {new Date().toLocaleDateString('fi-FI')} – {loppuDate.toLocaleDateString('fi-FI')}
     </strong>
   </p>
 )}
+
 
 
 

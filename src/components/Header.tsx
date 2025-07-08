@@ -1,8 +1,11 @@
 'use client'
 
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
@@ -10,25 +13,23 @@ import type { User } from '@supabase/supabase-js'
 
 
 
+
 export default function Header() {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [user, setUser] = useState<User | null>(null)
   const [hakusana, setHakusana] = useState('')
 
-  useEffect(() => {
-    const haeKayttaja = async () => {
-      const { data } = await supabase.auth.getUser()
-      setUser(data?.user ?? null)
-    }
-    haeKayttaja()
-  }, [])
+const { user, loading } = useAuth()
+if (loading) {
+  return null
+}
+
 
   const kirjauduUlos = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    router.refresh()
-  }
+  await supabase.auth.signOut()
+  router.refresh()
+}
+
 
   const hae = () => {
     if (hakusana.trim()) {

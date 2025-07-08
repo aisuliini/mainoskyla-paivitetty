@@ -52,11 +52,11 @@ export default function Home() {
         .gte('premium_loppu', nyt)
         .order('premium_alku', { ascending: true })
         .order('id', { ascending: true })
-        .limit(20)
+        .limit(52)
 
       if (!error && data) {
         const taydelliset = [...data]
-        while (taydelliset.length < 20) {
+        while (taydelliset.length < 52) {
           taydelliset.push({
             id: `tyhja-${taydelliset.length}`,
             otsikko: 'Vapaa mainospaikka',

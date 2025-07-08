@@ -27,21 +27,33 @@ export default function IlmoituksetSivu() {
   const PER_PAGE = 24
 
   useEffect(() => {
-    const haeIlmoitukset = async () => {
-      const { data, error } = await supabase
-        .from('ilmoitukset')
-        .select('*')
-        .order('luotu', { ascending: false })
+  const haeIlmoitukset = async () => {
+    const nytISO = new Date().toISOString()
 
-      if (!error && data) {
-        setIlmoitukset(data as Ilmoitus[])
-      }
+    let query = supabase
+      .from('ilmoitukset')
+      .select('*')
+      .or(`
+        (premium = true AND premium_alku <= '${nytISO}'),
+        (premium = false AND voimassa_alku <= '${nytISO}')
+      `)
+      .order('luotu', { ascending: false })
 
-      setLoading(false)
+    if (valittuKategoria) {
+      query = query.eq('kategoria', valittuKategoria)
     }
 
-    haeIlmoitukset()
-  }, [])
+    const { data, error } = await query
+
+    if (!error && data) {
+      setIlmoitukset(data as Ilmoitus[])
+    }
+
+    setLoading(false)
+  }
+
+  haeIlmoitukset()
+}, [valittuKategoria])
 
   const kategoriat = Array.from(
     new Set(ilmoitukset.map((i) => i.kategoria).filter(Boolean))

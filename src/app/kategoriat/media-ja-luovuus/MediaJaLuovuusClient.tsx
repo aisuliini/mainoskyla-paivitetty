@@ -33,10 +33,17 @@ export default function MediaJaLuovuusClientPage() {
       const from = (page - 1) * PER_PAGE
       const to = from + PER_PAGE - 1
 
+      const nytISO = new Date().toISOString()
+
+
       let query = supabase
         .from('ilmoitukset')
         .select('*')
         .eq('kategoria', 'Media ja Luovuus')
+        .or(`
+          (premium = true AND premium_alku <= '${nytISO}'),
+          (premium = false AND voimassa_alku <= '${nytISO}')
+        `)
 
       if (jarjestys === 'uusin') query = query.order('luotu', { ascending: false })
       if (jarjestys === 'vanhin') query = query.order('luotu', { ascending: true })

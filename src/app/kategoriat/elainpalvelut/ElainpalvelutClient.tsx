@@ -28,15 +28,23 @@ export default function ElainpalvelutClientPage() {
   const [jarjestys, setJarjestys] = useState<'uusin' | 'vanhin' | 'suosituin'>('uusin')
   const [sijainti, setSijainti] = useState(searchParams.get('sijainti') || '')
 
+
   useEffect(() => {
     const haeIlmoitukset = async () => {
       const from = (page - 1) * PER_PAGE
       const to = from + PER_PAGE - 1
 
+      const nytISO = new Date().toISOString()
+
       let query = supabase
         .from('ilmoitukset')
         .select('*')
         .eq('kategoria', 'Eläinpalvelut')
+        .or(`
+          (premium = true AND premium_alku <= '${nytISO}'),
+          (premium = false AND voimassa_alku <= '${nytISO}')
+        `)
+
 
       if (jarjestys === 'uusin') query = query.order('luotu', { ascending: false })
       if (jarjestys === 'vanhin') query = query.order('luotu', { ascending: true })

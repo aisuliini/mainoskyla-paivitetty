@@ -26,12 +26,21 @@ export default function TapahtumatClientPage() {
 
   useEffect(() => {
   const hae = async () => {
-    const nyt = new Date().toISOString()
-    let query = supabase.from('ilmoitukset').select('*').eq('kategoria', 'Tapahtumat')
+    const nytISO = new Date().toISOString()
+
+let query = supabase
+  .from('ilmoitukset')
+  .select('*')
+  .eq('kategoria', 'Tapahtumat')
+  .or(`
+    (premium = true AND premium_alku <= '${nytISO}'),
+    (premium = false AND voimassa_alku <= '${nytISO}')
+  `)
+
 
     // Järjestys
     if (jarjestys === 'tulevat') {
-      query = query.gte('tapahtuma_loppu', nyt).order('tapahtuma_alku', { ascending: true })
+      query = query.gte('tapahtuma_loppu', nytISO).order('tapahtuma_alku', { ascending: true })
     } else if (jarjestys === 'uusin') {
       query = query.order('luotu', { ascending: false })
     } else if (jarjestys === 'vanhin') {
@@ -40,8 +49,16 @@ export default function TapahtumatClientPage() {
 
     // Päivämäärähaku: näytä tapahtumat, jotka osuvat hakuajanjaksoon
     if (alkuPaiva && loppuPaiva) {
-      query = query.or(`and(tapahtuma_alku.lte.${loppuPaiva},tapahtuma_loppu.gte.${alkuPaiva})`)
-    }
+  query = query
+    .lte('tapahtuma_alku', loppuPaiva)
+    .gte('tapahtuma_loppu', alkuPaiva)
+} else if (alkuPaiva) {
+  query = query.gte('tapahtuma_loppu', alkuPaiva)
+} else if (loppuPaiva) {
+  query = query.lte('tapahtuma_alku', loppuPaiva)
+}
+
+
 
     const { data, error } = await query
 
