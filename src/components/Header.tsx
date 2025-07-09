@@ -56,26 +56,17 @@ if (loading) {
     value={hakusana}
     onChange={(e) => setHakusana(e.target.value)}
     onKeyDown={(e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault()
-        if (hakusana.trim()) {
-          router.push(`/aluehaku?sijainti=${encodeURIComponent(hakusana.trim())}`)
-          setHakusana('')
-          setOpen(false)
-        }
-      }
-    }}
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    hae()
+  }
+}}
+
     className="w-full px-3 py-1 text-sm border rounded-full focus:ring-2 focus:ring-[#F99584]/50"
   />
   <button
     type="button"
-    onClick={() => {
-      if (hakusana.trim()) {
-        router.push(`/aluehaku?sijainti=${encodeURIComponent(hakusana.trim())}`)
-        setHakusana('')
-        setOpen(false)
-      }
-    }}
+    onClick={hae}
     className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#1E3A41] text-white px-4 py-1 rounded-full text-sm hover:bg-[#27494e] active:scale-95 transition"
   >
     Hae

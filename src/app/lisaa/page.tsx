@@ -43,11 +43,18 @@ const [user, setUser] = useState<{ id: string } | null>(null)
 
 const ilmoituksenAlku =
   tyyppi === 'premium'
-    ? alku || new Date()
+    ? alku
     : new Date()
 
-const loppuDate = new Date(ilmoituksenAlku.getTime() + parseInt(kesto) * 86400000)
+const loppuDate =
+  ilmoituksenAlku
+    ? new Date(ilmoituksenAlku.getTime() + (parseInt(kesto || '0') || 0) * 86400000)
+    : null
 
+  
+
+
+// Sulkee ehdotuslistan kun klikataan ulos
 useEffect(() => {
   function onClickOutside(e: MouseEvent) {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -60,25 +67,12 @@ useEffect(() => {
   }
 }, [])
 
-
+// Päivitä sijaintiehdotukset, kun käyttäjä kirjoittaa
 useEffect(() => {
   if (sijainti.length === 0) {
     setSijaintiehdotukset([])
     return
   }
-
-  useEffect(() => {
-  function onClickOutside(e: MouseEvent) {
-    if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-      setSijaintiehdotukset([])
-    }
-  }
-  document.addEventListener('mousedown', onClickOutside)
-  return () => {
-    document.removeEventListener('mousedown', onClickOutside)
-  }
-}, [])
-
 
   const ehdotukset = paikkakunnat
     .filter((nimi: string) =>
@@ -88,6 +82,7 @@ useEffect(() => {
 
   setSijaintiehdotukset(ehdotukset)
 }, [sijainti])
+
 
 
 
@@ -143,6 +138,19 @@ data?.forEach((ilmo: PremiumIlmoitus) => {
     haePremiumKalenteri()
   }
 }, [tyyppi])
+
+useEffect(() => {
+  if (tyyppi === 'perus' && !alku) {
+    setAlku(new Date())
+  }
+}, [tyyppi, alku])
+
+useEffect(() => {
+  if (tapahtumaAlku && !tapahtumaLoppu) {
+    setTapahtumaLoppu(tapahtumaAlku)
+  }
+}, [tapahtumaAlku, tapahtumaLoppu])
+
 
 const handleUpload = async () => {
   const nykyhetki = new Date()
@@ -422,15 +430,13 @@ const handleUpload = async () => {
           )}
 
           {/* <p className="text-right font-semibold text-sm">Hinta: {hinta}</p> */}
-          {tyyppi === 'perus' && (
-  <p className="text-sm text-gray-700">
+          {tyyppi === 'perus' && loppuDate && (
+  <p>
     Ilmoituksesi näkyy ajalla:
-    <strong>
-      {' '}
-      {new Date().toLocaleDateString('fi-FI')} – {loppuDate.toLocaleDateString('fi-FI')}
-    </strong>
+    <strong> {new Date().toLocaleDateString('fi-FI')} – {loppuDate.toLocaleDateString('fi-FI')}</strong>
   </p>
 )}
+
 
 
 
