@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 import { fi } from 'date-fns/locale'
@@ -16,7 +16,9 @@ import KuvanLataaja from '@/components/KuvanLataaja'
 
 
 
+
 export default function LisaaIlmoitus() {
+  const wrapperRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const [otsikko, setOtsikko] = useState('')
   const [kuvaus, setKuvaus] = useState('')
@@ -46,12 +48,37 @@ const ilmoituksenAlku =
 
 const loppuDate = new Date(ilmoituksenAlku.getTime() + parseInt(kesto) * 86400000)
 
+useEffect(() => {
+  function onClickOutside(e: MouseEvent) {
+    if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+      setSijaintiehdotukset([])
+    }
+  }
+  document.addEventListener('mousedown', onClickOutside)
+  return () => {
+    document.removeEventListener('mousedown', onClickOutside)
+  }
+}, [])
+
 
 useEffect(() => {
   if (sijainti.length === 0) {
     setSijaintiehdotukset([])
     return
   }
+
+  useEffect(() => {
+  function onClickOutside(e: MouseEvent) {
+    if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+      setSijaintiehdotukset([])
+    }
+  }
+  document.addEventListener('mousedown', onClickOutside)
+  return () => {
+    document.removeEventListener('mousedown', onClickOutside)
+  }
+}, [])
+
 
   const ehdotukset = paikkakunnat
     .filter((nimi: string) =>
@@ -213,7 +240,7 @@ const handleUpload = async () => {
         <p className="mb-6">Sinun täytyy olla kirjautunut lisätäksesi ilmoituksen.</p>
         <button
           onClick={() => router.push('/kirjaudu')}
-          className="bg-[#3f704d] text-white px-6 py-3 rounded hover:bg-[#2f5332]"
+          className="bg-[#F5A3B3] text-[#1E3A41] px-6 py-3 rounded hover:bg-[#3f704d]"
         >
           Siirry kirjautumaan
         </button>
@@ -235,7 +262,7 @@ const handleUpload = async () => {
 
           <textarea placeholder="Kuvaus" value={kuvaus} onChange={(e) => setKuvaus(e.target.value)} required className="w-full border px-4 py-2 rounded" />
           
-          <div className="relative">
+          <div ref={wrapperRef} className="relative">
             <input
               type="text"
               placeholder="Sijainti (esim. Porvoo)"

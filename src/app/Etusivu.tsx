@@ -84,11 +84,13 @@ export default function Home() {
   }, [hakusana])
 
   const hae = () => {
-    const query = hakusana.trim()
-    if (query) {
-      router.push(`/aluehaku?sijainti=${encodeURIComponent(query)}`)
-    }
+  const query = hakusana.trim()
+  if (query) {
+    router.push(`/aluehaku?sijainti=${encodeURIComponent(query)}`)
+    setSuositukset([]) // tämä piilottaa dropdownin jos haku tehdään Enterillä
   }
+}
+
 
   const kategoriat = [
   { nimi: "Palvelut", ikoni: <Hammer size={16} /> },
@@ -117,19 +119,20 @@ export default function Home() {
 
 
 
-  <div className="absolute inset-0 backdrop-blur-sm"></div>
+  
   <div className="relative z-10">
       <section className="py-8 px-6">
         <div className="max-w-screen-xl mx-auto">
           <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12">
             <div className="flex-shrink-0">
               <Image
-  src="/mainoskylalogo.svg"
+  src="/mainoskylalogo.png"
   alt="Mainoskylä"
   width={250}
-  height={200}
-  className="w-full max-w-[250px] h-auto mx-auto md:mx-0"
+  height={250}
+  priority
 />
+
 
             </div>
             <div className="w-full text-center md:text-left">
@@ -154,8 +157,8 @@ export default function Home() {
       value={hakusana}
       onChange={(e) => setHakusana(e.target.value)}
       onKeyDown={(e) => e.key === 'Enter' && hae()}
-      className="flex-grow px-6 py-3 border rounded-full shadow focus:ring-2 focus:ring-[#1E3A41]/30
- bg-white text-lg w-full transition"
+      className="w-full px-3 py-1 text-sm border border-[#D1E2D2] rounded-full focus:ring-2 focus:ring-[#F99584]/50"
+
     />
     <button
   onClick={hae}
@@ -170,12 +173,17 @@ export default function Home() {
                   <ul className="absolute bg-white border rounded shadow w-full mt-1 z-10 max-h-40 overflow-y-auto">
                     {suositukset.map((ehto, idx) => (
                       <li
-                        key={idx}
-                        className="px-4 py-2 hover:bg-[#f0f0f0] cursor-pointer text-left"
-                        onClick={() => setHakusana(ehto)}
-                      >
-                        {ehto}
-                      </li>
+  key={idx}
+  className="px-4 py-2 hover:bg-[#f0f0f0] cursor-pointer text-left"
+  onClick={() => {
+    setHakusana(ehto)
+    setSuositukset([])   // piilota dropdown
+    hae()                // tee haku heti (jos haluat automaattisesti hakea)
+  }}
+>
+  {ehto}
+</li>
+
                     ))}
                   </ul>
                 )}
@@ -210,7 +218,7 @@ export default function Home() {
     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 
       {premiumIlmoitukset.map((ilmo) => (
-<div key={ilmo.id} className="bg-white/60 backdrop-blur-sm border border-[#D9EDE3]
+<div key={ilmo.id} className="bg-white/60 border border-[#D9EDE3]
  rounded-xl p-4 shadow hover:shadow-lg transition duration-300">
           {ilmo.kuva_url ? (
             <div className="relative w-full h-32 rounded overflow-hidden mb-2 bg-white">
@@ -258,8 +266,39 @@ export default function Home() {
   </div>
 </section>
 
-      <section className="px-6 py-4 bg-[#fff8f6] border-t border-[#f1c0bd] text-sm text-[#a94442] text-center">
+      <section className="px-6 py-4 bg-[#FFE5E1] border-t border-[#f1c0bd] text-sm text-[#a94442] text-center">
+
   ⚠️ Muistutus: Älä koskaan anna pankkitunnuksia tai siirrä rahaa ilmoittajalle. Ilmoituksiin liittyvät maksupyynnöt voivat olla huijausyrityksiä.
+</section>
+
+
+<section className="bg-[#FBE7E3] px-6 py-12 text-[#1E3A41]">
+
+  <div className="max-w-screen-xl mx-auto flex flex-col md:flex-row items-center gap-8">
+    <div className="md:w-1/2 text-center md:text-left">
+      <h3 className="text-2xl md:text-3xl font-extrabold mb-4">
+        Lisää oma ilmoituksesi helposti!
+      </h3>
+      <p className="text-base md:text-lg text-[#333] mb-6">
+        Kerro palveluistasi tai tuotteistasi Mainoskylässä ja tavoita paikalliset asiakkaat. Ilmoituksen tekeminen on nyt täysin ilmaista!
+      </p>
+      <button
+        onClick={() => router.push('/lisaa')}
+        className="bg-[#F99584] text-white px-6 py-3 rounded-full hover:bg-[#E86E5B] transition"
+      >
+        Lisää ilmoitus nyt
+      </button>
+    </div>
+    <div className="md:w-1/2">
+      <Image
+        src="/mainoskylalogo.png"
+        alt="Mainoskylä Logo"
+        width={300}
+        height={300}
+        className="mx-auto"
+      />
+    </div>
+  </div>
 </section>
 
 

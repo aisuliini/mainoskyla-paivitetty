@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import Image from 'next/image'
 
-
 type Ilmoitus = {
   id: string
   otsikko: string
@@ -20,6 +19,9 @@ function AluehakuSisalto() {
   const router = useRouter()
   const hakusana = searchParams.get('sijainti') || ''
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
+  
+  // UUSI tila parannettua hakukenttää varten:
+  const [hakuKentta, setHakuKentta] = useState(hakusana)
 
   useEffect(() => {
     const hae = async () => {
@@ -38,6 +40,40 @@ function AluehakuSisalto() {
 
   return (
     <main className="max-w-screen-xl mx-auto p-6">
+      
+      {/* UUSI hakukenttä Tori.fi-tyyliin */}
+      <div className="mb-8 w-full max-w-md mx-auto">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Hae paikkakunta tai sana..."
+            value={hakuKentta}
+            onChange={(e) => setHakuKentta(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                const params = new URLSearchParams()
+                if (hakuKentta) params.set('sijainti', hakuKentta)
+                router.push(`/aluehaku?${params.toString()}`)
+              }
+            }}
+            className="w-full px-4 py-2 border border-[#D1E2D2] rounded-full focus:ring-2 focus:ring-[#F99584]/50"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              const params = new URLSearchParams()
+              if (hakuKentta) params.set('sijainti', hakuKentta)
+              router.push(`/aluehaku?${params.toString()}`)
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#1E3A41] text-white px-4 py-1 rounded-full text-sm hover:bg-[#27494e] active:scale-95 transition"
+          >
+            Hae
+          </button>
+        </div>
+      </div>
+
+      {/* VANHA hakukenttä säilytetty koskemattomana */}
       <div className="mb-6 max-w-md">
         <input
           type="text"
@@ -62,17 +98,17 @@ function AluehakuSisalto() {
           {ilmoitukset.map((ilmo) => (
             <div key={ilmo.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
               {ilmo.kuva_url && (
-  <div className="relative w-full h-40">
-    <Image
-      src={ilmo.kuva_url}
-      alt={ilmo.otsikko}
-      fill
-      style={{ objectFit: 'cover' }}
-      sizes="(max-width: 768px) 100vw, 33vw"
-      className="rounded-t"
-    />
-  </div>
-)}
+                <div className="relative w-full h-40">
+                  <Image
+                    src={ilmo.kuva_url}
+                    alt={ilmo.otsikko}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="rounded-t"
+                  />
+                </div>
+              )}
 
               <div className="p-4">
                 <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>

@@ -1,6 +1,5 @@
 'use client'
 
-'use client'
 
 import Link from 'next/link'
 import Image from 'next/image'
@@ -42,26 +41,55 @@ if (loading) {
     <header className="bg-white border-b px-4 py-2 flex items-center justify-between sticky top-0 z-50">
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2">
-        <Image src="/mainoskylalogo.svg" alt="Mainoskylä" width={36} height={36} />
+        <Image src="/mainoskylalogo.png" alt="Mainoskylä" width={36} height={36} />
         <span className="text-lg font-semibold text-[#1E3A41]">Mainoskylä</span>
 
       </Link>
 
       {/* Hakukenttä */}
-      <div className="flex-1 px-4">
-        <input
-          type="text"
-          placeholder="Hae..."
-          value={hakusana}
-          onChange={(e) => setHakusana(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && hae()}
-          className="w-full px-3 py-1 text-sm border rounded-full"
-        />
-      </div>
+      <div className="hidden md:flex items-center relative ml-auto">
+
+  <input
+    type="text"
+    aria-label="Hae ilmoituksia"
+    placeholder="Hae..."
+    value={hakusana}
+    onChange={(e) => setHakusana(e.target.value)}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        if (hakusana.trim()) {
+          router.push(`/aluehaku?sijainti=${encodeURIComponent(hakusana.trim())}`)
+          setHakusana('')
+          setOpen(false)
+        }
+      }
+    }}
+    className="w-full px-3 py-1 text-sm border rounded-full focus:ring-2 focus:ring-[#F99584]/50"
+  />
+  <button
+    type="button"
+    onClick={() => {
+      if (hakusana.trim()) {
+        router.push(`/aluehaku?sijainti=${encodeURIComponent(hakusana.trim())}`)
+        setHakusana('')
+        setOpen(false)
+      }
+    }}
+    className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#1E3A41] text-white px-4 py-1 rounded-full text-sm hover:bg-[#27494e] active:scale-95 transition"
+  >
+    Hae
+  </button>
+</div>
+
+
 
       {/* Valikko / profiili / kirjautuminen */}
       <div className="hidden md:flex items-center space-x-4 text-sm">
-        <Link href="/ilmoitukset" className="hover:underline">Ilmoitukset</Link>
+        <Link href="/ilmoitukset" className="hover:underline hover:text-[#F99584]">
+        Ilmoitukset
+        </Link>
+
 
         <Link href="/lisaa" className="hover:underline">Ilmoita</Link>
         <Link href="/tietoa" className="hover:underline">Tietoa</Link>
@@ -81,15 +109,18 @@ if (loading) {
             </button>
           </>
         ) : (
-          <Link
+         <Link
   href="/kirjaudu"
-  className="bg-[#EB8FA1] text-white px-4 py-1 rounded hover:bg-[#d86c83]"
+  className="bg-[#F99584] text-[#1E3A41] px-6 py-3 rounded hover:bg-[#E86E5B] transition-colors"
 >
   Kirjaudu
 </Link>
 
 
+
         )}
+
+        
       </div>
 
       {/* Mobiilin valikko */}
@@ -115,21 +146,23 @@ if (loading) {
             <>
               <Link href="/profiili" className="block mb-2" onClick={() => setOpen(false)}>Profiili</Link>
               <button
-                onClick={() => { setOpen(false); kirjauduUlos() }}
-                className="bg-gray-200 px-4 py-1 w-full text-left rounded hover:bg-gray-300"
-              >
-                Kirjaudu ulos
-              </button>
+  onClick={kirjauduUlos}
+  className="bg-[#1E3A41] text-white px-4 py-1 rounded hover:bg-[#27494e] transition-colors"
+>
+  Kirjaudu ulos
+</button>
+
             </>
           ) : (
             <>
   <Link
   href="/kirjaudu"
   onClick={() => setOpen(false)}
-  className="block mb-2 bg-[#EB8FA1] text-white px-4 py-1 rounded hover:bg-[#d86c83]"
+  className="block mb-2 bg-[#F99584] text-[#1E3A41] px-4 py-1 rounded hover:bg-[#E86E5B] transition-colors"
 >
   Kirjaudu
 </Link>
+
 
 
   <Link
