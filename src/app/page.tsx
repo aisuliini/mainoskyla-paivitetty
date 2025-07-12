@@ -1,10 +1,8 @@
 // src/app/page.tsx
-import dynamic from 'next/dynamic'
 
-const HomeClient = dynamic(() => import('./HomeClient'), {
-  ssr: false,
-  loading: () => <p>Ladataan…</p>
-})
+'use client'
+
+import HomeClient from './HomeClient'
 
 export default function Page() {
   return <HomeClient />
