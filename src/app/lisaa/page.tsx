@@ -15,8 +15,6 @@ import KuvanLataaja from '@/components/KuvanLataaja'
 
 
 
-
-
 export default function LisaaIlmoitus() {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -26,6 +24,8 @@ export default function LisaaIlmoitus() {
   const [kuva, setKuva] = useState<File | null>(null)
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault()
+  setIsSubmitting(true)
+  console.log('Lomake lähetetty')
   await handleUpload()
 }
 
@@ -39,6 +39,8 @@ export default function LisaaIlmoitus() {
   const [tapahtumaAlku, setTapahtumaAlku] = useState<Date | undefined>()
 const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | undefined>()
 const [user, setUser] = useState<{ id: string } | null>(null)
+const [isSubmitting, setIsSubmitting] = useState(false)
+
 
 
 const ilmoituksenAlku =
@@ -106,8 +108,8 @@ useEffect(() => {
   .select('*')
   .eq('premium', true)
   .eq('premium_tyyppi', 'etusivu')
-  .lte('premium_alku', nytISO)   
   .gte('premium_loppu', nytISO)
+
 
     const paivaLaskuri: { [päivä: string]: number } = {}
 
@@ -153,12 +155,14 @@ useEffect(() => {
 
 
 const handleUpload = async () => {
+  console.log('handleUpload käynnissä')
   const nykyhetki = new Date()
   let kuvaUrl = ''
 
   if (!user) {
     alert('Käyttäjätietoja ei saatu. Yritä hetken päästä uudelleen.')
-    return
+    setIsSubmitting(false)
+   return
   }
 
   // Lataa kuva jos valittu
@@ -205,6 +209,7 @@ const handleUpload = async () => {
 
     if (ylitykset.length > 0) {
       alert('Valituilla päivillä ei ole enää vapaata premium-näkyvyyspaikkaa.')
+      setIsSubmitting(false)
       return
     }
   }
@@ -217,7 +222,7 @@ const handleUpload = async () => {
   kuva_url: kuvaUrl,
   maksuluokka: tyyppi,
   kategoria,
-  premium: tyyppi === 'premium',
+  premium: tyyppi === 'premium' && (!alku || alku <= nykyhetki),
   premium_alku: tyyppi === 'premium' ? alku?.toISOString() : null,
   premium_loppu: tyyppi === 'premium' ? loppuDate?.toISOString() : null,
   voimassa_alku: tyyppi !== 'premium' ? nykyhetki.toISOString() : null,
@@ -231,14 +236,16 @@ const handleUpload = async () => {
 
 
   const { error } = await supabase.from('ilmoitukset').insert(ilmoitus)
-  if (!error) {
-    alert('Ilmoitus lisätty onnistuneesti!')
-    router.push('/')
-  } else {
-    alert('Virhe tallennuksessa: ' + error.message)
-  }
-}
+  console.log('Insert error:', error)
 
+  if (!error) {
+  alert('Ilmoitus päivitetty!')
+  router.push('/profiili')
+} else {
+  alert('Päivitys epäonnistui: ' + error.message)
+}
+setIsSubmitting(false)
+} 
 
   return (
   <main className="max-w-xl mx-auto px-4 sm:px-6 py-8 bg-white rounded shadow my-12">
@@ -437,17 +444,20 @@ const handleUpload = async () => {
   </p>
 )}
 
+          <button
+  type="submit"
+  disabled={isSubmitting}
+  className={`bg-[#3f704d] text-white px-6 py-2 rounded hover:bg-[#2f5332] ${
+    isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+  }`}
+>
+  {isSubmitting ? 'Tallennetaan...' : 'Julkaise ilmoitus'}
+</button>
 
-
-
-
-
-
-          <button type="submit" className="bg-[#3f704d] text-white px-6 py-2 rounded hover:bg-[#2f5332]">
-            Julkaise ilmoitus
-          </button>
         </form>
-      </>
+            </>
     )}
-  </main>)
+  </main>
+  )
 }
+

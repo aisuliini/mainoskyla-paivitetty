@@ -12,7 +12,10 @@ type Ilmoitus = {
   kuva_url?: string
   nayttoja?: number
   luotu: string
+  voimassa_alku?: string
+  voimassa_loppu?: string
 }
+
 
 export default function IlmoitusSivu() {
   const params = useParams()
@@ -24,10 +27,11 @@ export default function IlmoitusSivu() {
       if (!id) return
 
       const { data: alkuData } = await supabase
-        .from('ilmoitukset')
-        .select('*')
-        .eq('id', id)
-        .single()
+  .from('ilmoitukset')
+  .select('*, voimassa_alku, voimassa_loppu')
+  .eq('id', id)
+  .single()
+
 
       if (alkuData) {
         await supabase
@@ -36,10 +40,11 @@ export default function IlmoitusSivu() {
           .eq('id', id)
 
         const { data: uusiData } = await supabase
-          .from('ilmoitukset')
-          .select('*')
-          .eq('id', id)
-          .single()
+  .from('ilmoitukset')
+  .select('*, voimassa_alku, voimassa_loppu')
+  .eq('id', id)
+  .single()
+
 
         if (uusiData) setIlmoitus(uusiData as Ilmoitus)
       }
@@ -68,6 +73,20 @@ export default function IlmoitusSivu() {
       <p className="text-sm text-gray-500 mb-2">
         Julkaistu: {new Date(ilmoitus.luotu).toLocaleString('fi-FI')}
       </p>
+
+      {ilmoitus.voimassa_alku && ilmoitus.voimassa_loppu && (
+  <p className="text-sm text-gray-500 mb-2">
+    Voimassa:{" "}
+    <strong>
+      {new Date(ilmoitus.voimassa_alku).toLocaleDateString("fi-FI")}
+    </strong>{" "}
+    –{" "}
+    <strong>
+      {new Date(ilmoitus.voimassa_loppu).toLocaleDateString("fi-FI")}
+    </strong>
+  </p>
+)}
+
 
       <p className="text-gray-800 mb-4">{ilmoitus.kuvaus}</p>
       <p className="text-xs text-gray-500">{ilmoitus.nayttoja || 0} katselukertaa</p>

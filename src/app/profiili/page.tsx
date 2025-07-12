@@ -18,7 +18,10 @@ type Ilmoitus = {
   luotu?: string
   nostettu_at?: string
   user_id?: string
+  voimassa_alku?: string
+  voimassa_loppu?: string
 }
+
 
 export default function ProfiiliSivu() {
   const router = useRouter()
@@ -46,7 +49,7 @@ export default function ProfiiliSivu() {
   }, [router])
 
   const julkaiseUudelleen = async (ilmo: Ilmoitus) => {
-    if (!confirm('Julkaistaanko ilmoitus uudelleen ja veloitetaan uusi maksu?')) return
+    if (!confirm('Julkaistaanko ilmoitus uudelleen?')) return
     const uusiPaiva = new Date().toISOString()
     await supabase.from('ilmoitukset').update({ luotu: uusiPaiva }).eq('id', ilmo.id)
     location.reload()
@@ -118,6 +121,26 @@ export default function ProfiiliSivu() {
                 <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>
                 <p className="text-sm text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
                 <p className="text-xs text-gray-500">{ilmo.sijaint}</p>
+
+                {ilmo.voimassa_alku && ilmo.voimassa_loppu && (
+  <p className="text-xs text-gray-500 mt-1">
+    Voimassa:{" "}
+    <strong>{new Date(ilmo.voimassa_alku).toLocaleDateString("fi-FI")}</strong>
+    {" "}–{" "}
+    <strong>{new Date(ilmo.voimassa_loppu).toLocaleDateString("fi-FI")}</strong>
+  </p>
+)}
+
+
+                {ilmo.voimassa_alku && ilmo.voimassa_loppu && (
+  <p className="text-xs text-gray-500 mt-1">
+    Voimassa:{" "}
+    <strong>{new Date(ilmo.voimassa_alku).toLocaleDateString("fi-FI")}</strong>
+    {" "}–{" "}
+    <strong>{new Date(ilmo.voimassa_loppu).toLocaleDateString("fi-FI")}</strong>
+  </p>
+)}
+
 
                 <div className="flex items-center text-xs text-gray-500 mt-2 gap-1">
                   <Eye size={14} className="inline-block" />

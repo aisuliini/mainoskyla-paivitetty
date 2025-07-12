@@ -56,6 +56,8 @@ const [crop, setCrop] = useState({ x: 0, y: 0 })
 const [zoom, setZoom] = useState(1)
 const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
 const [showCropper, setShowCropper] = useState(false)
+const [isSubmitting, setIsSubmitting] = useState(false)
+
 
   useEffect(() => {
     if (!ilmoitusId) return
@@ -133,11 +135,15 @@ const [showCropper, setShowCropper] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault()
+  if (isSubmitting) return
+  setIsSubmitting(true)
 
   if (!ilmoitus) {
     alert('Ilmoitus ei ole ladattu vielä.')
+    setIsSubmitting(false)
     return
   }
+
 
   let kuvaUrl = ilmoitus.kuva_url
 
