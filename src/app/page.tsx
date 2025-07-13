@@ -1,6 +1,15 @@
-// Tämä on pelkkä wrapper ilman hookkeja tai "use client":
-import HomeClient from './HomeClient'
+// src/app/page.tsx
+import dynamic from 'next/dynamic'
+import { Suspense } from 'react'
+
+const HomeClient = dynamic(() => import('./HomeClient'), {
+  ssr: false
+})
 
 export default function Page() {
-  return <HomeClient />
+  return (
+    <Suspense fallback={<p>Ladataan…</p>}>
+      <HomeClient />
+    </Suspense>
+  )
 }
