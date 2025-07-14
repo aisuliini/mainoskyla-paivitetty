@@ -8,6 +8,9 @@ import Katselukerrat from '@/components/Katselukerrat';
 import { supabase } from '@/lib/supabaseClient'
 import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 import ehdotukset from '@/data/ehdotusdata.json'
+import { Search } from "lucide-react";
+
+
 import {
   Hammer,
   PawPrint,
@@ -115,13 +118,10 @@ export default function Home() {
     encodeURIComponent(kategoria.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/\s+/g, '-'))
 
   return (
-<main className="min-h-screen font-sans text-[#1E3A41] bg-[#F7FAF9]">
+<main className="min-h-screen font-sans text-charcoal bg-beige">
 
 
 
-
-
-  
   <div className="relative z-10">
       <section className="py-8 px-6">
         <div className="max-w-screen-xl mx-auto">
@@ -138,9 +138,7 @@ export default function Home() {
 
             </div>
             <div className="w-full text-center md:text-left">
-              <h1
-  className="text-3xl md:text-4xl font-extrabold leading-snug mb-6 text-[#1E3A41] drop-shadow-sm"
->
+              <h1 className="text-4xl font-bold text-charcoal mb-6 tracking-tight">
 
   Löydä tai mainosta paikallisesti – Mainoskylä yhdistää ihmiset ja yritykset.
 </h1>
@@ -152,25 +150,23 @@ export default function Home() {
 
 
             <div className="relative max-w-lg mx-auto md:mx-0 mt-4 mb-6">
-  <div className="flex flex-col md:flex-row gap-2">
-    <input
-      type="text"
-      placeholder="Hae paikkakunta tai sana..."
-      value={hakusana}
-      onChange={(e) => setHakusana(e.target.value)}
-      onKeyDown={(e) => e.key === 'Enter' && hae()}
-      className="w-full px-3 py-1 text-sm border border-[#D1E2D2] rounded-full focus:ring-2 focus:ring-[#F99584]/50"
+  <div className="relative w-full max-w-lg mx-auto md:mx-0 mt-4 mb-6">
+  <input
+    type="text"
+    placeholder="Hae paikkakunta tai sana..."
+    value={hakusana}
+    onChange={(e) => setHakusana(e.target.value)}
+    onKeyDown={(e) => e.key === 'Enter' && hae()}
+    className="w-full rounded-full border border-charcoal/20 pl-5 pr-12 py-3 text-charcoal placeholder:text-charcoal/50 focus:ring-2 focus:ring-persikka"
+  />
+  <button
+    onClick={hae}
+    className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal hover:text-persikka transition"
+  >
+   <Search size={20} />
+  </button>
+</div>
 
-    />
-    <button
-  onClick={hae}
-  className="bg-[#1E3A41] text-white px-6 py-3 rounded-full text-lg hover:bg-[#27494e] transition"
->
-  Hae
-</button>
-
-
-                </div>
                 {suositukset.length > 0 && (
                   <ul className="absolute bg-white border rounded shadow w-full mt-1 z-10 max-h-40 overflow-y-auto">
                     {suositukset.map((ehto, idx) => (
@@ -193,28 +189,29 @@ export default function Home() {
 
 
 
-                <div className="flex flex-wrap justify-center gap-6 mt-4">
-  {kategoriat.map((kategoria) => (
-    <div key={kategoria.nimi} className="flex flex-col items-center">
+                {/* Pallokategoria nappulat */}
+<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-2 gap-y-2 mt-8 justify-items-center">
+  {kategoriat.map((k) => (
+    <div key={k.nimi} className="flex flex-col items-center">
       <button
-        onClick={() => router.push(`/kategoriat/${urlSafeKategoria(kategoria.nimi)}`)}
-        className={`
-          flex items-center justify-center
-          w-20 h-20 rounded-full
-          ${kategoria.bg}
-          transition transform hover:scale-105
-        `}
-      >
-        <div className="text-xl">
-          {kategoria.ikoni}
-        </div>
-      </button>
-      <span className="mt-2 text-xs text-center text-[#1E3A41]">
-        {kategoria.nimi}
+  onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
+  className={`
+    ${k.bg}
+    flex items-center justify-center
+    w-10 h-10 rounded-full
+    transition hover:shadow-md
+  `}
+>
+  {k.ikoni}
+</button>
+
+      <span className="mt-1 text-xs text-center text-[#1E3A41]">
+        {k.nimi}
       </span>
     </div>
   ))}
 </div>
+
 
 
             </div>
@@ -222,7 +219,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-white px-6 py-8">
+      <section className="bg-beige px-6 py-8">
   <div className="max-w-screen-xl mx-auto">
     <h2 className="text-xl font-semibold text-[#2f5332] mb-4">Etusivun Premium-ilmoitukset</h2>
     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -276,13 +273,11 @@ export default function Home() {
   </div>
 </section>
 
-      <section className="px-6 py-4 bg-[#FFE5E1] border-t border-[#f1c0bd] text-sm text-[#a94442] text-center">
-
-  ⚠️ Muistutus: Älä koskaan anna pankkitunnuksia tai siirrä rahaa ilmoittajalle. Ilmoituksiin liittyvät maksupyynnöt voivat olla huijausyrityksiä.
-</section>
 
 
-<section className="bg-[#FBE7E3] px-6 py-12 text-[#1E3A41]">
+
+<section className="bg-cream px-6 py-12 text-charcoal">
+
 
   <div className="max-w-screen-xl mx-auto flex flex-col md:flex-row items-center gap-8">
     <div className="md:w-1/2 text-center md:text-left">
@@ -293,11 +288,12 @@ export default function Home() {
         Kerro palveluistasi tai tuotteistasi Mainoskylässä ja tavoita paikalliset asiakkaat. Ilmoituksen tekeminen on nyt täysin ilmaista!
       </p>
       <button
-        onClick={() => router.push('/lisaa')}
-        className="bg-[#F99584] text-white px-6 py-3 rounded-full hover:bg-[#E86E5B] transition"
-      >
-        Lisää ilmoitus nyt
-      </button>
+  onClick={() => router.push('/lisaa')}
+  className="bg-persikka text-white px-6 py-3 rounded-full hover:bg-persikka-dark transition"
+>
+  Lisää ilmoitus nyt
+</button>
+
     </div>
     <div className="md:w-1/2">
       <Image
@@ -311,8 +307,14 @@ export default function Home() {
   </div>
 </section>
 
+<section className="px-6 py-4 beige border-t border-persikka text-sm text-charcoal text-center">
 
-      <footer className="bg-[#F7FAF9] text-sm text-[#1E3A41]
+
+  ⚠️ Muistutus: Älä koskaan anna pankkitunnuksia tai siirrä rahaa ilmoittajalle. Ilmoituksiin liittyvät maksupyynnöt voivat olla huijausyrityksiä.
+</section>
+
+
+      <footer className="bg-beige text-sm text-[#1E3A41]
  text-center py-8 mt-12">
 
         <div className="space-y-4">

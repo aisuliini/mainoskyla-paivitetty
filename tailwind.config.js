@@ -1,21 +1,25 @@
-// tailwind.config.js
 module.exports = {
   content: ["./src/**/*.{js,ts,jsx,tsx}"],
   safelist: [
-    +    { pattern: /^(bg|hover:bg)-(minttu|minttu-dark|persikka|persikka-dark|charcoal|cream)$/ }
+    { pattern: /^(bg|hover:bg)-(minttu|minttu-dark|persikka|persikka-dark|charcoal|cream|beige)$/ }
   ],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['DM Sans','Inter','sans-serif'],
-      },
+  sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+}
+
+,
       colors: {
-        minttu:       '#70D6C7',
+        minttu: '#A9DCD2',
         'minttu-dark': '#4ABDAC',
-        'persikka-dark':'#E86E5B',
-        persikka:     '#F99584',
-        charcoal:     '#1E3A41',
-        cream:        '#F7F9F9',
+        persikka: '#F5B3A7',
+        'persikka-dark': '#E86E5B',
+        charcoal: '#2C3E3D',
+        cream: '#F7F9F9',
+        beige: '#FCF7F2', 
+
+
       },
     },
   },
