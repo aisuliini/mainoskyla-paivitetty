@@ -2,7 +2,6 @@
 import './globals.css'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { Rubik } from 'next/font/google'
 import CookieBanner from '@/components/CookieBanner'
 import { Analytics } from '@vercel/analytics/react'
 import { AuthProvider } from '@/context/AuthContext'
