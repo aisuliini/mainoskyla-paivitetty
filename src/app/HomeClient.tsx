@@ -138,7 +138,8 @@ export default function Home() {
 
             </div>
             <div className="w-full text-center md:text-left">
-              <h1 className="text-4xl font-bold text-charcoal mb-6 tracking-tight">
+              <h1 className="text-4xl font-[700] text-charcoal mb-6 tracking-tight">
+
 
   Löydä tai mainosta paikallisesti – Mainoskylä yhdistää ihmiset ja yritykset.
 </h1>

@@ -5,14 +5,14 @@ import Footer from '@/components/Footer'
 import CookieBanner from '@/components/CookieBanner'
 import { Analytics } from '@vercel/analytics/react'
 import { AuthProvider } from '@/context/AuthContext'
-import { Manrope } from 'next/font/google'
+import { Rubik } from 'next/font/google'
 
-
-
-const manrope = Manrope({
+const rubik = Rubik({
   subsets: ['latin'],
-  weight: ['400', '600'],
+  weight: ['400', '500', '700'], // valitse tarpeen mukaan
 })
+
+
 
 export const metadata = {
   title: 'Mainoskylä – Paikallista mainontaa helposti',
@@ -25,7 +25,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fi">
-      <body className={`${manrope.className} bg-beige text-charcoal`}> 
+      <body className={`${rubik.className} bg-white text-charcoal`}> {/* Raamien väri*/}
 
         <AuthProvider>
           {/* Yhtenäinen header, responsiivinen */}

@@ -6,8 +6,9 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-  sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+  sans: ['Rubik', 'sans-serif'],
 }
+
 
 ,
       colors: {
@@ -17,7 +18,7 @@ module.exports = {
         'persikka-dark': '#E86E5B',
         charcoal: '#2C3E3D',
         cream: '#F7F9F9',
-        beige: '#FCF7F2', 
+        white: '#FFFFFF', 
 
 
       },
