@@ -9,7 +9,7 @@ import { Rubik } from 'next/font/google'
 
 const rubik = Rubik({
   subsets: ['latin'],
-  weight: ['400', '500', '700'], // valitse tarpeen mukaan
+  weight: ['400', '500', '700'], // Fontin paksuus
 })
 
 

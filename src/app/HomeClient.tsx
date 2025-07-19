@@ -95,21 +95,27 @@ export default function Home() {
 }
 
 
-  const kategoriat = [
-  { nimi: "Palvelut",          ikoni: <Hammer size={20} />,     bg: "bg-minttu hover:bg-minttu-dark text-white" },
-  { nimi: "Eläinpalvelut",     ikoni: <PawPrint size={20} />,   bg: "bg-persikka hover:bg-persikka-dark text-white" },
-  { nimi: "Käsityöläiset",     ikoni: <Scissors size={20} />,   bg: "bg-minttu hover:bg-minttu-dark text-white" },
-  { nimi: "Media ja Luovuus",  ikoni: <Camera size={20} />,     bg: "bg-persikka hover:bg-persikka-dark text-white" },
-  { nimi: "Vuokratilat ja Juhlapaikat", ikoni: <PartyPopper size={20} />, bg: "bg-minttu hover:bg-minttu-dark text-white" },
-  { nimi: "Hyvinvointi ja Kauneus", ikoni: <Heart size={20} />,     bg: "bg-persikka hover:bg-persikka-dark text-white" },
-  { nimi: "Koti ja Remontointi", ikoni: <HomeIcon size={20} />,    bg: "bg-minttu hover:bg-minttu-dark text-white" },
-  { nimi: "Kurssit ja Koulutukset", ikoni: <Book size={20} />,      bg: "bg-persikka hover:bg-persikka-dark text-white" },
-  { nimi: "Ilmoitustaulu",      ikoni: <Megaphone size={20} />,   bg: "bg-minttu hover:bg-minttu-dark text-white" },
-  { nimi: "Tapahtumat",        ikoni: <Calendar size={20} />,   bg: "bg-persikka hover:bg-persikka-dark text-white" },
-  { nimi: "Vapaa-aika",        ikoni: <Smile size={20} />,      bg: "bg-minttu hover:bg-minttu-dark text-white" },
-  { nimi: "Pientuottajat",     ikoni: <Package size={20} />,    bg: "bg-persikka hover:bg-persikka-dark text-white" },
-  { nimi: "Muut",              ikoni: null,                    bg: "bg-minttu hover:bg-minttu-dark text-white" },
-]
+const kategoriat = [
+  { nimi: "Palvelut",          ikoni: <Hammer size={20} /> },
+  { nimi: "Eläinpalvelut",     ikoni: <PawPrint size={20} /> },
+  { nimi: "Käsityöläiset",     ikoni: <Scissors size={20} /> },
+  { nimi: "Media ja Luovuus",  ikoni: <Camera size={20} /> },
+  { nimi: "Vuokratilat ja Juhlapaikat", ikoni: <PartyPopper size={20} /> },
+  { nimi: "Hyvinvointi ja Kauneus", ikoni: <Heart size={20} /> },
+  { nimi: "Koti ja Remontointi", ikoni: <HomeIcon size={20} /> },
+  { nimi: "Kurssit ja Koulutukset", ikoni: <Book size={20} /> },
+  { nimi: "Ilmoitustaulu",     ikoni: <Megaphone size={20} /> },
+  { nimi: "Tapahtumat",        ikoni: <Calendar size={20} /> },
+  { nimi: "Vapaa-aika",        ikoni: <Smile size={20} /> },
+  { nimi: "Pientuottajat",     ikoni: <Package size={20} /> },
+  { nimi: "Muut",              ikoni: null },
+].map((kategoria) => ({
+  ...kategoria,
+  bg: "bg-[#4F6763] hover:bg-[#6A837F] text-white shadow-md rounded-full transition ring-1 ring-charcoal/10"
+}));
+
+
+
 
 
 
@@ -177,7 +183,7 @@ export default function Home() {
   onClick={() => {
     setHakusana(ehto)
     setSuositukset([])   // piilota dropdown
-    hae()                // tee haku heti (jos haluat automaattisesti hakea)
+    hae()                // tee haku heti 
   }}
 >
   {ehto}
