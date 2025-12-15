@@ -31,7 +31,7 @@ type PremiumIlmoitus = {
   id: string
   otsikko: string
   kuvaus: string
-  sijaint: string
+  sijainti: string
   kuva_url?: string
   nayttoja?: number
 }

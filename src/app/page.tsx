@@ -1,17 +1,23 @@
-// src/app/page.tsx
+import type { Metadata } from 'next'
+import HomeClientWrapper from '@/app/HomeClientWrapper'
 
-'use client'
-import dynamic from 'next/dynamic'
-import { Suspense } from 'react'
 
-const HomeClient = dynamic(() => import('./HomeClient'), {
-  ssr: false
-})
+export const metadata: Metadata = {
+  title: 'Mainoskylä – Löydä tai mainosta paikallisesti',
+  description:
+    'Mainoskylä yhdistää ihmiset ja yritykset. Löydä paikalliset palvelut ja tekijät tai lisää oma ilmoituksesi helposti.',
+  alternates: { canonical: 'https://mainoskyla.fi/' },
+  openGraph: {
+    title: 'Mainoskylä – Löydä tai mainosta paikallisesti',
+    description:
+      'Löydä paikalliset palvelut ja tekijät tai lisää oma ilmoitus Mainoskylään.',
+    url: 'https://mainoskyla.fi/',
+    siteName: 'Mainoskylä',
+    type: 'website',
+    locale: 'fi_FI',
+  },
+}
 
 export default function Page() {
-  return (
-    <Suspense fallback={<p>Ladataan…</p>}>
-      <HomeClient />
-    </Suspense>
-  )
+  return <HomeClientWrapper />
 }
