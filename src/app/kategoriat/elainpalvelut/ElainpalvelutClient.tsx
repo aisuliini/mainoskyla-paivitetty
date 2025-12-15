@@ -38,7 +38,8 @@ export default function ElainpalvelutClientPage() {
 
       let query = supabase
         .from('ilmoitukset')
-        .select('*')
+        .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, premium_alku, voimassa_alku')
+
         .eq('kategoria', 'Eläinpalvelut')
         .or(`
           (premium = true AND premium_alku <= '${nytISO}'),
@@ -93,7 +94,8 @@ export default function ElainpalvelutClientPage() {
             } else {
               params.delete('sijainti')
             }
-            router.push(`?${params.toString()}`)
+            router.replace(`?${params.toString()}`)
+
           }}
           className="border px-3 py-2 rounded"
         />
