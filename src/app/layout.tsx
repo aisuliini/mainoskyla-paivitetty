@@ -5,12 +5,14 @@ import Footer from '@/components/Footer'
 import CookieBanner from '@/components/CookieBanner'
 import { Analytics } from '@vercel/analytics/react'
 import { AuthProvider } from '@/context/AuthContext'
-import { Rubik } from 'next/font/google'
+import { Inter } from 'next/font/google'
 
-const rubik = Rubik({
+
+const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '500', '700'], // Fontin paksuus
+  weight: ['400', '500', '600', '700'],
 })
+
 
 
 
@@ -25,7 +27,9 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fi">
-      <body className={`${rubik.className} bg-white text-charcoal`}> {/* Raamien väri*/}
+      <body className={`${inter.className} bg-white text-charcoal min-h-screen flex flex-col`}>
+
+
 
         <AuthProvider>
           {/* Yhtenäinen header, responsiivinen */}

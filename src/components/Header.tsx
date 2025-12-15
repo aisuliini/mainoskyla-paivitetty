@@ -42,7 +42,10 @@ if (loading) {
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2">
         <Image src="/mainoskylalogo.png" alt="Mainoskylä" width={36} height={36} />
-        <span className="text-lg font-semibold text-[#1E3A41]">Mainoskylä</span>
+        <span className="hidden sm:inline text-lg font-semibold text-[#1E3A41]">
+  Mainoskylä
+</span>
+
 
       </Link>
 
