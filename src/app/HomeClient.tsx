@@ -22,7 +22,6 @@ import {
   Book,
   Megaphone,
   Calendar,
-  Smile,
   Package
 } from "lucide-react";
 
