@@ -166,7 +166,8 @@ bg: `
 
 
 
-<div className="relative w-full max-w-lg mx-auto mt-3 sm:mt-6 mb-4 sm:mb-8">
+<div className="relative w-full max-w-lg mx-auto mt-6 mb-8">
+<div className="relative w-full max-w-lg mx-auto mt-4 mb-6">
   <input
     type="text"
     placeholder="Hae paikkakunta tai sana..."
@@ -179,28 +180,29 @@ bg: `
     onClick={hae}
     className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal hover:text-persikka transition"
   >
-    <Search size={20} />
+   <Search size={20} />
   </button>
-
-  {suositukset.length > 0 && (
-    <ul className="absolute bg-white border rounded shadow w-full mt-1 z-10 max-h-40 overflow-y-auto">
-      {suositukset.map((ehto, idx) => (
-        <li
-          key={idx}
-          className="px-4 py-2 hover:bg-[#f0f0f0] cursor-pointer text-left"
-          onClick={() => {
-            setHakusana(ehto)
-            setSuositukset([])
-            hae()
-          }}
-        >
-          {ehto}
-        </li>
-      ))}
-    </ul>
-  )}
 </div>
 
+                {suositukset.length > 0 && (
+                  <ul className="absolute bg-white border rounded shadow w-full mt-1 z-10 max-h-40 overflow-y-auto">
+                    {suositukset.map((ehto, idx) => (
+                      <li
+  key={idx}
+  className="px-4 py-2 hover:bg-[#f0f0f0] cursor-pointer text-left"
+  onClick={() => {
+    setHakusana(ehto)
+    setSuositukset([])   // piilota dropdown
+    hae()                // tee haku heti 
+  }}
+>
+  {ehto}
+</li>
+
+                    ))}
+                  </ul>
+                )}
+              </div>
 
 
 
