@@ -207,7 +207,7 @@ bg: `
 
 
                 {/* Pallokategoria nappulat */}
-{/* Mobiili: pyöreät ikonit + vaakaliuku (snap + fade) */}
+{/* Mobiili: YKSI RIVI – pyöreät pallot + vaakaliuku (snap + fade) */}
 <div className="sm:hidden mt-5 relative">
   {/* fade vasen */}
   <div className="pointer-events-none absolute left-0 top-0 h-full w-6 bg-gradient-to-r from-white to-transparent z-10" />
@@ -215,20 +215,18 @@ bg: `
   <div className="pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-white to-transparent z-10" />
 
   <div className="-mx-4 px-4 overflow-x-auto scroll-smooth">
-    <div className="flex gap-4 w-max pb-3 snap-x snap-mandatory">
+    <div className="flex flex-nowrap items-center gap-3 w-max py-2 snap-x snap-mandatory">
       {kategoriat.map((k) => (
-        <div key={k.nimi} className="flex flex-col items-center snap-start">
-          <button
-            onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
-            className={`${k.bg} flex items-center justify-center w-14 h-14 rounded-full`}
-          >
-            {k.ikoni}
-          </button>
-
-          <span className="mt-1 text-[11px] leading-tight text-center text-[#1E3A41] w-20">
-            {k.nimi}
-          </span>
-        </div>
+        <button
+          key={k.nimi}
+          type="button"
+          aria-label={k.nimi}
+          title={k.nimi}
+          onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
+          className={`${k.bg} flex items-center justify-center w-14 h-14 rounded-full flex-none snap-start`}
+        >
+          {k.ikoni}
+        </button>
       ))}
     </div>
   </div>
