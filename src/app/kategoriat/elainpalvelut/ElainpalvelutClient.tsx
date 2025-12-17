@@ -17,7 +17,9 @@ type Ilmoitus = {
   kuva_url?: string
   nayttoja?: number
   luotu?: string
+  premium?: boolean
 }
+
 
 export default function ElainpalvelutClientPage() {
   const router = useRouter()
@@ -37,14 +39,12 @@ export default function ElainpalvelutClientPage() {
       const nytISO = new Date().toISOString()
 
       let query = supabase
-        .from('ilmoitukset')
-        .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, premium_alku, voimassa_alku')
+  .from('ilmoitukset')
+  .select('*')
+  .or(`voimassa_alku.is.null,voimassa_alku.lte.${nytISO}`)
+  .order('premium', { ascending: false })
+  .order('luotu', { ascending: false })
 
-        .eq('kategoria', 'Eläinpalvelut')
-        .or(`
-          (premium = true AND premium_alku <= '${nytISO}'),
-          (premium = false AND voimassa_alku <= '${nytISO}')
-        `)
 
 
       if (jarjestys === 'uusin') query = query.order('luotu', { ascending: false })
@@ -106,8 +106,19 @@ export default function ElainpalvelutClientPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {ilmoitukset.map((ilmo) => (
-            <div key={ilmo.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
+<div
+  key={ilmo.id}
+  className={`rounded-lg overflow-hidden shadow-sm border
+${ilmo.premium === true ? 'bg-[#F3F8F6] border-[#6A837F]' : 'bg-white border-gray-200'}
+  `}
+>
               <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
+  {ilmo.premium === true && (
+    <span className="absolute top-2 left-2 z-10 bg-[#4F6763] text-white text-xs px-2 py-1 rounded-full shadow">
+      Premium
+    </span>
+  )}
+
   <Image
     src={ilmo.kuva_url || '/placeholder.jpg'}
     alt={ilmo.otsikko}
@@ -117,6 +128,7 @@ export default function ElainpalvelutClientPage() {
     className="rounded-t"
   />
 </div>
+
 
 
               <div className="p-4">

@@ -284,15 +284,17 @@ setIsSubmitting(false)
               value={sijainti}
               onChange={(e) => setSijainti(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  const match = sijaintiehdotukset.find(p => p.toLowerCase() === sijainti.toLowerCase())
-                  if (match) {
-                    e.preventDefault()
-                    setSijainti(match)
-                    setSijaintiehdotukset([])
-                  }
-                }
-              }}
+  if (e.key === 'Enter' && sijaintiehdotukset.length > 0) {
+    e.preventDefault()
+    const exact = sijaintiehdotukset.find(
+      (p) => p.toLowerCase() === sijainti.toLowerCase()
+    )
+    const valittu = exact || sijaintiehdotukset[0]
+    setSijainti(valittu)
+    setSijaintiehdotukset([])
+  }
+}}
+
               required
               className="w-full border px-4 py-2 rounded"
             />
@@ -300,13 +302,15 @@ setIsSubmitting(false)
               <ul className="absolute z-10 bg-white border w-full mt-1 rounded shadow text-sm max-h-40 overflow-y-auto">
                 {sijaintiehdotukset.map((ehdotus, i) => (
                   <li
-                    key={i}
-                    onClick={() => {
-                      setSijainti(ehdotus)
-                      setSijaintiehdotukset([])
-                    }}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  >
+  key={i}
+  onMouseDown={(e) => e.preventDefault()}
+  onClick={() => {
+    setSijainti(ehdotus)
+    setSijaintiehdotukset([])
+  }}
+  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+>
+
                     {ehdotus}
                   </li>
                 ))}
@@ -327,9 +331,7 @@ setIsSubmitting(false)
             <option value="Kurssit ja Koulutukset">Kurssit ja Koulutukset</option>
             <option value="Vuokratilat ja Juhlapaikat">Vuokratilat ja Juhlapaikat</option>
             <option value="Ilmoitustaulu">Ilmoitustaulu</option>
-            <option value="Tapahtumat">Tapahtumat</option>
-            <option value="Vapaa-aika">Vapaa-aika</option>
-            <option value="Muut">Muut</option>
+            <option value="Tapahtumat">Tapahtumat</option>    
           </select>
 
           { kategoria === 'Tapahtumat' && (

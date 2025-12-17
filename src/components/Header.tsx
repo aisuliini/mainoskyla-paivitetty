@@ -91,9 +91,6 @@ className="w-[320px] lg:w-[380px] px-4 py-2 pr-10 text-sm border rounded-full bg
 
       {/* Valikko / profiili / kirjautuminen */}
 <div className="hidden md:flex items-center gap-2 text-sm">
-        <Link href="/ilmoitukset" className="hover:underline hover:text-[#F99584]">
-        Ilmoitukset
-        </Link>
 
 
         <Link href="/lisaa" className="hover:underline">Ilmoita</Link>

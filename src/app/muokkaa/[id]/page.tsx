@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { DayPicker } from 'react-day-picker'
@@ -13,6 +13,7 @@ import Cropper from 'react-easy-crop'
 import getCroppedImg from '@/utils/cropImage'
 import { Area } from 'react-easy-crop'
 import Image from 'next/image'
+
 
 
 
@@ -29,6 +30,9 @@ type Ilmoitus = {
   premium_tyyppi?: string
   tapahtuma_alku?: string
   tapahtuma_loppu?: string
+  voimassa_alku?: string
+  voimassa_loppu?: string
+
 }
 
 export default function MuokkaaIlmoitusta() {
@@ -38,6 +42,12 @@ export default function MuokkaaIlmoitusta() {
 
   const [ilmoitus, setIlmoitus] = useState<Ilmoitus | null>(null)
   const [loading, setLoading] = useState(true)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+const [voimassaAlku, setVoimassaAlku] = useState<Date | undefined>()
+const [voimassaKesto, setVoimassaKesto] = useState('30')
+
+
 
   const [otsikko, setOtsikko] = useState('')
   const [kuvaus, setKuvaus] = useState('')
@@ -101,6 +111,17 @@ const [isSubmitting, setIsSubmitting] = useState(false)
 
     setSijaintiehdotukset(ehdotukset)
   }, [sijainti])
+
+  useEffect(() => {
+  function onClickOutside(e: MouseEvent) {
+    if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+      setSijaintiehdotukset([])
+    }
+  }
+  document.addEventListener('mousedown', onClickOutside)
+  return () => document.removeEventListener('mousedown', onClickOutside)
+}, [])
+
 
   useEffect(() => {
     const haeVaratut = async () => {
@@ -210,31 +231,45 @@ const [isSubmitting, setIsSubmitting] = useState(false)
           className="w-full border px-4 py-2 rounded"
         />
 
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Sijainti (esim. Tampere)"
-            value={sijainti}
-            onChange={(e) => setSijainti(e.target.value)}
-            className="w-full border px-4 py-2 rounded"
-          />
-          {sijaintiehdotukset.length > 0 && (
-            <ul className="absolute z-10 bg-white border w-full mt-1 rounded shadow text-sm max-h-40 overflow-y-auto">
-              {sijaintiehdotukset.map((ehdotus, i) => (
-                <li
-                  key={i}
-                  onClick={() => {
-                    setSijainti(ehdotus)
-                    setSijaintiehdotukset([])
-                  }}
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                >
-                  {ehdotus}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <div ref={wrapperRef} className="relative">
+  <input
+    type="text"
+    placeholder="Sijainti (esim. Tampere)"
+    value={sijainti}
+    onChange={(e) => setSijainti(e.target.value)}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' && sijaintiehdotukset.length > 0) {
+        e.preventDefault()
+        const exact = sijaintiehdotukset.find(
+          (p) => p.toLowerCase() === sijainti.toLowerCase()
+        )
+        const valittu = exact || sijaintiehdotukset[0]
+        setSijainti(valittu)
+        setSijaintiehdotukset([])
+      }
+    }}
+    className="w-full border px-4 py-2 rounded"
+  />
+
+  {sijaintiehdotukset.length > 0 && (
+    <ul className="absolute z-10 bg-white border w-full mt-1 rounded shadow text-sm max-h-40 overflow-y-auto">
+      {sijaintiehdotukset.map((ehdotus, i) => (
+        <li
+          key={i}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => {
+            setSijainti(ehdotus)
+            setSijaintiehdotukset([])
+          }}
+          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+        >
+          {ehdotus}
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+
 
         <select value={kategoria} onChange={(e) => setKategoria(e.target.value)} required className="w-full border px-4 py-2 rounded">
           <option value="">Valitse kategoria</option>
@@ -248,9 +283,7 @@ const [isSubmitting, setIsSubmitting] = useState(false)
           <option value="Kurssit ja Koulutukset">Kurssit ja Koulutukset</option>
           <option value="Vuokratilat ja Juhlapaikat">Vuokratilat ja Juhlapaikat</option>
           <option value="Ilmoitustaulu">Ilmoitustaulu</option>
-          <option value="Tapahtumat">Tapahtumat</option>
-          <option value="Vapaa-aika">Vapaa-aika</option>
-          <option value="Muut">Muut</option>
+          <option value="Tapahtumat">Tapahtumat</option>          
         </select>
 
         {kategoria === 'Tapahtumat' && (

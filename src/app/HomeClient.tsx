@@ -106,18 +106,20 @@ const kategoriat = [
   { nimi: "Kurssit ja Koulutukset", ikoni: <Book size={20} /> },
   { nimi: "Ilmoitustaulu",     ikoni: <Megaphone size={20} /> },
   { nimi: "Tapahtumat",        ikoni: <Calendar size={20} /> },
-  { nimi: "Vapaa-aika",        ikoni: <Smile size={20} /> },
   { nimi: "Pientuottajat",     ikoni: <Package size={20} /> },
-  { nimi: "Muut",              ikoni: null },
 ].map((kategoria) => ({
   ...kategoria,
-bg: "bg-[#1E3A41] hover:bg-[#2B5159] text-white shadow-sm rounded-full transition ring-1 ring-black/5"
+bg: `
+  bg-[#4F6763]
+  hover:bg-[#6A837F]
+  text-white
+  shadow
+  hover:shadow-md
+  transition-all
+  duration-200
+  ring-1 ring-black/5
+`
 }));
-
-
-
-
-
 
 
   const urlSafeKategoria = (kategoria: string) =>
@@ -129,28 +131,44 @@ bg: "bg-[#1E3A41] hover:bg-[#2B5159] text-white shadow-sm rounded-full transitio
 
 
   <div className="relative z-10">
-<section className="bg-white px-4 sm:px-6 pt-10 pb-8">
+<section className="relative overflow-hidden px-4 sm:px-6 pt-10 pb-8">
+  
         <div className="max-w-screen-xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12">
-            <div className="w-full text-center md:text-left">
-              <h1 className="text-4xl md:text-5xl font-semibold text-charcoal mb-3 tracking-tight leading-tight">
+<div className="flex flex-col items-center gap-6 text-center">
+<div className="w-full text-center flex flex-col items-center">
+<h1 className="
+  text-3xl sm:text-4xl md:text-5xl
+  font-medium
+  text-[#1E3A41]
+  mb-3
+  tracking-tight
+  leading-snug
+  max-w-3xl
+">
   Löydä tai mainosta paikallisesti
 </h1>
 
-<p className="text-lg md:text-xl text-[#1E3A41]/80 font-medium mb-4">
-  Mainoskylä yhdistää ihmiset ja paikalliset yritykset.
-</p>
+
+<div className="
+  flex flex-col
+  sm:flex-row
+  items-center
+  justify-center
+  gap-2
+  text-[#1E3A41]/75
+  text-base sm:text-lg
+  mb-4
+">
+  <span>Mainoskylä yhdistää ihmiset ja paikalliset yritykset</span>
+  <span className="hidden sm:inline">•</span>
+  <span>Paikallinen mainospaikka yrittäjille ja tekijöille</span>
+</div>
 
 
 
-              <p className="text-base md:text-lg text-gray-700 mt-2">
-  Paikallinen mainospaikka yrittäjille ja tekijöille.
-</p>
 
-
-
-            <div className="relative max-w-lg mx-auto md:mx-0 mt-4 mb-6">
-  <div className="relative w-full max-w-lg mx-auto md:mx-0 mt-4 mb-6">
+<div className="relative w-full max-w-lg mx-auto mt-6 mb-8">
+<div className="relative w-full max-w-lg mx-auto mt-4 mb-6">
   <input
     type="text"
     placeholder="Hae paikkakunta tai sana..."
