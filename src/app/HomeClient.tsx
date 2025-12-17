@@ -166,8 +166,7 @@ bg: `
 
 
 
-<div className="relative w-full max-w-lg mx-auto mt-6 mb-8">
-<div className="relative w-full max-w-lg mx-auto mt-4 mb-6">
+<div className="relative w-full max-w-lg mx-auto mt-3 sm:mt-6 mb-4 sm:mb-8">
   <input
     type="text"
     placeholder="Hae paikkakunta tai sana..."
@@ -180,48 +179,60 @@ bg: `
     onClick={hae}
     className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal hover:text-persikka transition"
   >
-   <Search size={20} />
+    <Search size={20} />
   </button>
+
+  {suositukset.length > 0 && (
+    <ul className="absolute bg-white border rounded shadow w-full mt-1 z-10 max-h-40 overflow-y-auto">
+      {suositukset.map((ehto, idx) => (
+        <li
+          key={idx}
+          className="px-4 py-2 hover:bg-[#f0f0f0] cursor-pointer text-left"
+          onClick={() => {
+            setHakusana(ehto)
+            setSuositukset([])
+            hae()
+          }}
+        >
+          {ehto}
+        </li>
+      ))}
+    </ul>
+  )}
 </div>
 
-                {suositukset.length > 0 && (
-                  <ul className="absolute bg-white border rounded shadow w-full mt-1 z-10 max-h-40 overflow-y-auto">
-                    {suositukset.map((ehto, idx) => (
-                      <li
-  key={idx}
-  className="px-4 py-2 hover:bg-[#f0f0f0] cursor-pointer text-left"
-  onClick={() => {
-    setHakusana(ehto)
-    setSuositukset([])   // piilota dropdown
-    hae()                // tee haku heti 
-  }}
->
-  {ehto}
-</li>
-
-                    ))}
-                  </ul>
-                )}
-              </div>
 
 
 
                 {/* Pallokategoria nappulat */}
-{/* Mobiili: vaakaliuku */}
-<div className="sm:hidden mt-4 -mx-4 px-4 overflow-x-auto">
-  <div className="flex gap-3 w-max pb-2">
-    {kategoriat.map((k) => (
-      <button
-        key={k.nimi}
-        onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
-        className={`${k.bg} flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap`}
-      >
-        {k.ikoni}
-        <span className="text-sm">{k.nimi}</span>
-      </button>
-    ))}
+{/* Mobiili: pyöreät ikonit + vaakaliuku (snap + fade) */}
+<div className="sm:hidden mt-5 relative">
+  {/* fade vasen */}
+  <div className="pointer-events-none absolute left-0 top-0 h-full w-6 bg-gradient-to-r from-white to-transparent z-10" />
+  {/* fade oikea */}
+  <div className="pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-white to-transparent z-10" />
+
+  <div className="-mx-4 px-4 overflow-x-auto scroll-smooth">
+    <div className="flex gap-4 w-max pb-3 snap-x snap-mandatory">
+      {kategoriat.map((k) => (
+        <div key={k.nimi} className="flex flex-col items-center snap-start">
+          <button
+            onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
+            className={`${k.bg} flex items-center justify-center w-14 h-14 rounded-full`}
+          >
+            {k.ikoni}
+          </button>
+
+          <span className="mt-1 text-[11px] leading-tight text-center text-[#1E3A41] w-20">
+            {k.nimi}
+          </span>
+        </div>
+      ))}
+    </div>
   </div>
 </div>
+
+
 
 {/* Desktop/tablet: grid */}
 <div className="hidden sm:grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-4 mt-6 justify-items-center">
