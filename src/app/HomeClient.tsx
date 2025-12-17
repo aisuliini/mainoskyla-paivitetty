@@ -207,25 +207,26 @@ bg: `
 
 
                 {/* Pallokategoria nappulat */}
-{/* Mobiili: vaakaliuku varmasti (iOS touch) */}
+{/* Mobiili: pallo + nimi + vaakaliuku (vain tämä rivi liikkuu) */}
 <div className="sm:hidden mt-5 relative">
   {/* fade vasen */}
   <div className="pointer-events-none absolute left-0 top-0 h-full w-6 bg-gradient-to-r from-white to-transparent z-10" />
   {/* fade oikea */}
   <div className="pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-white to-transparent z-10" />
 
-  <div className="-mx-4 px-4 overflow-x-auto overscroll-x-contain touch-pan-x [ -webkit-overflow-scrolling:touch ]">
-    <div className="flex flex-nowrap items-center gap-3 min-w-max py-2 pr-6">
+  <div className="-mx-4 px-4 overflow-x-auto overflow-y-hidden scroll-smooth touch-pan-x">
+    <div className="flex flex-nowrap items-center gap-3 w-max py-2 pr-6">
       {kategoriat.map((k) => (
         <button
           key={k.nimi}
           type="button"
           onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
-          className={`${k.bg} w-14 h-14 rounded-full flex items-center justify-center flex-none`}
-          aria-label={k.nimi}
-          title={k.nimi}
+          className={`${k.bg} flex items-center gap-2 h-12 px-4 rounded-full flex-none`}
         >
-          {k.ikoni}
+          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/15">
+            {k.ikoni}
+          </span>
+          <span className="text-sm whitespace-nowrap">{k.nimi}</span>
         </button>
       ))}
     </div>

@@ -27,7 +27,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fi">
-<body className={`${inter.className} bg-[#F6F7F7] text-charcoal min-h-screen flex flex-col`}>
+<body className={`${inter.className} bg-[#F6F7F7] text-charcoal min-h-screen flex flex-col overflow-x-hidden`}>
 
 
 
