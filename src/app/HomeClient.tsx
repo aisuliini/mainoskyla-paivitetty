@@ -207,15 +207,16 @@ bg: `
 
 
                 {/* Pallokategoria nappulat */}
-{/* Mobiili: pallo + nimi + vaakaliuku (vain tämä rivi liikkuu) */}
-<div className="sm:hidden mt-5 relative">
-  {/* fade vasen */}
-  <div className="pointer-events-none absolute left-0 top-0 h-full w-6 bg-gradient-to-r from-white to-transparent z-10" />
-  {/* fade oikea */}
-  <div className="pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-white to-transparent z-10" />
-
-  <div className="-mx-4 px-4 overflow-x-auto overflow-y-hidden scroll-smooth touch-pan-x">
-    <div className="flex flex-nowrap items-center gap-3 w-max py-2 pr-6">
+{/* Mobiili: kategoriat (vain tämä rivi scrollaa) */}
+<div className="sm:hidden mt-5">
+  <div
+    className="
+      w-full overflow-x-auto overflow-y-hidden
+      touch-pan-x scroll-smooth
+      [ -webkit-overflow-scrolling:touch ]
+    "
+  >
+    <div className="flex flex-nowrap gap-3 w-max pr-6 py-2">
       {kategoriat.map((k) => (
         <button
           key={k.nimi}
@@ -232,6 +233,7 @@ bg: `
     </div>
   </div>
 </div>
+
 
 
 
