@@ -130,16 +130,16 @@ bg: `
 
 
   <div className="relative z-10">
-<section className="relative overflow-hidden px-4 sm:px-6 pt-10 pb-8">
+<section className="relative overflow-hidden px-4 sm:px-6 pt-6 sm:pt-10 pb-5 sm:pb-8">
   
         <div className="max-w-screen-xl mx-auto">
 <div className="flex flex-col items-center gap-6 text-center">
 <div className="w-full text-center flex flex-col items-center">
 <h1 className="
-  text-3xl sm:text-4xl md:text-5xl
+  text-2xl sm:text-4xl md:text-5xl
   font-medium
   text-[#1E3A41]
-  mb-3
+  mb-2
   tracking-tight
   leading-snug
   max-w-3xl
@@ -207,27 +207,39 @@ bg: `
 
 
                 {/* Pallokategoria nappulat */}
-<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-4 mt-8 justify-items-center">
+{/* Mobiili: vaakaliuku */}
+<div className="sm:hidden mt-4 -mx-4 px-4 overflow-x-auto">
+  <div className="flex gap-3 w-max pb-2">
+    {kategoriat.map((k) => (
+      <button
+        key={k.nimi}
+        onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
+        className={`${k.bg} flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap`}
+      >
+        {k.ikoni}
+        <span className="text-sm">{k.nimi}</span>
+      </button>
+    ))}
+  </div>
+</div>
+
+{/* Desktop/tablet: grid */}
+<div className="hidden sm:grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-4 mt-6 justify-items-center">
   {kategoriat.map((k) => (
     <div key={k.nimi} className="flex flex-col items-center">
       <button
-  onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
-  className={`
-    ${k.bg}
-    flex items-center justify-center
-    w-12 h-12 rounded-full
-    transition hover:shadow-md
-  `}
->
-  {k.ikoni}
-</button>
-
+        onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
+        className={`${k.bg} flex items-center justify-center w-12 h-12 rounded-full`}
+      >
+        {k.ikoni}
+      </button>
       <span className="mt-1 text-xs text-center text-[#1E3A41]">
         {k.nimi}
       </span>
     </div>
   ))}
 </div>
+
 
 
 
