@@ -7,6 +7,8 @@ import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
+import { Search } from "lucide-react"
+
 
 
 
@@ -38,13 +40,20 @@ if (loading) {
   }
 
   return (
-    <header className="bg-white border-b px-4 py-2 flex items-center justify-between sticky top-0 z-50">
+<header className="bg-white/80 backdrop-blur border-b px-6 h-[72px] flex items-center justify-between sticky top-0 z-50">
       {/* Logo */}
-      <Link href="/" className="flex items-center gap-2">
-        <Image src="/mainoskylalogo.png" alt="Mainoskylä" width={36} height={36} />
-        <span className="hidden sm:inline text-lg font-semibold text-[#1E3A41]">
-  Mainoskylä
-</span>
+<Link href="/" className="flex items-center h-full shrink-0">
+<Image
+  src="/mainoskylalogo.png"
+  alt="Mainoskylä"
+  width={72}
+  height={72}
+  priority
+  className="h-[48px] w-auto md:h-[56px]"
+/>
+
+
+
 
 
       </Link>
@@ -65,21 +74,23 @@ if (loading) {
   }
 }}
 
-    className="w-full px-3 py-1 text-sm border rounded-full focus:ring-2 focus:ring-[#F99584]/50"
+className="w-[320px] lg:w-[380px] px-4 py-2 pr-10 text-sm border rounded-full bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A41]/20"
   />
   <button
-    type="button"
-    onClick={hae}
-    className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#1E3A41] text-white px-4 py-1 rounded-full text-sm hover:bg-[#27494e] active:scale-95 transition"
-  >
-    Hae
-  </button>
+  type="button"
+  onClick={hae}
+  aria-label="Hae"
+  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1E3A41] hover:text-[#27494e] transition"
+>
+  <Search size={18} />
+</button>
+
 </div>
 
 
 
       {/* Valikko / profiili / kirjautuminen */}
-      <div className="hidden md:flex items-center space-x-4 text-sm">
+<div className="hidden md:flex items-center gap-2 text-sm">
         <Link href="/ilmoitukset" className="hover:underline hover:text-[#F99584]">
         Ilmoitukset
         </Link>
@@ -105,16 +116,12 @@ if (loading) {
         ) : (
          <Link
   href="/kirjaudu"
-  className="bg-[#F99584] text-[#1E3A41] px-6 py-3 rounded hover:bg-[#E86E5B] transition-colors"
+className="bg-[#F99584] text-[#1E3A41] px-5 py-2 rounded-full font-semibold hover:bg-[#E86E5B] transition-colors shadow-sm"
 >
   Kirjaudu
 </Link>
 
-
-
-        )}
-
-        
+        )}   
       </div>
 
       {/* Mobiilin valikko */}

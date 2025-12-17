@@ -111,7 +111,7 @@ const kategoriat = [
   { nimi: "Muut",              ikoni: null },
 ].map((kategoria) => ({
   ...kategoria,
-  bg: "bg-[#4F6763] hover:bg-[#6A837F] text-white shadow-md rounded-full transition ring-1 ring-charcoal/10"
+bg: "bg-[#1E3A41] hover:bg-[#2B5159] text-white shadow-sm rounded-full transition ring-1 ring-black/5"
 }));
 
 
@@ -124,36 +124,29 @@ const kategoriat = [
     encodeURIComponent(kategoria.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/\s+/g, '-'))
 
   return (
-<main className="min-h-screen font-sans text-charcoal bg-beige">
+<main className="min-h-screen font-sans text-charcoal bg-white">
 
 
 
   <div className="relative z-10">
-      <section className="py-8 px-6">
+<section className="bg-white px-4 sm:px-6 pt-10 pb-8">
         <div className="max-w-screen-xl mx-auto">
           <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12">
-            <div className="flex-shrink-0">
-              <Image
-  src="/mainoskylalogo.png"
-  alt="Mainoskylä"
-  width={250}
-  height={250}
-  priority
-/>
-
-
-            </div>
             <div className="w-full text-center md:text-left">
-              <h1 className="text-4xl font-[700] text-charcoal mb-6 tracking-tight">
-
-
-  Löydä tai mainosta paikallisesti – Mainoskylä yhdistää ihmiset ja yritykset.
+              <h1 className="text-4xl md:text-5xl font-semibold text-charcoal mb-3 tracking-tight leading-tight">
+  Löydä tai mainosta paikallisesti
 </h1>
+
+<p className="text-lg md:text-xl text-[#1E3A41]/80 font-medium mb-4">
+  Mainoskylä yhdistää ihmiset ja paikalliset yritykset.
+</p>
+
 
 
               <p className="text-base md:text-lg text-gray-700 mt-2">
-  Oletko paikallinen yrittäjä tai harrastaja? Liity mukaan Mainoskylään – juuri nyt kaikki ilmoitukset ovat ilmaisia!
+  Paikallinen mainospaikka yrittäjille ja tekijöille.
 </p>
+
 
 
             <div className="relative max-w-lg mx-auto md:mx-0 mt-4 mb-6">
@@ -197,7 +190,7 @@ const kategoriat = [
 
 
                 {/* Pallokategoria nappulat */}
-<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-2 gap-y-2 mt-8 justify-items-center">
+<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-4 mt-8 justify-items-center">
   {kategoriat.map((k) => (
     <div key={k.nimi} className="flex flex-col items-center">
       <button
@@ -205,7 +198,7 @@ const kategoriat = [
   className={`
     ${k.bg}
     flex items-center justify-center
-    w-10 h-10 rounded-full
+    w-12 h-12 rounded-full
     transition hover:shadow-md
   `}
 >
@@ -226,7 +219,7 @@ const kategoriat = [
         </div>
       </section>
 
-      <section className="bg-beige px-6 py-8">
+<section className="bg-[#F6F7F7] px-4 sm:px-6 py-10">
   <div className="max-w-screen-xl mx-auto">
     <h2 className="text-xl font-semibold text-[#2f5332] mb-4">Etusivun Premium-ilmoitukset</h2>
     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
