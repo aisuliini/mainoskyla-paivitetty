@@ -43,9 +43,9 @@ export default function MuokkaaIlmoitusta() {
   const [ilmoitus, setIlmoitus] = useState<Ilmoitus | null>(null)
   const [loading, setLoading] = useState(true)
   const wrapperRef = useRef<HTMLDivElement>(null)
-
-const [voimassaAlku, setVoimassaAlku] = useState<Date | undefined>()
+  const [voimassaAlku, setVoimassaAlku] = useState<Date | undefined>()
 const [voimassaKesto, setVoimassaKesto] = useState('30')
+
 
 
 
@@ -132,6 +132,8 @@ const [isSubmitting, setIsSubmitting] = useState(false)
         .eq('premium_tyyppi', 'etusivu')
         .gte('premium_loppu', nytISO)
 
+
+
       const paivaLaskuri: { [päivä: string]: number } = {}
       data?.forEach((ilmo: { premium_alku: string; premium_loppu: string }) => {
         const alku = new Date(ilmo.premium_alku)
@@ -179,6 +181,8 @@ const [isSubmitting, setIsSubmitting] = useState(false)
     }
 
     const loppuDate = alku ? new Date(alku.getTime() + parseInt(kesto) * 86400000) : null
+    const perusAlku = voimassaAlku ?? new Date()
+const perusLoppu = new Date(perusAlku.getTime() + parseInt(voimassaKesto) * 86400000)
 
     const { error } = await supabase
       .from('ilmoitukset')
@@ -195,6 +199,9 @@ const [isSubmitting, setIsSubmitting] = useState(false)
         premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
         tapahtuma_alku: kategoria === 'Tapahtumat' ? tapahtumaAlku?.toISOString() : null,
         tapahtuma_loppu: kategoria === 'Tapahtumat' ? tapahtumaLoppu?.toISOString() : null,
+        voimassa_alku: tyyppi !== 'premium' ? perusAlku.toISOString() : null,
+        voimassa_loppu: tyyppi !== 'premium' ? perusLoppu.toISOString() : null,
+
       })
       .eq('id', ilmoitusId)
 
@@ -369,34 +376,69 @@ reader.readAsDataURL(pakattu)
     />
   </div>
 )}
+<label>Valitse ilmoitustyyppi:</label>
+<select
+  value={tyyppi}
+  onChange={(e) => setTyyppi(e.target.value)}
+  className="w-full border px-4 py-2 rounded"
+>
+  <option value="perus">Perusilmoitus</option>
+  <option value="premium">Premium näkyvyys</option>
+</select>
+
+{tyyppi === 'perus' && (
+  <>
+    <label>Näkyvyysaika:</label>
+    <select
+      value={voimassaKesto}
+      onChange={(e) => setVoimassaKesto(e.target.value)}
+      className="w-full border px-4 py-2 rounded"
+    >
+      <option value="7">7 päivää</option>
+      <option value="14">14 päivää</option>
+      <option value="30">30 päivää</option>
+      <option value="60">60 päivää</option>
+      <option value="90">90 päivää</option>
+    </select>
+
+    <label>Ilmoituksen alkupäivä:</label>
+    <DayPicker
+      mode="single"
+      selected={voimassaAlku}
+      onSelect={setVoimassaAlku}
+      locale={fi}
+    />
+  </>
+)}
+
+{tyyppi === 'premium' && (
+  <>
+    <label>Näkyvyysaika:</label>
+    <select
+      value={kesto}
+      onChange={(e) => setKesto(e.target.value)}
+      className="w-full border px-4 py-2 rounded"
+    >
+      <option value="7">7 päivää</option>
+      <option value="14">14 päivää</option>
+      <option value="30">30 päivää</option>
+      <option value="60">60 päivää</option>
+      <option value="90">90 päivää</option>
+    </select>
+
+    <label>Premium-alkupäivä:</label>
+    <DayPicker
+      mode="single"
+      selected={alku}
+      onSelect={setAlku}
+      modifiers={{ varattu: varatutPaivat }}
+      modifiersClassNames={{ varattu: 'bg-red-500 text-white' }}
+      locale={fi}
+    />
+  </>
+)}
 
 
-        <label>Valitse ilmoitustyyppi:</label>
-        <select value={tyyppi} onChange={(e) => setTyyppi(e.target.value)} className="w-full border px-4 py-2 rounded">
-          <option value="perus">Perusilmoitus</option>
-          <option value="premium">Premium näkyvyys</option>
-        </select>
-
-        {tyyppi === 'premium' && (
-          <>
-            <label>Näkyvyysaika:</label>
-            <select value={kesto} onChange={(e) => setKesto(e.target.value)} className="w-full border px-4 py-2 rounded">
-              <option value="7">7 päivää</option>
-              <option value="14">14 päivää</option>
-              <option value="30">30 päivää</option>
-            </select>
-
-            <label>Premium-alkupäivä:</label>
-            <DayPicker
-              mode="single"
-              selected={alku}
-              onSelect={setAlku}
-              modifiers={{ varattu: varatutPaivat }}
-              modifiersClassNames={{ varattu: 'bg-red-500 text-white' }}
-              locale={fi}
-            />
-          </>
-        )}
 
         <button type="submit" className="bg-[#3f704d] text-white px-6 py-2 rounded hover:bg-[#2f5332]">
           Tallenna muutokset
