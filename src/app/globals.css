@@ -26,3 +26,20 @@ html, body {
   overflow-x: hidden;
   width: 100%;
 }
+/* iOS + Android: sulava vaakascroll vain tälle riville */
+.scroll-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch; /* iOS momentum */
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity; /* optional */
+}
+
+/* piilota scrollbar (safari/chrome) */
+.scroll-x::-webkit-scrollbar {
+  display: none;
+}
+.scroll-x {
+  scrollbar-width: none; /* firefox */
+}
+

@@ -208,31 +208,50 @@ bg: `
 
                 {/* Pallokategoria nappulat */}
 {/* Mobiili: kategoriat (vain tämä rivi scrollaa) */}
+{/* Mobiili: kategoriat vaakaliukuna + "Selaa →" + plus loppuun */}
 <div className="sm:hidden mt-5">
-  <div
-    className="
-      w-full overflow-x-auto overflow-y-hidden
-      touch-pan-x scroll-smooth
-      [ -webkit-overflow-scrolling:touch ]
-    "
-  >
-    <div className="flex flex-nowrap gap-3 w-max pr-6 py-2">
-      {kategoriat.map((k) => (
+  <div className="relative">
+    {/* fade reunat */}
+    <div className="pointer-events-none absolute left-0 top-0 h-full w-6 bg-gradient-to-r from-white to-transparent z-10" />
+    <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-white to-transparent z-10" />
+
+    {/* "Selaa →" */}
+    <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 z-20">
+      <span className="text-[12px] font-medium text-[#1E3A41]/70 bg-white/80 backdrop-blur px-2 py-1 rounded-full">
+        Selaa →
+      </span>
+    </div>
+
+    <div className="scroll-x -mx-4 px-4">
+      <div className="flex flex-nowrap gap-3 w-max pr-6 py-2">
+        {kategoriat.map((k) => (
+          <button
+            key={k.nimi}
+            type="button"
+            onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
+            className="shrink-0 inline-flex items-center gap-2 h-12 px-4 rounded-full bg-[#4F6763] text-white shadow-sm ring-1 ring-black/5"
+          >
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/15">
+              {k.ikoni}
+            </span>
+            <span className="text-sm font-medium whitespace-nowrap">{k.nimi}</span>
+          </button>
+        ))}
+
+        {/* plus lopussa */}
         <button
-          key={k.nimi}
           type="button"
-          onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
-          className={`${k.bg} flex items-center gap-2 h-12 px-4 rounded-full flex-none`}
+          onClick={() => router.push('/kategoriat')}
+          className="shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-full bg-white text-[#1E3A41] ring-1 ring-black/10 shadow-sm"
+          aria-label="Näytä kaikki kategoriat"
         >
-          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/15">
-            {k.ikoni}
-          </span>
-          <span className="text-sm whitespace-nowrap">{k.nimi}</span>
+          <span className="text-xl leading-none">+</span>
         </button>
-      ))}
+      </div>
     </div>
   </div>
 </div>
+
 
 
 
