@@ -236,24 +236,49 @@ bg: `
         </div>
       </section>
 
-<section className="bg-[#F6F7F7] px-4 sm:px-6 py-10">
+<section className="bg-[#F6F7F7] px-4 sm:px-6 py-6">
   <div className="max-w-screen-xl mx-auto">
-    <h2 className="text-xl font-semibold text-[#2f5332] mb-4">Etusivun Premium-ilmoitukset</h2>
+<h2 className="text-base sm:text-lg font-semibold text-[#1E3A41] mb-3">
+  Premium-paikat
+</h2>
     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 
       {premiumIlmoitukset.map((ilmo) => (
-<div key={ilmo.id} className="bg-white/60 border border-[#D9EDE3]
- rounded-xl p-4 shadow hover:shadow-lg transition duration-300">
+  <div
+    key={ilmo.id}
+    role="button"
+    tabIndex={0}
+    onClick={() => {
+      if (!ilmo.id.startsWith('tyhja-')) {
+        router.push(`/ilmoitukset/${ilmo.id}`)
+      }
+    }}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' && !ilmo.id.startsWith('tyhja-')) {
+        router.push(`/ilmoitukset/${ilmo.id}`)
+      }
+    }}
+    className="
+      cursor-pointer
+      group bg-white ring-1 ring-black/5
+
+      rounded-xl p-3
+      shadow-sm
+      transition-all duration-300 ease-out
+      hover:-translate-y-1 hover:shadow-xl
+    "
+  >
+
           {ilmo.kuva_url ? (
-            <div className="relative w-full h-32 rounded overflow-hidden mb-2 bg-white">
+<div className="relative w-full h-36 rounded-lg overflow-hidden mb-1 bg-white">
               <Image
-                src={ilmo.kuva_url || '/placeholder.jpg'}
-                alt={ilmo.otsikko}
-                fill
-                style={{ objectFit: 'cover' }}
-                className="rounded"
-                sizes="(max-width: 768px) 100vw, 20vw"
-              />
+  src={ilmo.kuva_url || '/placeholder.jpg'}
+  alt={ilmo.otsikko}
+  fill
+  className="object-cover transition-transform duration-300 group-hover:scale-105"
+  sizes="(max-width: 768px) 100vw, 20vw"
+/>
+
             </div>
           ) : (
             <div className="h-32 bg-white rounded mb-2" />
@@ -262,22 +287,16 @@ bg: `
           <p className="text-xs text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
           <Katselukerrat count={ilmo.nayttoja || 0} small />
 
-          {!ilmo.id.startsWith('tyhja-') && (
-            <button
-  onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
-  className="mt-2 w-full px-3 py-1 text-xs bg-[#FDF6EF] text-[#1E3A41] border border-[#1E3A41] rounded hover:bg-[#1E3A41] hover:text-white transition hover:shadow-lg"
->
-  Näytä
-</button>
-
-
-
-          )}
+        
           {ilmo.id.startsWith('tyhja-') && (
             <button
-  onClick={() => router.push('/lisaa')}
+  onClick={(e) => {
+    e.stopPropagation()
+    router.push('/lisaa')
+  }}
   className="mt-2 w-full px-3 py-1 text-xs bg-[#FDF6EF] text-[#1E3A41] border border-[#1E3A41] rounded hover:bg-[#1E3A41] hover:text-white transition hover:shadow-lg"
 >
+
   Lisää oma ilmoitus
 </button>
 

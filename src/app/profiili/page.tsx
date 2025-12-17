@@ -102,7 +102,23 @@ export default function ProfiiliSivu() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {ilmoitukset.map((ilmo) => (
-            <div key={ilmo.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
+  <div
+    key={ilmo.id}
+    role="button"
+    tabIndex={0}
+    onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
+    onKeyDown={(e) => e.key === 'Enter' && router.push(`/ilmoitukset/${ilmo.id}`)}
+    className="
+      cursor-pointer
+      bg-white border rounded-lg shadow-sm overflow-hidden
+      text-left w-full
+      transition-all duration-200
+      hover:-translate-y-0.5 hover:shadow-md
+      focus:outline-none focus:ring-2 focus:ring-blue-500
+    "
+  >
+
+
               <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
                 {ilmo.kuva_url ? (
                   <Image

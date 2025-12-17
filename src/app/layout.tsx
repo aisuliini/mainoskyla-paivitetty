@@ -36,11 +36,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Header />
 
           {/* Pääsisältö */}
-<main className="flex-grow mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-6">
-  <div className="bg-white rounded-3xl shadow-sm ring-1 ring-black/5 p-4 sm:p-6 lg:p-8">
-    {children}
-  </div>
+<main className="flex-grow w-full">
+  {children}
 </main>
+
 
 
           {/* Footer */}
