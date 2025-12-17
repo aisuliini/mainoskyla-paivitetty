@@ -130,7 +130,7 @@ bg: `
 
 
   <div className="relative z-10">
-<section className="relative overflow-hidden px-4 sm:px-6 pt-6 sm:pt-10 pb-5 sm:pb-8">
+<section className="relative px-4 sm:px-6 pt-6 sm:pt-10 pb-5 sm:pb-8">
   
         <div className="max-w-screen-xl mx-auto">
 <div className="flex flex-col items-center gap-6 text-center">
@@ -207,23 +207,23 @@ bg: `
 
 
                 {/* Pallokategoria nappulat */}
-{/* Mobiili: YKSI RIVI – pyöreät pallot + vaakaliuku (snap + fade) */}
+{/* Mobiili: vaakaliuku varmasti (iOS touch) */}
 <div className="sm:hidden mt-5 relative">
   {/* fade vasen */}
   <div className="pointer-events-none absolute left-0 top-0 h-full w-6 bg-gradient-to-r from-white to-transparent z-10" />
   {/* fade oikea */}
   <div className="pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-white to-transparent z-10" />
 
-  <div className="-mx-4 px-4 overflow-x-auto scroll-smooth">
-    <div className="flex flex-nowrap items-center gap-3 w-max py-2 snap-x snap-mandatory">
+  <div className="-mx-4 px-4 overflow-x-auto overscroll-x-contain touch-pan-x [ -webkit-overflow-scrolling:touch ]">
+    <div className="flex flex-nowrap items-center gap-3 min-w-max py-2 pr-6">
       {kategoriat.map((k) => (
         <button
           key={k.nimi}
           type="button"
+          onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
+          className={`${k.bg} w-14 h-14 rounded-full flex items-center justify-center flex-none`}
           aria-label={k.nimi}
           title={k.nimi}
-          onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
-          className={`${k.bg} flex items-center justify-center w-14 h-14 rounded-full flex-none snap-start`}
         >
           {k.ikoni}
         </button>
@@ -231,6 +231,7 @@ bg: `
     </div>
   </div>
 </div>
+
 
 
 
