@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 import ehdotukset from '@/data/ehdotusdata.json'
 import { Search } from "lucide-react";
+import CategoryCarousel from '@/components/CategoryCarousel'
 
 
 
@@ -209,52 +210,27 @@ bg: `
 
 
                 {/* Pallokategoria nappulat */}
-{/* Mobiili: kategoriat (vain tämä rivi scrollaa) + selkeä selausvihje */}
+{/* Mobiili: kategoriat Tori-tyyliin (2 riviä + sivutus vasemmalle) */}
 <div className="sm:hidden mt-5">
-  <div className="relative">
-    {/* Fade vasen/oikea -> kertoo että lisää on sivulla */}
-    <div className="pointer-events-none absolute left-0 top-0 h-full w-6 bg-gradient-to-r from-white to-transparent z-10" />
-    <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-white to-transparent z-10" />
+  <CategoryCarousel
+    categories={kategoriat.map((k) => ({
+      name: k.nimi,
+      href: `/kategoriat/${urlSafeKategoria(k.nimi)}`,
+      icon: k.ikoni,
+    }))}
+  />
 
-    {/* "Selaa →" vihje */}
-    <div className="pointer-events-none absolute right-2 top-2 z-20 text-[11px] text-[#1E3A41]/70 bg-white/70 px-2 py-1 rounded-full">
-      Selaa →
-    </div>
-
-    <div
-  className="
-    w-full overflow-x-auto overflow-y-hidden
-    touch-pan-x scroll-smooth
-    [-webkit-overflow-scrolling:touch]
-    no-scrollbar
-  "
->
-
-      {/* pr-16 = jättää tilaa oikealle, jotta käyttäjä näkee että lisää on tulossa */}
-      <div className="flex flex-nowrap gap-3 w-max pr-16 py-2">
-        {kategoriat.map((k) => (
-          <button
-            key={k.nimi}
-            type="button"
-            onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
-            className={`${k.bg} flex items-center gap-2 h-12 px-4 rounded-full flex-none`}
-          >
-            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/15">
-              {k.ikoni}
-            </span>
-            <span className="text-sm whitespace-nowrap">{k.nimi}</span>
-          </button>
-        ))}
-      </div>
-    </div>
+  {/* Kaikki kategoriat -nappi */}
+  <div className="mt-3 px-4">
+    <button
+      type="button"
+      onClick={() => router.push('/kategoriat')}
+      className="w-full rounded-2xl py-3 text-sm font-medium text-[#1E3A41] ring-1 ring-black/10 shadow-sm bg-white"
+    >
+      Näytä kaikki kategoriat
+    </button>
   </div>
-
-  {/* vaihtoehtoinen lisävihje (jos haluut vielä selkeämmän) */}
-  <p className="mt-2 text-[11px] text-[#1E3A41]/60 text-center">
-    Vedä sivulle nähdäksesi lisää kategorioita
-  </p>
 </div>
-
 
 
 
