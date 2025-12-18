@@ -23,9 +23,9 @@ body {
   font-family: var(--font-sans);
 }
 html, body {
-  overflow-x: hidden;
   width: 100%;
 }
+
 /* iOS + Android: sulava vaakascroll vain tälle riville */
 .scroll-x {
   overflow-x: auto;

@@ -35,7 +35,7 @@ export default function CategoryCarousel({ categories }: { categories: Category[
     ro.observe(el)
 
     return () => {
-      el.removeEventListener('scroll', onScroll as any)
+el.removeEventListener('scroll', onScroll)
       ro.disconnect()
     }
   }, [])
