@@ -1,128 +1,53 @@
 'use client'
 
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import type { ReactNode } from 'react'
 
-type CategoryItem = {
+type Category = {
   name: string
   href: string
-  icon: React.ReactNode
+  icon: ReactNode
 }
 
-type Props = {
-  categories: CategoryItem[]
-}
-
-/** chunk -> sivut (Tori-tyyli: 2 riviä, 4 saraketta = 8 kategoriaa / “sivu”) */
-function chunk<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = []
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
-  return out
-}
-
-export default function CategoryCarousel({ categories }: Props) {
-  const router = useRouter()
-  const scrollerRef = useRef<HTMLDivElement | null>(null)
-  const [canLeft, setCanLeft] = useState(false)
-  const [canRight, setCanRight] = useState(false)
-
-  const pages = useMemo(() => chunk(categories, 8), [categories])
-
-  useEffect(() => {
-    const el = scrollerRef.current
-    if (!el) return
-
-    const updateShadows = () => {
-      const maxScroll = el.scrollWidth - el.clientWidth
-      setCanLeft(el.scrollLeft > 2)
-      setCanRight(el.scrollLeft < maxScroll - 2)
-    }
-
-    // init
-    updateShadows()
-
-    const onScroll = () => updateShadows()
-    el.addEventListener('scroll', onScroll, { passive: true })
-
-    const ro = new ResizeObserver(() => updateShadows())
-    ro.observe(el)
-
-    return () => {
-      el.removeEventListener('scroll', onScroll)
-      ro.disconnect()
-    }
-  }, [])
+export default function CategoryCarousel({ categories }: { categories: Category[] }) {
+  // pilkotaan 8 kategoriaa / sivu (4 x 2)
+  const pageSize = 8
+  const pages: Category[][] = []
+  for (let i = 0; i < categories.length; i += pageSize) {
+    pages.push(categories.slice(i, i + pageSize))
+  }
 
   return (
-    <div className="relative -mx-4">
-      {/* fade vasen/oikea = vihje että voi selata */}
-      {canLeft && (
-        <div className="pointer-events-none absolute left-0 top-0 h-full w-10 bg-gradient-to-r from-white to-transparent z-10" />
-      )}
-      {canRight && (
-        <div className="pointer-events-none absolute right-0 top-0 h-full w-16 bg-gradient-to-l from-white to-transparent z-10" />
-      )}
-
-      {/* pieni “Selaa →” vain jos oikealle on sisältöä */}
-      {canRight && (
-        <div className="pointer-events-none absolute right-3 top-2 z-20 text-[11px] text-[#1E3A41]/70 bg-white/70 px-2 py-1 rounded-full">
-          Selaa →
-        </div>
-      )}
-
-      {/* IMPORTANT: overflow piilottaa bodyn vaakaleveyden -> sivu ei enää “liiku” */}
-      <div className="overflow-hidden">
-        <div
-          ref={scrollerRef}
-          className="
-            w-full overflow-x-auto overflow-y-hidden
-            touch-pan-x scroll-smooth
-            no-scrollbar
-            snap-x snap-mandatory
-            px-4 pr-14
-          "
-        >
-          <div className="flex gap-4 w-max py-2">
-            {pages.map((page, pageIndex) => (
-              <div
-                key={pageIndex}
-                className="
-                  flex-none snap-start
-                  w-[calc(100vw-1.5rem)]
-                  max-w-[520px]
-                  bg-white
-                "
-              >
-                <div className="grid grid-cols-4 gap-x-4 gap-y-3">
-                  {page.map((c) => (
-                    <button
-                      key={c.href}
-                      type="button"
-                      onClick={() => router.push(c.href)}
-                      className="
-                        flex flex-col items-center justify-start
-                        gap-2
-                        py-2
-                        rounded-2xl
-                        hover:bg-black/5
-                        active:scale-[0.99]
-                        transition
-                      "
-                    >
-                      <span className="w-12 h-12 rounded-2xl ring-1 ring-black/10 bg-white shadow-sm flex items-center justify-center">
-                        {c.icon}
-                      </span>
-                      <span className="text-[11px] leading-tight text-[#1E3A41] text-center w-[74px]">
-                        {c.name}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+    <section className="w-full bg-white">
+      {/* tärkeät: overflow-x-auto + snap + overscroll-x-contain + touch-pan-x */}
+      <div className="w-full overflow-x-auto overscroll-x-contain touch-pan-x scroll-smooth no-scrollbar">
+        <div className="flex w-full snap-x snap-mandatory">
+          {pages.map((page, idx) => (
+            <div
+              key={idx}
+              className="min-w-full snap-start px-4 md:px-6"
+            >
+              {/* tämä grid on se “Tori 2 riviä” */}
+              <div className="grid grid-cols-4 gap-y-6 gap-x-4 py-3 md:max-w-3xl md:mx-auto">
+                {page.map((cat) => (
+                  <Link
+                    key={cat.href}
+                    href={cat.href}
+                    className="flex flex-col items-center text-center select-none"
+                  >
+                    <div className="grid place-items-center h-12 w-12 rounded-full bg-white ring-1 ring-black/10 shadow-sm">
+                      {cat.icon}
+                    </div>
+                    <div className="mt-2 text-[12px] leading-tight text-charcoal">
+                      {cat.name}
+                    </div>
+                  </Link>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
-    </div>
+    </section>
   )
 }
