@@ -43,3 +43,5 @@ html, body {
   scrollbar-width: none; /* firefox */
 }
 
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

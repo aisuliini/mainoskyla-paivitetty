@@ -9,6 +9,8 @@ import { supabase } from '@/lib/supabaseClient'
 import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 import ehdotukset from '@/data/ehdotusdata.json'
 import { Search } from "lucide-react";
+import CategoryCarousel from '@/components/CategoryCarousel'
+
 
 
 import {
@@ -95,18 +97,19 @@ export default function Home() {
 
 
 const kategoriat = [
-  { nimi: "Palvelut",          ikoni: <Hammer size={20} /> },
-  { nimi: "Eläinpalvelut",     ikoni: <PawPrint size={20} /> },
-  { nimi: "Käsityöläiset",     ikoni: <Scissors size={20} /> },
-  { nimi: "Media ja Luovuus",  ikoni: <Camera size={20} /> },
-  { nimi: "Vuokratilat ja Juhlapaikat", ikoni: <PartyPopper size={20} /> },
-  { nimi: "Hyvinvointi ja Kauneus", ikoni: <Heart size={20} /> },
-  { nimi: "Koti ja Remontointi", ikoni: <HomeIcon size={20} /> },
-  { nimi: "Kurssit ja Koulutukset", ikoni: <Book size={20} /> },
-  { nimi: "Ilmoitustaulu",     ikoni: <Megaphone size={20} /> },
-  { nimi: "Tapahtumat",        ikoni: <Calendar size={20} /> },
-  { nimi: "Pientuottajat",     ikoni: <Package size={20} /> },
-].map((kategoria) => ({
+  { nimi: "Palvelut", href: "/kategoriat/palvelut", ikoni: <Hammer className="h-6 w-6 text-[#4F6763]" /> },
+  { nimi: "Eläinpalvelut", href: "/kategoriat/elainpalvelut", ikoni: <PawPrint className="h-6 w-6 text-[#4F6763]" /> },
+  { nimi: "Käsityöläiset", href: "/kategoriat/kasityolaiset", ikoni: <Scissors className="h-6 w-6 text-[#4F6763]" /> },
+  { nimi: "Media ja Luovuus", href: "/kategoriat/media-ja-luovuus", ikoni: <Camera className="h-6 w-6 text-[#4F6763]" /> },
+  { nimi: "Vuokratilat ja Juhlapaikat", href: "/kategoriat/vuokratilat-ja-juhlapaikat", ikoni: <PartyPopper className="h-6 w-6 text-[#4F6763]" /> },
+  { nimi: "Hyvinvointi ja Kauneus", href: "/kategoriat/hyvinvointi-ja-kauneus", ikoni: <Heart className="h-6 w-6 text-[#4F6763]" /> },
+  { nimi: "Koti ja Remontointi", href: "/kategoriat/koti-ja-remontointi", ikoni: <HomeIcon className="h-6 w-6 text-[#4F6763]" /> },
+  { nimi: "Kurssit ja Koulutukset", href: "/kategoriat/kurssit-ja-koulutukset", ikoni: <Book className="h-6 w-6 text-[#4F6763]" /> },
+  { nimi: "Ilmoitustaulu", href: "/kategoriat/ilmoitustaulu", ikoni: <Megaphone className="h-6 w-6 text-[#4F6763]" /> },
+  { nimi: "Tapahtumat", href: "/kategoriat/tapahtumat", ikoni: <Calendar className="h-6 w-6 text-[#4F6763]" /> },
+  { nimi: "Pientuottajat", href: "/kategoriat/pientuottajat", ikoni: <Package className="h-6 w-6 text-[#4F6763]" /> },
+]
+.map((kategoria) => ({
   ...kategoria,
 bg: `
   bg-[#4F6763]
@@ -207,50 +210,28 @@ bg: `
 
 
                 {/* Pallokategoria nappulat */}
-{/* Mobiili: kategoriat (vain tämä rivi scrollaa) */}
-{/* Mobiili: kategoriat vaakaliukuna + "Selaa →" + plus loppuun */}
+{/* Mobiili: kategoriat Tori-tyyliin (2 riviä + sivutus vasemmalle) */}
 <div className="sm:hidden mt-5">
-  <div className="relative">
-    {/* fade reunat */}
-    <div className="pointer-events-none absolute left-0 top-0 h-full w-6 bg-gradient-to-r from-white to-transparent z-10" />
-    <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-white to-transparent z-10" />
+  <CategoryCarousel
+    categories={kategoriat.map((k) => ({
+      name: k.nimi,
+      href: `/kategoriat/${urlSafeKategoria(k.nimi)}`,
+      icon: k.ikoni,
+    }))}
+  />
 
-    {/* "Selaa →" */}
-    <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 z-20">
-      <span className="text-[12px] font-medium text-[#1E3A41]/70 bg-white/80 backdrop-blur px-2 py-1 rounded-full">
-        Selaa →
-      </span>
-    </div>
-
-    <div className="scroll-x -mx-4 px-4">
-      <div className="flex flex-nowrap gap-3 w-max pr-6 py-2">
-        {kategoriat.map((k) => (
-          <button
-            key={k.nimi}
-            type="button"
-            onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
-            className="shrink-0 inline-flex items-center gap-2 h-12 px-4 rounded-full bg-[#4F6763] text-white shadow-sm ring-1 ring-black/5"
-          >
-            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/15">
-              {k.ikoni}
-            </span>
-            <span className="text-sm font-medium whitespace-nowrap">{k.nimi}</span>
-          </button>
-        ))}
-
-        {/* plus lopussa */}
-        <button
-          type="button"
-          onClick={() => router.push('/kategoriat')}
-          className="shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-full bg-white text-[#1E3A41] ring-1 ring-black/10 shadow-sm"
-          aria-label="Näytä kaikki kategoriat"
-        >
-          <span className="text-xl leading-none">+</span>
-        </button>
-      </div>
-    </div>
+  {/* Kaikki kategoriat -nappi */}
+  <div className="mt-3 px-4">
+    <button
+      type="button"
+      onClick={() => router.push('/kategoriat')}
+      className="w-full rounded-2xl py-3 text-sm font-medium text-[#1E3A41] ring-1 ring-black/10 shadow-sm bg-white"
+    >
+      Näytä kaikki kategoriat
+    </button>
   </div>
 </div>
+
 
 
 
