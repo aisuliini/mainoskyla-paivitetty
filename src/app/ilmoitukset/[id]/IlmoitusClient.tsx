@@ -25,21 +25,25 @@ export default function IlmoitusClient() {
   useEffect(() => {
   if (!id) return
 
-  // 1) Katselukerta ylös (ei hidasta, ei await, estää tuplan samassa sessiossa)
+  // Laske vain jos edellisestä katselusta > 30 min (ei tuplaa back-napilla)
   const key = `viewed_${id}`
-if (!sessionStorage.getItem(key)) {
-  sessionStorage.setItem(key, '1')
+  const last = sessionStorage.getItem(key)
+  const now = Date.now()
+  const THIRTY_MIN = 30 * 60 * 1000
 
-  fetch('/api/ilmoitus/view', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id }),
-    cache: 'no-store',
-  }).catch(() => {})
-}
+  if (!last || now - Number(last) > THIRTY_MIN) {
+    sessionStorage.setItem(key, String(now))
 
+    // fire-and-forget (ei hidasta)
+    fetch('/api/ilmoitus/view', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+      cache: 'no-store',
+    }).catch(() => {})
+  }
 
-  // 2) Lataa ilmoitus
+  // Lataa ilmoitus
   const load = async () => {
     const { data } = await supabase
       .from('ilmoitukset')
@@ -52,6 +56,7 @@ if (!sessionStorage.getItem(key)) {
 
   load()
 }, [id])
+
 
 
   if (!ilmoitus) return <p className="p-6">Ladataan…</p>
