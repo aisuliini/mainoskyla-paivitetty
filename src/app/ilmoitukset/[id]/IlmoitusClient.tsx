@@ -27,10 +27,17 @@ export default function IlmoitusClient() {
 
   // 1) Katselukerta ylös (ei hidasta, ei await, estää tuplan samassa sessiossa)
   const key = `viewed_${id}`
-  if (!sessionStorage.getItem(key)) {
-    sessionStorage.setItem(key, '1')
-    supabase.rpc('increment_nayttoja', { p_id: id })
-  }
+if (!sessionStorage.getItem(key)) {
+  sessionStorage.setItem(key, '1')
+
+  fetch('/api/ilmoitus/view', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id }),
+    cache: 'no-store',
+  }).catch(() => {})
+}
+
 
   // 2) Lataa ilmoitus
   const load = async () => {
