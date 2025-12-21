@@ -16,7 +16,7 @@ export default function CookieBanner() {
   const acceptAll = () => {
     localStorage.setItem('cookie-consent', 'all');
     setVisible(false);
-    // tänne voisi laittaa esim. Google Analyticsin latauksen
+    // tänne voisi laittaa esim. Google Analytic
   };
 
   const declineAll = () => {
