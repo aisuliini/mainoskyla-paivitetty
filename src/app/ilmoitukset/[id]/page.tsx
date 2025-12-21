@@ -7,8 +7,12 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
+type Props = {
+  params: { id: string }
+}
+
 export async function generateMetadata(
-  { params }: { params: { id: string } }
+  { params }: Props
 ): Promise<Metadata> {
   const { data } = await supabase
     .from('ilmoitukset')
