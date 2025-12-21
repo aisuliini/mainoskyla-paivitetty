@@ -18,7 +18,7 @@ export default function RekisteroidySivu() {
       }
     }
     tarkista()
-  }, [])
+  }, [router])
 
   const rekisteroidy = async (e: React.FormEvent) => {
     e.preventDefault()

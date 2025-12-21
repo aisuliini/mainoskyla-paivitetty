@@ -18,7 +18,7 @@ export default function KirjauduSivu() {
     }
   }
   tarkista()
-}, [])
+}, [router])
 
   const kirjauduSalasanalla = async (e: React.FormEvent) => {
     e.preventDefault()

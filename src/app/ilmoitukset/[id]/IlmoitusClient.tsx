@@ -5,10 +5,22 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import Image from 'next/image'
 
+type Ilmoitus = {
+  id: string
+  otsikko: string
+  kuvaus?: string | null
+  kuva_url?: string | null
+  nayttoja?: number | null
+  luotu?: string | null
+  voimassa_alku?: string | null
+  voimassa_loppu?: string | null
+}
+
 export default function IlmoitusClient() {
   const params = useParams()
   const id = params.id as string
-  const [ilmoitus, setIlmoitus] = useState<any>(null)
+
+  const [ilmoitus, setIlmoitus] = useState<Ilmoitus | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -20,7 +32,7 @@ export default function IlmoitusClient() {
         .eq('id', id)
         .single()
 
-      setIlmoitus(data)
+      setIlmoitus((data as Ilmoitus) ?? null)
     }
 
     load()
@@ -44,7 +56,6 @@ export default function IlmoitusClient() {
       )}
 
       <h1 className="text-2xl font-bold break-words">{ilmoitus.otsikko}</h1>
-
       <p className="mt-4 text-gray-800 whitespace-pre-line">{ilmoitus.kuvaus}</p>
     </main>
   )
