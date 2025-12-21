@@ -7,23 +7,21 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-type Props = {
-  params: { id: string }
-}
-
 export async function generateMetadata(
-  { params }: Props
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<Metadata> {
+  const { id } = await params
+
   const { data } = await supabase
     .from('ilmoitukset')
     .select('otsikko, kuvaus')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   return {
     title: data?.otsikko || 'Ilmoitus',
     description: (data?.kuvaus || '').slice(0, 160),
-    alternates: { canonical: `/ilmoitukset/${params.id}` },
+    alternates: { canonical: `/ilmoitukset/${id}` },
   }
 }
 
