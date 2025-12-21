@@ -28,9 +28,7 @@ export const metadata: Metadata = {
     icon: '/favicon.ico',
   },
 
-  alternates: {
-    canonical: '/',
-  },
+
 
   openGraph: {
     type: 'website',
