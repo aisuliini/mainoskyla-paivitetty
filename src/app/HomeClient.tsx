@@ -7,7 +7,7 @@ import Link from 'next/link'
 import Katselukerrat from '@/components/Katselukerrat';
 import { supabase } from '@/lib/supabaseClient'
 import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
-import ehdotukset from '@/data/ehdotusdata.json'
+import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import { Search } from "lucide-react";
 import CategoryCarousel from '@/components/CategoryCarousel'
 
@@ -58,6 +58,8 @@ export default function Home() {
         .order('id', { ascending: true })
         .limit(52)
 
+        
+
       if (!error && data) {
         const taydelliset = [...data]
         while (taydelliset.length < 52) {
@@ -78,14 +80,31 @@ export default function Home() {
 
   useEffect(() => {
     if (hakusana.length > 1) {
-      const filtered = ehdotukset.filter((e) =>
-        e.toLowerCase().includes(hakusana.toLowerCase())
-      )
-      setSuositukset(filtered.slice(0, 5))
+      const filtered = (paikkakunnat as string[]).filter((p) =>
+  p.toLowerCase().includes(hakusana.toLowerCase())
+)
+setSuositukset(filtered.slice(0, 6))
+
     } else {
       setSuositukset([])
     }
   }, [hakusana])
+
+  const suositutKaupungit = [
+  'Helsinki',
+  'Tampere',
+  'Turku',
+  'Oulu',
+  'Jyväskylä',
+  'Kuopio',
+  'Lahti',
+  'Porvoo',
+  'Joensuu',
+  'Vaasa',
+  'Rovaniemi',
+
+]
+
 
   const hae = () => {
   const query = hakusana.trim()
@@ -140,7 +159,7 @@ const kategoriat = [
     enabled: true,
   },
 
-  // ❌ Piiloon alkuun:
+  // Piiloon alkuun:
   {
     nimi: "Kurssit ja Koulutukset",
     href: "/kategoriat/kurssit-ja-koulutukset",
@@ -157,13 +176,13 @@ const kategoriat = [
     nimi: "Tapahtumat",
     href: "/kategoriat/tapahtumat",
     ikoni: <Calendar className="h-6 w-6 text-[#4F6763]" />,
-    enabled: true, // voit vaihtaa false jos haluat piiloon
+    enabled: true, 
   },
   {
     nimi: "Pientuottajat",
     href: "/kategoriat/pientuottajat",
     ikoni: <Package className="h-6 w-6 text-[#4F6763]" />,
-    enabled: true,
+    enabled: false,
   },
 ].map((kategoria) => ({
   ...kategoria,
@@ -241,10 +260,11 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
   key={idx}
   className="px-4 py-2 hover:bg-[#f0f0f0] cursor-pointer text-left"
   onClick={() => {
-    setHakusana(ehto)
-    setSuositukset([])   // piilota dropdown
-    hae()                // tee haku heti 
-  }}
+  setHakusana(ehto)
+  setSuositukset([])   // piilota dropdown
+  router.push(`/aluehaku?sijainti=${encodeURIComponent(ehto)}`)
+}}
+
 >
   {ehto}
 </li>
@@ -253,6 +273,23 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
                   </ul>
                 )}
               </div>
+{/* Suositut kaupungit */}
+<div className="w-full max-w-lg mx-auto mb-2 flex flex-wrap justify-center gap-2">
+  {suositutKaupungit.map((city) => (
+    <button
+      key={city}
+      type="button"
+      onClick={() => {
+        setHakusana(city)
+        setSuositukset([])
+        router.push(`/aluehaku?sijainti=${encodeURIComponent(city)}`)
+      }}
+      className="px-3 py-1.5 rounded-full text-xs bg-white ring-1 ring-black/10 hover:ring-black/20 text-[#1E3A41]"
+    >
+      {city}
+    </button>
+  ))}
+</div>
 
 
 

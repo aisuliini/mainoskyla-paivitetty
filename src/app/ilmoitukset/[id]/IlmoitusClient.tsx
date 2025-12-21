@@ -1,0 +1,51 @@
+'use client'
+
+import { useParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabaseClient'
+import Image from 'next/image'
+
+export default function IlmoitusClient() {
+  const params = useParams()
+  const id = params.id as string
+  const [ilmoitus, setIlmoitus] = useState<any>(null)
+
+  useEffect(() => {
+    if (!id) return
+
+    const load = async () => {
+      const { data } = await supabase
+        .from('ilmoitukset')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      setIlmoitus(data)
+    }
+
+    load()
+  }, [id])
+
+  if (!ilmoitus) return <p className="p-6">Ladataan…</p>
+
+  return (
+    <main className="max-w-2xl mx-auto p-6 bg-white rounded shadow my-12">
+      {ilmoitus.kuva_url && (
+        <div className="relative w-full h-64 rounded mb-4 overflow-hidden">
+          <Image
+            src={ilmoitus.kuva_url}
+            alt={ilmoitus.otsikko || 'Ilmoitus'}
+            fill
+            className="object-cover rounded"
+            sizes="(max-width: 768px) 100vw, 768px"
+            priority
+          />
+        </div>
+      )}
+
+      <h1 className="text-2xl font-bold break-words">{ilmoitus.otsikko}</h1>
+
+      <p className="mt-4 text-gray-800 whitespace-pre-line">{ilmoitus.kuvaus}</p>
+    </main>
+  )
+}
