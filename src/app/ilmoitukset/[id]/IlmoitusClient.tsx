@@ -23,20 +23,29 @@ export default function IlmoitusClient() {
   const [ilmoitus, setIlmoitus] = useState<Ilmoitus | null>(null)
 
   useEffect(() => {
-    if (!id) return
+  if (!id) return
 
-    const load = async () => {
-      const { data } = await supabase
-        .from('ilmoitukset')
-        .select('*')
-        .eq('id', id)
-        .single()
+  // 1) Katselukerta ylös (ei hidasta, ei await, estää tuplan samassa sessiossa)
+  const key = `viewed_${id}`
+  if (!sessionStorage.getItem(key)) {
+    sessionStorage.setItem(key, '1')
+    supabase.rpc('increment_nayttoja', { p_id: id })
+  }
 
-      setIlmoitus((data as Ilmoitus) ?? null)
-    }
+  // 2) Lataa ilmoitus
+  const load = async () => {
+    const { data } = await supabase
+      .from('ilmoitukset')
+      .select('*')
+      .eq('id', id)
+      .single()
 
-    load()
-  }, [id])
+    setIlmoitus((data as Ilmoitus) ?? null)
+  }
+
+  load()
+}, [id])
+
 
   if (!ilmoitus) return <p className="p-6">Ladataan…</p>
 
@@ -57,6 +66,10 @@ export default function IlmoitusClient() {
 
       <h1 className="text-2xl font-bold break-words">{ilmoitus.otsikko}</h1>
       <p className="mt-4 text-gray-800 whitespace-pre-line">{ilmoitus.kuvaus}</p>
+      <p className="mt-2 text-sm text-gray-500">
+  Katselukerrat: {ilmoitus.nayttoja ?? 0}
+</p>
+
     </main>
   )
 }

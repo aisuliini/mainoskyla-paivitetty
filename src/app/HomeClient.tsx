@@ -303,18 +303,6 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
     icon: k.ikoni,
   }))}
 />
-
-
-  {/* Kaikki kategoriat -nappi */}
-  <div className="mt-3 px-4">
-    <button
-      type="button"
-      onClick={() => router.push('/kategoriat')}
-      className="w-full rounded-2xl py-3 text-sm font-medium text-[#1E3A41] ring-1 ring-black/10 shadow-sm bg-white"
-    >
-      Näytä kaikki kategoriat
-    </button>
-  </div>
 </div>
 
 
