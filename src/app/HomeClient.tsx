@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -37,12 +37,35 @@ type PremiumIlmoitus = {
   nayttoja?: number
 }
 
+type SuosittuIlmoitus = {
+  id: string
+  otsikko: string
+  kuvaus: string
+  sijainti: string
+  kuva_url?: string | null
+  nayttoja?: number | null
+  kategoria?: string | null
+}
+
+
 export default function Home() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [hakusana, setHakusana] = useState(searchParams.get('sijainti') || '')
   const [premiumIlmoitukset, setPremiumIlmoitukset] = useState<PremiumIlmoitus[]>([])
   const [suositukset, setSuositukset] = useState<string[]>([])
+  const [nytSuosittua, setNytSuosittua] = useState<SuosittuIlmoitus[]>([])
+  const nytSuosittuaRef = useRef<HTMLDivElement | null>(null)
+
+const scrollNytSuosittua = (dir: 'left' | 'right') => {
+    const el = nytSuosittuaRef.current
+    if (!el) return
+    const amount = 320
+    el.scrollBy({
+      left: dir === 'right' ? amount : -amount,
+      behavior: 'smooth',
+    })
+  }
 
   useEffect(() => {
     const nyt = new Date().toISOString()
@@ -58,6 +81,7 @@ export default function Home() {
         .order('id', { ascending: true })
         .limit(52)
 
+   
         
 
       if (!error && data) {
@@ -77,6 +101,28 @@ export default function Home() {
     }
     haePremiumit()
   }, [])
+
+  useEffect(() => {
+  const haeNytSuosittua = async () => {
+    const { data, error } = await supabase
+  .from('ilmoitukset')
+  .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, kategoria')
+  .not('kuva_url', 'is', null)
+  .neq('kuva_url', '')
+  .order('nayttoja', { ascending: false })
+  .order('luotu', { ascending: false })
+  .limit(20)
+
+  console.log('Nyt suosittua error:', error)
+console.log('Nyt suosittua data:', data)
+
+
+    if (!error && data) setNytSuosittua(data as SuosittuIlmoitus[])
+  }
+
+  haeNytSuosittua()
+}, [])
+
 
   useEffect(() => {
     if (hakusana.length > 1) {
@@ -236,8 +282,8 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
 
 
-<div className="relative w-full max-w-lg mx-auto mt-6 mb-8">
-<div className="relative w-full max-w-lg mx-auto mt-3 mb-3">
+<div className="relative w-full max-w-lg sm:max-w-2xl lg:max-w-3xl mx-auto mt-6 mb-8">
+
   <input
     type="text"
     placeholder="Hae paikkakunta tai sana..."
@@ -252,6 +298,11 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
   >
    <Search size={20} />
   </button>
+
+  <p className="mt-2 text-xs text-charcoal/60 text-left pl-5">
+  Esim: “hieronta”, “valokuvaaja”, “koirahoitaja”
+</p>
+
 
                 {suositukset.length > 0 && (
                   <ul className="absolute bg-white border rounded shadow w-full mt-1 z-10 max-h-40 overflow-y-auto">
@@ -274,7 +325,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
                 )}
               </div>
 {/* Suositut kaupungit */}
-<div className="w-full max-w-lg mx-auto mb-2 flex flex-wrap justify-center gap-2">
+<div className="w-full max-w-lg sm:max-w-3xl lg:max-w-4xl mx-auto mb-2 flex flex-wrap justify-center gap-2">
   {suositutKaupungit.map((city) => (
     <button
       key={city}
@@ -292,6 +343,102 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 </div>
 
 
+{/* 🔥 Nyt suosittua */}
+{nytSuosittua.length > 0 && (
+<div className="w-full mt-5">
+    <div className="flex items-center justify-between px-1">
+      <div className="text-left">
+        <h2 className="text-base font-semibold text-[#1E3A41]">
+          🔥 Nyt suosittua Mainoskylässä
+        </h2>
+        <p className="text-xs text-charcoal/60 mt-0.5">
+          Paikallisia ilmoituksia juuri nyt
+        </p>
+      </div>
+
+      {/* Desktop: nuolinapit */}
+      <div className="hidden sm:flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => scrollNytSuosittua('left')}
+          className="h-9 w-9 rounded-full bg-white ring-1 ring-black/10 hover:ring-black/20 flex items-center justify-center"
+          aria-label="Selaa vasemmalle"
+        >
+          ‹
+        </button>
+        <button
+          type="button"
+          onClick={() => scrollNytSuosittua('right')}
+          className="h-9 w-9 rounded-full bg-white ring-1 ring-black/10 hover:ring-black/20 flex items-center justify-center"
+          aria-label="Selaa oikealle"
+        >
+          ›
+        </button>
+      </div>
+    </div>
+
+    {/* Yksi rivi: mobiili swipe + desktop myös scroll, mutta ohjataan nuolilla */}
+<div className="mt-3 -mx-4 px-4 pr-6">
+      <div
+  ref={nytSuosittuaRef}
+  className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar"
+  style={{ WebkitOverflowScrolling: 'touch' }}
+>
+
+        {nytSuosittua.map((ilmo) => (
+          <button
+            key={ilmo.id}
+            type="button"
+            onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
+            className="
+  snap-start
+  flex-none
+  w-[220px] sm:w-[260px] lg:w-[300px]
+  bg-white ring-1 ring-black/5
+  rounded-2xl overflow-hidden
+  shadow-sm hover:shadow-md transition
+  text-left
+"
+
+          >
+            <div className="relative w-full h-28 sm:h-36 bg-[#F6F7F7]">
+              <Image
+                src={ilmo.kuva_url || '/placeholder.jpg'}
+                alt={ilmo.otsikko}
+                fill
+                className="object-cover"
+                sizes="240px"
+              />
+            </div>
+
+            <div className="p-3">
+              <div className="font-semibold text-sm text-[#1E3A41] truncate">
+                {ilmo.otsikko}
+              </div>
+              <div className="text-xs text-charcoal/70 truncate">
+                {ilmo.sijainti}
+              </div>
+
+              <div className="mt-2 flex items-center gap-2 text-[11px] text-charcoal/60">
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#F6F7F7] px-2 py-1">
+                  👁 {ilmo.nayttoja ?? 0}
+                </span>
+                {ilmo.kategoria && (
+                  <span className="truncate rounded-full bg-[#F6F7F7] px-2 py-1">
+                    {ilmo.kategoria}
+                  </span>
+                )}
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
+
+
+
 
                 {/* Pallokategoria nappulat */}
 {/* Mobiili: kategoriat Tori-tyyliin (2 riviä + sivutus vasemmalle) */}
@@ -304,11 +451,6 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
   }))}
 />
 </div>
-
-
-
-
-
 
 
 {/* Desktop: kaikki samalla rivillä */}
@@ -337,8 +479,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
             </div>
           </div>
-        </div>
-      </section>
+   </section>   
 
 <section className="bg-[#F6F7F7] px-4 sm:px-6 py-6">
   <div className="max-w-screen-xl mx-auto">
@@ -485,7 +626,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
           </div>
         </div>
       </footer>
-      </div>
+</div>
     </main>
-)
+  )
 }

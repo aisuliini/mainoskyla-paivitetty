@@ -165,25 +165,50 @@ export default function ProfiiliSivu() {
 
                 <div className="mt-3 space-y-2">
                   <button
-                    onClick={() => julkaiseUudelleen(ilmo)}
-                    className="w-full px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                  >
-                    Julkaise uudelleen
-                  </button>
+  type="button"
+  onClick={(e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    julkaiseUudelleen(ilmo)
+  }}
+  className="w-full px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+>
+  Julkaise uudelleen
+</button>
+
 
                   <button
-                    onClick={() => poistaIlmoitus(ilmo)}
-                    className="w-full px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
-                  >
-                    Poista
-                  </button>
+  type="button"
+  onClick={(e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    poistaIlmoitus(ilmo)
+  }}
+  className="w-full px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+>
+  Poista
+</button>
+
 
                   <Link
-                    href={`/muokkaa/${ilmo.id}`}
-                    className="block text-center w-full px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-                  >
-                    Muokkaa
-                  </Link>
+  href={`/muokkaa/${ilmo.id}`}
+  onClick={(e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    router.push(`/muokkaa/${ilmo.id}`)
+  }}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      e.stopPropagation()
+      router.push(`/muokkaa/${ilmo.id}`)
+    }
+  }}
+  className="block text-center w-full px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+>
+  Muokkaa
+</Link>
+
                 </div>
               </div>
             </div>

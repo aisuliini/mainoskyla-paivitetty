@@ -22,9 +22,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
 }
-html, body {
-  width: 100%;
-}
+
 
 /* iOS + Android: sulava vaakascroll vain tälle riville */
 .scroll-x {
