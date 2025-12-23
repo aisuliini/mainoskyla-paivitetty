@@ -52,6 +52,8 @@ export default function Home() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [hakusana, setHakusana] = useState(searchParams.get('sijainti') || '')
+  const [mode, setMode] = useState<'hae' | 'ilmoita'>('hae')
+
   const [premiumIlmoitukset, setPremiumIlmoitukset] = useState<PremiumIlmoitus[]>([])
   const [suositukset, setSuositukset] = useState<string[]>([])
   const [nytSuosittua, setNytSuosittua] = useState<SuosittuIlmoitus[]>([])
@@ -136,72 +138,58 @@ setSuositukset(filtered.slice(0, 6))
     }
   }, [hakusana])
 
-  const suositutKaupungit = [
-  'Helsinki',
-  'Tampere',
-  'Turku',
-  'Oulu',
-  'Jyväskylä',
-  'Kuopio',
-  'Lahti',
-  'Porvoo',
-  'Joensuu',
-  'Vaasa',
-  'Rovaniemi',
 
-]
-
-
-  const hae = () => {
+const hae = () => {
   const query = hakusana.trim()
-  if (query) {
-    router.push(`/aluehaku?sijainti=${encodeURIComponent(query)}`)
-    setSuositukset([]) // tämä piilottaa dropdownin jos haku tehdään Enterillä
-  }
+  if (!query) return
+
+  router.push(`/aluehaku?sijainti=${encodeURIComponent(query)}`)
+  setSuositukset([]) // piilota dropdown
 }
+
 
 
 const kategoriat = [
   {
     nimi: "Palvelut",
     href: "/kategoriat/palvelut",
-    ikoni: <Hammer className="h-6 w-6 text-[#4F6763]" />,
+    ikoni: <Hammer className="h-6 w-6 text-[#1E3A41]" />,
     enabled: true,
   },
   {
     nimi: "Eläinpalvelut",
     href: "/kategoriat/elainpalvelut",
-    ikoni: <PawPrint className="h-6 w-6 text-[#4F6763]" />,
+    ikoni: <PawPrint className="h-6 w-6 text-[#1E3A41]" />,
     enabled: true,
   },
   {
     nimi: "Käsityöläiset",
     href: "/kategoriat/kasityolaiset",
-    ikoni: <Scissors className="h-6 w-6 text-[#4F6763]" />,
+    ikoni: <Scissors className="h-6 w-6 text-[#1E3A41]" />,
     enabled: true,
   },
   {
     nimi: "Media ja Luovuus",
     href: "/kategoriat/media-ja-luovuus",
-    ikoni: <Camera className="h-6 w-6 text-[#4F6763]" />,
+    ikoni: <Camera className="h-6 w-6 text-[#1E3A41]" />,
     enabled: true,
   },
   {
     nimi: "Vuokratilat ja Juhlapaikat",
     href: "/kategoriat/vuokratilat-ja-juhlapaikat",
-    ikoni: <PartyPopper className="h-6 w-6 text-[#4F6763]" />,
+    ikoni: <PartyPopper className="h-6 w-6 text-[#1E3A41]" />,
     enabled: true,
   },
   {
     nimi: "Hyvinvointi ja Kauneus",
     href: "/kategoriat/hyvinvointi-ja-kauneus",
-    ikoni: <Heart className="h-6 w-6 text-[#4F6763]" />,
+    ikoni: <Heart className="h-6 w-6 text-[#1E3A41]" />,
     enabled: true,
   },
   {
     nimi: "Koti ja Remontointi",
     href: "/kategoriat/koti-ja-remontointi",
-    ikoni: <HomeIcon className="h-6 w-6 text-[#4F6763]" />,
+    ikoni: <HomeIcon className="h-6 w-6 text-[#1E3A41]" />,
     enabled: true,
   },
 
@@ -209,39 +197,38 @@ const kategoriat = [
   {
     nimi: "Kurssit ja Koulutukset",
     href: "/kategoriat/kurssit-ja-koulutukset",
-    ikoni: <Book className="h-6 w-6 text-[#4F6763]" />,
+    ikoni: <Book className="h-6 w-6 text-[#1E3A41]" />,
     enabled: false,
   },
   {
     nimi: "Ilmoitustaulu",
     href: "/kategoriat/ilmoitustaulu",
-    ikoni: <Megaphone className="h-6 w-6 text-[#4F6763]" />,
+    ikoni: <Megaphone className="h-6 w-6 text-[#1E3A41]" />,
     enabled: false,
   },
   {
     nimi: "Tapahtumat",
     href: "/kategoriat/tapahtumat",
-    ikoni: <Calendar className="h-6 w-6 text-[#4F6763]" />,
-    enabled: true, 
+    ikoni: <Calendar className="h-6 w-6 text-[#1E3A41]" />,
+    enabled: true,
   },
   {
     nimi: "Pientuottajat",
     href: "/kategoriat/pientuottajat",
-    ikoni: <Package className="h-6 w-6 text-[#4F6763]" />,
+    ikoni: <Package className="h-6 w-6 text-[#1E3A41]" />,
     enabled: false,
   },
 ].map((kategoria) => ({
   ...kategoria,
   bg: `
-    bg-[#4F6763]
-    hover:bg-[#6A837F]
-    text-white
-    shadow
-    hover:shadow-md
-    transition-all
-    duration-200
-    ring-1 ring-black/5
-  `,
+  bg-[#E8EFEC]
+  hover:bg-[#DCE7E2]
+  text-[#1E3A41]
+  ring-1 ring-black/5
+  transition-all
+  duration-200
+`,
+
 }));
 
 const visibleKategoriat = kategoriat.filter((k) => k.enabled)
@@ -282,65 +269,136 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
 
 
-<div className="relative w-full max-w-lg sm:max-w-2xl lg:max-w-3xl mx-auto mt-6 mb-8">
+{/* 🔎 Hero-kortti: Hae / Ilmoita */}
+<div className="w-full max-w-lg sm:max-w-2xl lg:max-w-3xl mx-auto mt-6 mb-6">
+  <div className="bg-white/95 backdrop-blur rounded-3xl shadow-lg ring-1 ring-black/5 overflow-hidden">
+    
+    {/* Tabit */}
+    <div className="flex">
+      <button
+        type="button"
+        onClick={() => setMode('hae')}
+        className={`flex-1 px-4 py-3 text-sm font-semibold transition
+          ${mode === 'hae'
+  ? 'bg-[#EDF5F2] text-[#1E3A41]'
+  : 'bg-white text-charcoal/70 hover:text-[#1E3A41]'}
 
-  <input
-    type="text"
-    placeholder="Hae paikkakunta tai sana..."
-    value={hakusana}
-    onChange={(e) => setHakusana(e.target.value)}
-    onKeyDown={(e) => e.key === 'Enter' && hae()}
-    className="w-full rounded-full border border-charcoal/20 pl-5 pr-12 py-3 text-charcoal placeholder:text-charcoal/50 focus:ring-2 focus:ring-persikka"
-  />
-  <button
-    onClick={hae}
-    className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal hover:text-persikka transition"
-  >
-   <Search size={20} />
-  </button>
+        `}
+      >
+        🔍 Hae
+      </button>
 
-  <p className="mt-2 text-xs text-charcoal/60 text-left pl-5">
-  Esim: “hieronta”, “valokuvaaja”, “koirahoitaja”
-</p>
+      <button
+        type="button"
+        onClick={() => setMode('ilmoita')}
+        className={`flex-1 px-4 py-3 text-sm font-semibold transition
+          ${mode === 'ilmoita'
+  ? 'bg-[#EDF5F2] text-[#1E3A41]'
+  : 'bg-white text-charcoal/70 hover:text-[#1E3A41]'}
 
+        `}
+      >
+        ➕ Ilmoita
+      </button>
+    </div>
 
-                {suositukset.length > 0 && (
-                  <ul className="absolute bg-white border rounded shadow w-full mt-1 z-10 max-h-40 overflow-y-auto">
-                    {suositukset.map((ehto, idx) => (
-                      <li
-  key={idx}
-  className="px-4 py-2 hover:bg-[#f0f0f0] cursor-pointer text-left"
-  onClick={() => {
-  setHakusana(ehto)
-  setSuositukset([])   // piilota dropdown
-  router.push(`/aluehaku?sijainti=${encodeURIComponent(ehto)}`)
-}}
+    {/* Sisältö */}
+    <div className="p-5 sm:p-6">
+      {mode === 'hae' ? (
+        <>
+          {/* Haku */}
+            <div className="relative mt-1">
+            <input
+              type="text"
+              placeholder="Hae paikkakunta tai sana..."
+              value={hakusana}
+              onChange={(e) => setHakusana(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && hae()}
+              className="w-full rounded-2xl border border-charcoal/15 pl-4 pr-12 py-3 text-charcoal placeholder:text-charcoal/50 focus:ring-2 focus:ring-persikka"
+            />
+            <button
+              onClick={hae}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal hover:text-persikka transition"
+              aria-label="Hae"
+            >
+              <Search size={20} />
+            </button>
 
->
-  {ehto}
-</li>
+            {suositukset.length > 0 && (
+              <ul className="absolute bg-white border rounded-2xl shadow w-full mt-2 z-20 max-h-44 overflow-y-auto">
+                {suositukset.map((ehto, idx) => (
+                  <li
+                    key={idx}
+                    className="px-4 py-2 hover:bg-[#f0f0f0] cursor-pointer text-left"
+                    onClick={() => {
+                      setHakusana(ehto)
+                      setSuositukset([])
+                      router.push(`/aluehaku?sijainti=${encodeURIComponent(ehto)}`)
+                    }}
+                  >
+                    {ehto}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
-                    ))}
-                  </ul>
-                )}
-              </div>
-{/* Suositut kaupungit */}
-<div className="w-full max-w-lg sm:max-w-3xl lg:max-w-4xl mx-auto mb-2 flex flex-wrap justify-center gap-2">
-  {suositutKaupungit.map((city) => (
-    <button
-      key={city}
-      type="button"
-      onClick={() => {
-        setHakusana(city)
-        setSuositukset([])
-        router.push(`/aluehaku?sijainti=${encodeURIComponent(city)}`)
-      }}
-      className="px-3 py-1.5 rounded-full text-xs bg-white ring-1 ring-black/10 hover:ring-black/20 text-[#1E3A41]"
-    >
-      {city}
-    </button>
-  ))}
+          <p className="mt-2 text-xs text-charcoal/60 text-left pl-1">
+            Esim: “hieronta”, “valokuvaaja”, “koirahoitaja”
+          </p>
+
+          {/* CTA-nappi */}
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={hae}
+              className="w-full rounded-full bg-[#4F8F7A] hover:bg-[#437D6B]
+
+ text-white font-semibold py-3 transition shadow-sm hover:shadow-md"
+            >
+              Etsi ilmoituksia
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* ILMOITA */}
+    <div className="flex flex-col items-center gap-4 text-center py-6">
+      <p className="text-sm text-charcoal/70 max-w-md">
+        Kerro palveluistasi tai tuotteistasi ja tavoita paikalliset asiakkaat Mainoskylässä.
+      </p>
+
+      <button
+        type="button"
+        onClick={() => router.push('/lisaa')}
+        className="
+          w-full sm:w-auto
+          px-8 py-3
+          rounded-full
+          bg-[#FDF6EF]
+          hover:bg-[#F7EDE3]
+          text-[#1E3A41]
+          font-semibold
+          ring-1 ring-black/10
+          shadow-sm
+          hover:shadow-md
+          transition
+        "
+      >
+        ➕ Ilmoita ilmaiseksi
+      </button>
+
+      <p className="text-[11px] text-charcoal/60">
+        Ilmoituksen luominen vie alle 2 minuuttia.
+      </p>
+    </div>
+  </>
+)}
+    </div>
+  </div>
 </div>
+
+
 
 
 {/* 🔥 Nyt suosittua */}
@@ -460,7 +518,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
       <div key={k.nimi} className="flex flex-col items-center shrink-0">
         <button
           onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
-          className={`${k.bg} flex items-center justify-center w-14 h-14 rounded-full [&_svg]:text-white`}
+className={`${k.bg} flex items-center justify-center w-14 h-14 rounded-full`}
         >
           {k.ikoni}
         </button>
