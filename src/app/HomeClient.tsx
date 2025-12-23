@@ -246,7 +246,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 <section className="relative px-4 sm:px-6 pt-4 sm:pt-8 pb-3 sm:pb-6">
   
         <div className="max-w-screen-xl mx-auto">
-<div className="flex flex-col items-center gap-6 text-center">
+<div className="flex flex-col items-center gap-4 text-center">
 <div className="w-full text-center flex flex-col items-center">
 <h1 className="
   text-2xl sm:text-4xl md:text-5xl
@@ -270,7 +270,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
 
 {/* 🔎 Hero-kortti: Hae / Ilmoita */}
-<div className="w-full max-w-lg sm:max-w-2xl lg:max-w-3xl mx-auto mt-6 mb-6">
+<div className="w-full max-w-lg sm:max-w-2xl lg:max-w-3xl mx-auto mt-4 mb-4">
   <div className="bg-white/95 backdrop-blur rounded-3xl shadow-lg ring-1 ring-black/5 overflow-hidden">
     
     {/* Tabit */}
@@ -401,17 +401,15 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
 
 
-{/* 🔥 Nyt suosittua */}
+{/*  Nyt suosittua */}
 {nytSuosittua.length > 0 && (
 <div className="w-full mt-5">
     <div className="flex items-center justify-between px-1">
       <div className="text-left">
         <h2 className="text-base font-semibold text-[#1E3A41]">
-          🔥 Nyt suosittua Mainoskylässä
+           Nyt suosittua Mainoskylässä
         </h2>
-        <p className="text-xs text-charcoal/60 mt-0.5">
-          Paikallisia ilmoituksia juuri nyt
-        </p>
+        
       </div>
 
       {/* Desktop: nuolinapit */}
@@ -500,7 +498,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
                 {/* Pallokategoria nappulat */}
 {/* Mobiili: kategoriat Tori-tyyliin (2 riviä + sivutus vasemmalle) */}
-<div className="sm:hidden mt-5">
+<div className="sm:hidden mt-3">
  <CategoryCarousel
   categories={visibleKategoriat.map((k) => ({
     name: k.nimi,

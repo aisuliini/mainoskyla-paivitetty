@@ -41,7 +41,7 @@ export default function CategoryCarousel({ categories }: { categories: Category[
                     href={cat.href}
                     className="flex flex-col items-center text-center select-none"
                   >
-                    <div className="grid place-items-center h-12 w-12 rounded-full bg-white ring-1 ring-black/10 shadow-sm">
+                    <div className="grid place-items-center h-12 w-12 rounded-full bg-[#EDF5F2] ring-1 ring-[#4F8F7A]/30 shadow-sm hover:bg-[#DCEEE8] transition">
                       {cat.icon}
                     </div>
                     <div className="mt-2 text-[12px] leading-tight text-charcoal">
