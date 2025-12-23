@@ -8,8 +8,9 @@ import Katselukerrat from '@/components/Katselukerrat';
 import { supabase } from '@/lib/supabaseClient'
 import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
-import { Search } from "lucide-react";
 import CategoryCarousel from '@/components/CategoryCarousel'
+import { Search, Eye } from "lucide-react";
+
 
 
 
@@ -254,16 +255,19 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
   text-[#1E3A41]
   mb-1
   tracking-tight
-  leading-snug
+  leading-tight
   max-w-3xl
 ">
   Löydä tai mainosta paikallisesti
 </h1>
 
 
-  <span>Mainoskylä yhdistää ihmiset ja paikalliset yritykset</span>
-  <span className="hidden sm:inline">•</span>
-  <span>Paikallinen mainospaikka yrittäjille ja tekijöille</span>
+  <p className="mt-2 text-sm sm:text-base text-charcoal/70 leading-relaxed max-w-2xl">
+  Mainoskylä yhdistää ihmiset ja paikalliset yritykset
+  <span className="hidden sm:inline"> • </span>
+  Paikallinen mainospaikka yrittäjille ja tekijöille
+</p>
+
 </div>
 
 
@@ -285,7 +289,11 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
         `}
       >
-        🔍 Hae
+        <span className="inline-flex items-center gap-2">
+  <Search className="h-4 w-4" />
+  Hae
+</span>
+
       </button>
 
       <button
@@ -298,7 +306,11 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
         `}
       >
-        ➕ Ilmoita
+       <span className="inline-flex items-center gap-2">
+  <span className="text-lg leading-none">+</span>
+  Ilmoita
+</span>
+
       </button>
     </div>
 
@@ -344,7 +356,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
           </div>
 
           <p className="mt-2 text-xs text-charcoal/60 text-left pl-1">
-            Esim: “hieronta”, “valokuvaaja”, “koirahoitaja”
+            Esim: “Tampere”, “valokuvaaja”, “koirahoitaja
           </p>
 
           {/* CTA-nappi */}
@@ -459,12 +471,13 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
           >
             <div className="relative w-full h-28 sm:h-36 bg-[#F6F7F7]">
               <Image
-                src={ilmo.kuva_url || '/placeholder.jpg'}
-                alt={ilmo.otsikko}
-                fill
-                className="object-cover"
-                sizes="240px"
+              src={ilmo.kuva_url || '/placeholder.jpg'}
+              alt={ilmo.otsikko}
+              fill
+              className="object-cover object-center"
+             sizes="240px"
               />
+
             </div>
 
             <div className="p-3">
@@ -477,8 +490,10 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
               <div className="mt-2 flex items-center gap-2 text-[11px] text-charcoal/60">
                 <span className="inline-flex items-center gap-1 rounded-full bg-[#F6F7F7] px-2 py-1">
-                  👁 {ilmo.nayttoja ?? 0}
+                <Eye className="h-4 w-4" />
+                {ilmo.nayttoja ?? 0}
                 </span>
+
                 {ilmo.kategoria && (
                   <span className="truncate rounded-full bg-[#F6F7F7] px-2 py-1">
                     {ilmo.kategoria}
@@ -602,7 +617,16 @@ className="
     e.stopPropagation()
     router.push('/lisaa')
   }}
-  className="mt-2 w-full px-3 py-1 text-xs bg-[#FDF6EF] text-[#1E3A41] border border-[#1E3A41] rounded hover:bg-[#1E3A41] hover:text-white transition hover:shadow-lg"
+className="
+  mt-2 w-full px-3 py-2 text-xs font-semibold
+  rounded-full
+  bg-[#EDF5F2]
+  text-[#1E3A41]
+  ring-1 ring-[#4F8F7A]/35
+  hover:bg-[#DCEEE8]
+  hover:ring-[#4F8F7A]/55
+  transition
+"
 >
 
   Lisää oma ilmoitus
@@ -635,7 +659,7 @@ className="
   onClick={() => router.push('/lisaa')}
   className="bg-persikka text-white px-6 py-3 rounded-full hover:bg-persikka-dark transition"
 >
-  Lisää ilmoitus nyt
+  Lisää ilmoitus
 </button>
 
     </div>
