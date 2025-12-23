@@ -518,7 +518,14 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
       <div key={k.nimi} className="flex flex-col items-center shrink-0">
         <button
           onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
-className={`${k.bg} flex items-center justify-center w-14 h-14 rounded-full`}
+className="
+  flex items-center justify-center
+  w-14 h-14 rounded-full
+  bg-[#EDF5F2]
+  hover:bg-[#DCEEE8]
+  transition
+  ring-1 ring-[#4F8F7A]/30
+"
         >
           {k.ikoni}
         </button>
