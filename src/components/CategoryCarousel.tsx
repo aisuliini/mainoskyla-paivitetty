@@ -22,7 +22,7 @@ export default function CategoryCarousel({ categories }: { categories: Category[
 
   return (
     <section className="w-full bg-white">
-      <div className="w-full overflow-x-auto overscroll-x-contain touch-pan-x scroll-smooth no-scrollbar">
+<div className="w-full overflow-x-auto overscroll-x-contain scroll-smooth no-scrollbar">
         <div className="flex w-full snap-x snap-mandatory">
           {pages.map((page, idx) => (
             <div key={idx} className="min-w-full snap-start px-4 md:px-6">

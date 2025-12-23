@@ -262,11 +262,14 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 </h1>
 
 
-  <p className="mt-2 text-sm sm:text-base text-charcoal/70 leading-relaxed max-w-2xl">
+  <p className="mt-2 text-sm sm:text-base text-charcoal/70 leading-relaxed max-w-2xl text-center mx-auto">
   Mainoskylä yhdistää ihmiset ja paikalliset yritykset
   <span className="hidden sm:inline"> • </span>
-  Paikallinen mainospaikka yrittäjille ja tekijöille
+  <span className="block sm:inline mt-1 sm:mt-0">
+    Paikallinen mainospaikka yrittäjille ja tekijöille
+  </span>
 </p>
+
 
 </div>
 
@@ -274,7 +277,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
 
 {/* 🔎 Hero-kortti: Hae / Ilmoita */}
-<div className="w-full max-w-lg sm:max-w-2xl lg:max-w-3xl mx-auto mt-4 mb-4">
+  <div className="w-full max-w-lg sm:max-w-2xl lg:max-w-3xl mx-auto mt-3 mb-2 sm:mt-4 sm:mb-4">
   <div className="bg-white/95 backdrop-blur rounded-3xl shadow-lg ring-1 ring-black/5 overflow-hidden">
     
     {/* Tabit */}
@@ -415,7 +418,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
 {/*  Nyt suosittua */}
 {nytSuosittua.length > 0 && (
-<div className="w-full mt-5">
+  <div className="w-full mt-2 sm:mt-5">
     <div className="flex items-center justify-between px-1">
       <div className="text-left">
         <h2 className="text-base font-semibold text-[#1E3A41]">
@@ -446,7 +449,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
     </div>
 
     {/* Yksi rivi: mobiili swipe + desktop myös scroll, mutta ohjataan nuolilla */}
-<div className="mt-3 -mx-4 px-4 pr-6">
+    <div className="mt-2 sm:mt-3 -mx-4 px-4 pr-6">
       <div
   ref={nytSuosittuaRef}
   className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar"
