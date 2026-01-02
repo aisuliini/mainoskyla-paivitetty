@@ -41,9 +41,16 @@ export default function ElainpalvelutClientPage() {
       let query = supabase
   .from('ilmoitukset')
   .select('*')
-  .or(`voimassa_alku.is.null,voimassa_alku.lte.${nytISO}`)
+  .or(
+    `and(voimassa_alku.is.null,voimassa_loppu.is.null),
+     and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),
+     and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),
+     and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`
+  )
+  .eq('kategoria', 'Eläinpalvelut')
   .order('premium', { ascending: false })
   .order('luotu', { ascending: false })
+      
 
 
 

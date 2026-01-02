@@ -24,23 +24,60 @@ export default function LisaaIlmoitus() {
   const [kuva, setKuva] = useState<File | null>(null)
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault()
+  console.log('SUBMIT CLICKED')
+
+  setSubmitError(null)
+  setErrors({})
+
+  // jos ei läpäise, älä lähetä
+  if (!validateForm()) return
+
   setIsSubmitting(true)
-  console.log('Lomake lähetetty')
-  await handleUpload()
+
+  try {
+    await handleUpload()
+  } catch (err: any) {
+    console.error('Julkaisu epäonnistui:', err)
+    setSubmitError(err?.message ?? 'Julkaisu epäonnistui. Yritä uudelleen.')
+  } finally {
+    setIsSubmitting(false)
+  }
 }
+
+
 
   const [esikatselu, setEsikatselu] = useState<string>('')
   const [tyyppi, setTyyppi] = useState('perus')
-  const [alku, setAlku] = useState<Date | undefined>()
+const [alku, setAlku] = useState<Date | null>(null)
   const [kesto, setKesto] = useState('7')
   const [kategoria, setKategoria] = useState('')
   const [varatutPaivat, setVaratutPaivat] = useState<Date[]>([])
   const [sijaintiehdotukset, setSijaintiehdotukset] = useState<string[]>([])
-  const [tapahtumaAlku, setTapahtumaAlku] = useState<Date | undefined>()
-const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | undefined>()
+ const [tapahtumaAlku, setTapahtumaAlku] = useState<Date | null>(null)
+const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | null>(null)
 const [user, setUser] = useState<{ id: string } | null>(null)
 const [isSubmitting, setIsSubmitting] = useState(false)
+const [errors, setErrors] = useState<Record<string, string>>({})
+const [submitError, setSubmitError] = useState<string | null>(null)
+const [puhelin, setPuhelin] = useState('')
+const [sahkoposti, setSahkoposti] = useState('')
+const [linkki, setLinkki] = useState('') // verkkosivu / some
+const [cta, setCta] = useState<'puhelin' | 'email' | 'linkki' | 'ei'>('puhelin')
 
+const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
+
+const scrollToTop = () => {
+  if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const nextStep = () => {
+  setStep((s) => (Math.min(4, s + 1) as 1 | 2 | 3 | 4))
+  scrollToTop()
+}
+const prevStep = () => {
+  setStep((s) => (Math.max(1, s - 1) as 1 | 2 | 3 | 4))
+  scrollToTop()
+}
 
 
 const ilmoituksenAlku =
@@ -130,7 +167,7 @@ data?.forEach((ilmo: PremiumIlmoitus) => {
 
 
     const punaiset = Object.entries(paivaLaskuri)
-      .filter(([, count]) => count >= 20) // Näytä punaisena vain jos 20+ varattu
+      .filter(([, count]) => count >= 52) // Näytä punaisena vain jos 52+ varattu
       .map(([päivä]) => new Date(päivä))
 
     setVaratutPaivat(punaiset)
@@ -142,16 +179,78 @@ data?.forEach((ilmo: PremiumIlmoitus) => {
 }, [tyyppi])
 
 useEffect(() => {
-  if (tyyppi === 'perus' && !alku) {
-    setAlku(new Date())
-  }
-}, [tyyppi, alku])
-
-useEffect(() => {
   if (tapahtumaAlku && !tapahtumaLoppu) {
     setTapahtumaLoppu(tapahtumaAlku)
   }
 }, [tapahtumaAlku, tapahtumaLoppu])
+
+const isSafeUrl = (raw: string) => {
+  const v = raw.trim()
+  if (!v) return true
+
+  // estä lyhytlinkit / epäselvät protokollat
+  if (!v.startsWith('https://')) return false
+  if (v.includes('bit.ly') || v.includes('tinyurl') || v.includes('t.co')) return false
+
+  try {
+    const u = new URL(v)
+    return !!u.hostname && u.hostname.includes('.')
+  } catch {
+    return false
+  }
+}
+
+
+const validateForm = () => {
+  const e: Record<string, string> = {}
+
+  const ots = otsikko.trim()
+  const kuv = kuvaus.trim()
+  const sij = sijainti.trim()
+
+  if (!ots) e.otsikko = 'Otsikko on pakollinen.'
+  else if (ots.length < 5) e.otsikko = 'Otsikon pitää olla vähintään 5 merkkiä.'
+
+  if (!kuv) e.kuvaus = 'Kuvaus on pakollinen.'
+  else if (kuv.length < 20) e.kuvaus = 'Kuvauksen pitää olla vähintään 20 merkkiä.'
+
+  if (!sij) e.sijainti = 'Sijainti on pakollinen.'
+
+  if (!kategoria) e.kategoria = 'Valitse kategoria.'
+
+  // Premium: alkupäivä pakollinen
+  if (tyyppi === 'premium' && !alku) e.alku = 'Valitse premium-alkupäivä.'
+
+  // Tapahtumat: tapahtuman alku pakollinen, loppu asetetaan automaattisesti jos puuttuu
+  if (kategoria === 'Tapahtumat') {
+    if (!tapahtumaAlku) e.tapahtumaAlku = 'Valitse tapahtuman alkupäivä.'
+    // jos loppu on asetettu, varmista ettei se ole ennen alkua
+    if (tapahtumaAlku && tapahtumaLoppu && tapahtumaLoppu < tapahtumaAlku) {
+      e.tapahtumaLoppu = 'Loppupäivä ei voi olla ennen alkupäivää.'
+    }
+  }
+
+  // Yhteystiedot: vähintään yksi tapa ottaa yhteyttä
+const p = puhelin.trim()
+const s = sahkoposti.trim()
+const l = linkki.trim()
+
+if (!p && !s && !l) {
+  e.yhteys = 'Lisää vähintään yksi yhteystieto (puhelin, sähköposti tai linkki).'
+}
+
+if (s && !/^\S+@\S+\.\S+$/.test(s)) {
+  e.sahkoposti = 'Sähköposti ei näytä oikealta.'
+}
+
+if (l && !isSafeUrl(l)) {
+  e.linkki = 'Linkin täytyy alkaa https:// ja lyhytlinkit (bit.ly/tinyurl/t.co) eivät ole sallittuja.'
+}
+
+
+  setErrors(e)
+  return Object.keys(e).length === 0
+}
 
 
 const handleUpload = async () => {
@@ -165,15 +264,22 @@ const handleUpload = async () => {
    return
   }
 
+
   // Lataa kuva jos valittu
   if (kuva) {
     const tiedostonimi = `${Date.now()}_${kuva.name}`
-    const { error } = await supabase.storage.from('kuvat').upload(tiedostonimi, kuva)
+    const { error: uploadError } = await supabase.storage
+  .from('kuvat')
+  .upload(tiedostonimi, kuva)
 
-    if (!error) {
-      const { data: publicUrl } = supabase.storage.from('kuvat').getPublicUrl(tiedostonimi)
-      kuvaUrl = publicUrl.publicUrl
-    }
+if (uploadError) {
+  console.error('Upload error:', uploadError)
+  throw new Error('Kuvan lataus epäonnistui: ' + uploadError.message)
+}
+
+const { data: publicUrl } = supabase.storage.from('kuvat').getPublicUrl(tiedostonimi)
+kuvaUrl = publicUrl.publicUrl
+
   }
 
 
@@ -204,7 +310,7 @@ const handleUpload = async () => {
     const ylitykset = valitutPaivat.filter((p) => {
       const key = p.toISOString().split('T')[0]
       const maara = paivaLaskuri[key] || 0
-      return maara >= 20
+      return maara >= 52
     })
 
     if (ylitykset.length > 0) {
@@ -214,6 +320,18 @@ const handleUpload = async () => {
     }
   }
 
+  const tapahtumaLoppuDate =
+  kategoria === 'Tapahtumat'
+    ? (tapahtumaLoppu ?? tapahtumaAlku)
+    : null
+
+const voimassaLoppuFinal =
+  kategoria === 'Tapahtumat' && tapahtumaLoppuDate
+    ? tapahtumaLoppuDate
+    : loppuDate
+
+    
+
   const ilmoitus = {
   user_id: user.id,
   otsikko,
@@ -222,11 +340,11 @@ const handleUpload = async () => {
   kuva_url: kuvaUrl,
   maksuluokka: tyyppi,
   kategoria,
-  premium: tyyppi === 'premium' && (!alku || alku <= nykyhetki),
+  premium: tyyppi === 'premium' && !!alku && alku <= nykyhetki,
   premium_alku: tyyppi === 'premium' ? alku?.toISOString() : null,
   premium_loppu: tyyppi === 'premium' ? loppuDate?.toISOString() : null,
-  voimassa_alku: tyyppi !== 'premium' ? nykyhetki.toISOString() : null,
-  voimassa_loppu: tyyppi !== 'premium' ? loppuDate?.toISOString() : null,
+  voimassa_alku: (tyyppi === 'premium' ? (alku?.toISOString() ?? nykyhetki.toISOString()) : nykyhetki.toISOString()),
+  voimassa_loppu: voimassaLoppuFinal?.toISOString(),
   premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
   nayttoja: 0,
   luotu: nykyhetki.toISOString(),
@@ -235,16 +353,29 @@ const handleUpload = async () => {
 }
 
 
-  const { error } = await supabase.from('ilmoitukset').insert(ilmoitus)
-  console.log('Insert error:', error)
+  console.log('INSERT payload:', ilmoitus)
 
-  if (!error) {
-  alert('Ilmoitus päivitetty!')
-  router.push('/profiili')
-} else {
-  alert('Päivitys epäonnistui: ' + error.message)
+const { data, error } = await supabase
+  .from('ilmoitukset')
+  .insert(ilmoitus)
+  .select('id')
+  .single()
+
+if (error) {
+  console.error('Insert error FULL:', error)
+  // näytetään mahdollisimman informatiivinen virhe
+  throw new Error(
+    error.message +
+      (error.details ? ` | details: ${error.details}` : '') +
+      (error.hint ? ` | hint: ${error.hint}` : '')
+  )
 }
-setIsSubmitting(false)
+
+console.log('Insert OK:', data)
+alert('Ilmoitus julkaistu!')
+router.push('/profiili')
+
+
 } 
 
   return (
@@ -263,7 +394,40 @@ setIsSubmitting(false)
     ) : (
       <>
         <h1 className="text-2xl font-bold mb-4">Lisää uusi ilmoitus</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {submitError && (
+  <div className="border border-red-200 bg-red-50 text-red-800 rounded p-3 text-sm">
+    {submitError}
+  </div>
+)}
+
+       <form onSubmit={handleSubmit} noValidate className="space-y-4">
+
+          {/* Sticky step header (mobiili) */}
+<div className="sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-white/90 backdrop-blur border-b">
+  <div className="flex items-center justify-between gap-3">
+    <div className="text-sm font-medium text-[#1E3A41]">
+      Vaihe {step}/4
+    </div>
+    <div className="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden">
+      <div
+        className="h-full bg-[#4F6763]"
+        style={{ width: `${(step / 4) * 100}%` }}
+      />
+    </div>
+    <div className="text-xs text-gray-600 whitespace-nowrap">
+      {step === 1 && 'Perustiedot'}
+      {step === 2 && 'Yhteystiedot'}
+      {step === 3 && 'Kuva'}
+      {step === 4 && 'Näkyvyys'}
+    </div>
+  </div>
+</div>
+
+{/* STEP 1: Perustiedot */}
+<div className={`${step === 1 ? 'block' : 'hidden'} md:block space-y-4`}>
+
+
+
           <input
   type="text"
   placeholder="Otsikko"
@@ -275,8 +439,20 @@ setIsSubmitting(false)
 />
 <p className="text-sm text-gray-500 text-right">{otsikko.length}/80 merkkiä</p>
 
+{errors.otsikko && (
+  <p className="text-sm text-red-600 mt-1">
+    {errors.otsikko}
+  </p>
+)}
+
           <textarea placeholder="Kuvaus" value={kuvaus} onChange={(e) => setKuvaus(e.target.value)} required className="w-full border px-4 py-2 rounded" />
-          
+         {errors.kuvaus && (
+         <p className="text-sm text-red-600 mt-1">
+         {errors.kuvaus}
+        </p>
+         )} 
+        <p className="text-sm text-gray-500 text-right">{kuvaus.length} merkkiä</p> 
+
           <div ref={wrapperRef} className="relative">
             <input
               type="text"
@@ -318,7 +494,16 @@ setIsSubmitting(false)
             )}
           </div>
 
+          {errors.sijainti && (
+  <p className="text-sm text-red-600 mt-1">
+    {errors.sijainti}
+  </p>
+)}
+
+
           <select value={kategoria} onChange={(e) => setKategoria(e.target.value)} required className="w-full border px-4 py-2 rounded">
+
+
 
             <option value="">Valitse kategoria</option>
             <option value="Palvelut">Palvelut</option>
@@ -334,25 +519,115 @@ setIsSubmitting(false)
             <option value="Tapahtumat">Tapahtumat</option>    
           </select>
 
+          {errors.kategoria && (
+  <p className="text-sm text-red-600 mt-1">
+    {errors.kategoria}
+  </p>
+)}
+
           { kategoria === 'Tapahtumat' && (
   <>
     <label className="block">Tapahtuman alkupäivä:</label>
     <DayPicker
-      mode="single"
-      selected={tapahtumaAlku}
-      onSelect={setTapahtumaAlku}
-      locale={fi}
-    />
+  mode="single"
+  selected={tapahtumaAlku ?? undefined}
+  onSelect={(d) => setTapahtumaAlku(d ?? null)}
+  locale={fi}
+/>
+
 
     <label className="block">Tapahtuman loppupäivä:</label>
     <DayPicker
-      mode="single"
-      selected={tapahtumaLoppu}
-      onSelect={setTapahtumaLoppu}
-      locale={fi}
-    />
+  mode="single"
+  selected={tapahtumaLoppu ?? undefined}
+  onSelect={(d) => setTapahtumaLoppu(d ?? null)}
+  locale={fi}
+/>
+
+
+    {errors.tapahtumaAlku && (
+  <p className="text-sm text-red-600 mt-1">
+    {errors.tapahtumaAlku}
+  </p>
+)}
+
+{errors.tapahtumaLoppu && (
+  <p className="text-sm text-red-600 mt-1">
+    {errors.tapahtumaLoppu}
+  </p>
+)}
+
   </>
 )}
+</div>
+
+
+{/* STEP 2: Yhteystiedot */}
+<div className={`${step === 2 ? 'block' : 'hidden'} md:block space-y-4`}>
+
+  <p className="text-sm text-gray-600">
+    Valitse ensisijainen tapa, jolla haluat asiakkaan ottavan yhteyttä.
+    Lisää vähintään yksi yhteystieto.
+  </p>
+
+  <label className="block font-medium">Ensisijainen yhteydenotto:</label>
+  <select
+    value={cta}
+    onChange={(e) => setCta(e.target.value as 'puhelin' | 'email' | 'linkki' | 'ei')}
+    className="w-full border px-4 py-2 rounded"
+  >
+    <option value="puhelin">Soitto / tekstiviesti</option>
+    <option value="email">Sähköposti</option>
+    <option value="linkki">Verkkosivu tai some</option>
+    <option value="ei">Ei yhteydenottoa (vain info)</option>
+  </select>
+
+  <input
+    type="text"
+    placeholder="Puhelin (esim. 040 123 4567)"
+    value={puhelin}
+    onChange={(e) => setPuhelin(e.target.value)}
+    className="w-full border px-4 py-2 rounded"
+  />
+
+  <input
+    type="email"
+    placeholder="Sähköposti"
+    value={sahkoposti}
+    onChange={(e) => setSahkoposti(e.target.value)}
+    className="w-full border px-4 py-2 rounded"
+  />
+  {errors.sahkoposti && <p className="text-sm text-red-600">{errors.sahkoposti}</p>}
+
+  <input
+    type="text"
+    placeholder="Linkki (https://instagram.com/... tai https://yritys.fi)"
+    value={linkki}
+    onChange={(e) => setLinkki(e.target.value)}
+    className="w-full border px-4 py-2 rounded"
+  />
+  {errors.linkki && <p className="text-sm text-red-600">{errors.linkki}</p>}
+
+  {errors.yhteys && <p className="text-sm text-red-600">{errors.yhteys}</p>}
+
+  <p className="text-xs text-gray-500">
+    Turvallisuus: linkkien täytyy alkaa https:// ja lyhytlinkit (bit.ly/tinyurl/t.co) estetään.
+  </p>
+</div>
+
+
+
+{/* STEP 3: Kuva */}
+<div className={`${step === 3 ? 'block' : 'hidden'} md:block space-y-4`}>
+
+
+<label className="block font-medium">
+  Kuva (valinnainen)
+  <span className="ml-2 text-sm font-normal text-gray-500">
+    Suosittelemme kuvaa – ilman kuvaa näytetään Mainoskylä-placeholder.
+  </span>
+</label>
+
 
 
           <KuvanLataaja
@@ -388,6 +663,28 @@ setIsSubmitting(false)
     />
   </div>
 )}
+
+{esikatselu && (
+  <button
+    type="button"
+    onClick={() => {
+      setEsikatselu('')
+      setKuva(null)
+      setErrors((prev) => {
+        const copy = { ...prev }
+        delete copy.kuva
+        return copy
+      })
+    }}
+    className="text-sm text-red-700 underline"
+  >
+    Poista kuva
+  </button>
+)}
+</div>
+
+{/* STEP 4: Näkyvyys */}
+<div className={`${step === 4 ? 'block' : 'hidden'} md:block space-y-4`}>
 
 
 
@@ -428,20 +725,27 @@ setIsSubmitting(false)
 
               <label className="block">Valitse premium-alkupäivä:</label>
               <DayPicker
-                mode="single"
-                selected={alku}
-                onSelect={setAlku}
-                modifiers={{ varattu: varatutPaivat }}
-                modifiersClassNames={{ varattu: 'bg-red-500 text-white' }}
-                locale={fi}
-              />
-            </>
-          )}
+  mode="single"
+  selected={alku ?? undefined}
+  onSelect={(d) => setAlku(d ?? null)}
+  modifiers={{ varattu: varatutPaivat }}
+  modifiersClassNames={{ varattu: 'bg-red-500 text-white' }}
+  locale={fi}
+/>
+
+
+              {errors.alku && (
+               <p className="text-sm text-red-600 mt-1">
+              {errors.alku}
+               </p>
+             )}
+           </>
+         )}
 
           {/* <p className="text-right font-semibold text-sm">Hinta: {hinta}</p> */}
           {tyyppi === 'perus' && loppuDate && (
-  <p>
-    Ilmoituksesi näkyy ajalla:
+            <p>
+            Ilmoituksesi näkyy ajalla:
     <strong> {new Date().toLocaleDateString('fi-FI')} – {loppuDate.toLocaleDateString('fi-FI')}</strong>
   </p>
 )}
@@ -449,12 +753,51 @@ setIsSubmitting(false)
           <button
   type="submit"
   disabled={isSubmitting}
-  className={`bg-[#3f704d] text-white px-6 py-2 rounded hover:bg-[#2f5332] ${
+  className={`hidden md:block bg-[#3f704d] text-white px-6 py-2 rounded hover:bg-[#2f5332] ${
     isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
   }`}
 >
   {isSubmitting ? 'Tallennetaan...' : 'Julkaise ilmoitus'}
 </button>
+
+</div>
+
+{/* Mobiili: Step-navigointi (sticky alhaalla) */}
+<div className="md:hidden sticky bottom-0 left-0 right-0 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-white/90 backdrop-blur border-t">
+  <div className="flex items-center gap-3">
+    <button
+      type="button"
+      onClick={prevStep}
+      disabled={step === 1}
+      className={`w-1/2 px-4 py-3 rounded border font-medium ${
+        step === 1 ? 'opacity-50 cursor-not-allowed' : ''
+      }`}
+    >
+      Takaisin
+    </button>
+
+    {step < 4 ? (
+      <button
+        type="button"
+        onClick={nextStep}
+        className="w-1/2 px-4 py-3 rounded bg-[#4F6763] text-white font-medium"
+      >
+        Seuraava
+      </button>
+    ) : (
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className={`w-1/2 px-4 py-3 rounded bg-[#3f704d] text-white font-medium ${
+          isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
+      >
+        {isSubmitting ? 'Tallennetaan...' : 'Julkaise'}
+      </button>
+    )}
+  </div>
+</div>
+
 
         </form>
             </>

@@ -13,8 +13,11 @@ type TapahtumaIlmoitus = {
   kuva_url?: string
   tapahtuma_alku?: string
   tapahtuma_loppu?: string
+  voimassa_alku?: string
+  voimassa_loppu?: string
   premium?: boolean
 }
+
 
 
 
@@ -31,12 +34,18 @@ export default function TapahtumatClientPage() {
   const hae = async () => {
     const nytISO = new Date().toISOString()
 
+  const alkuISO = alkuPaiva ? new Date(alkuPaiva + 'T00:00:00').toISOString() : ''
+  const loppuISO = loppuPaiva ? new Date(loppuPaiva + 'T23:59:59').toISOString() : ''
+
+
 let query = supabase
   .from('ilmoitukset')
-  .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, voimassa_alku')
+  .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, voimassa_alku, voimassa_loppu, tapahtuma_alku, tapahtuma_loppu')
   .eq('kategoria', 'Tapahtumat')
   .or(`voimassa_alku.is.null,voimassa_alku.lte.${nytISO}`)
+  .or(`voimassa_loppu.is.null,voimassa_loppu.gte.${nytISO}`)
   .order('premium', { ascending: false })
+
 
 
 
@@ -53,13 +62,14 @@ let query = supabase
     // Päivämäärähaku: näytä tapahtumat, jotka osuvat hakuajanjaksoon
     if (alkuPaiva && loppuPaiva) {
   query = query
-    .lte('tapahtuma_alku', loppuPaiva)
-    .gte('tapahtuma_loppu', alkuPaiva)
+    .lte('tapahtuma_alku', loppuISO)
+    .gte('tapahtuma_loppu', alkuISO)
 } else if (alkuPaiva) {
-  query = query.gte('tapahtuma_loppu', alkuPaiva)
+  query = query.gte('tapahtuma_loppu', alkuISO)
 } else if (loppuPaiva) {
-  query = query.lte('tapahtuma_alku', loppuPaiva)
+  query = query.lte('tapahtuma_alku', loppuISO)
 }
+
 
 
 

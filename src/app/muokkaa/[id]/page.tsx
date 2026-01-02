@@ -44,7 +44,8 @@ export default function MuokkaaIlmoitusta() {
   const [loading, setLoading] = useState(true)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [voimassaAlku, setVoimassaAlku] = useState<Date | undefined>()
-const [voimassaKesto, setVoimassaKesto] = useState('30')
+  const [voimassaKesto, setVoimassaKesto] = useState('30')
+  const [errors, setErrors] = useState<{ kuvaus?: string }>({})
 
 
 
@@ -237,6 +238,13 @@ const perusLoppu = new Date(perusAlku.getTime() + parseInt(voimassaKesto) * 8640
           required
           className="w-full border px-4 py-2 rounded"
         />
+
+        {errors.kuvaus && (
+  <p className="text-sm text-red-600 mt-1">
+    {errors.kuvaus}
+  </p>
+)}
+
 
         <div ref={wrapperRef} className="relative">
   <input
