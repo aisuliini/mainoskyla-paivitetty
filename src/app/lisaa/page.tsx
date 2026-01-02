@@ -29,20 +29,24 @@ export default function LisaaIlmoitus() {
   setSubmitError(null)
   setErrors({})
 
-  // jos ei läpäise, älä lähetä
   if (!validateForm()) return
 
   setIsSubmitting(true)
 
   try {
     await handleUpload()
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Julkaisu epäonnistui:', err)
-    setSubmitError(err?.message ?? 'Julkaisu epäonnistui. Yritä uudelleen.')
+
+    const message =
+      err instanceof Error ? err.message : 'Julkaisu epäonnistui. Yritä uudelleen.'
+
+    setSubmitError(message)
   } finally {
     setIsSubmitting(false)
   }
 }
+
 
 
 
