@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { DayPicker } from 'react-day-picker'
@@ -9,13 +9,9 @@ import { addDays } from 'date-fns'
 import { fi } from 'date-fns/locale'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import imageCompression from 'browser-image-compression'
-import Cropper from 'react-easy-crop'
+import Cropper, { Area } from 'react-easy-crop'
 import getCroppedImg from '@/utils/cropImage'
-import { Area } from 'react-easy-crop'
 import Image from 'next/image'
-
-
-
 
 type Ilmoitus = {
   id: string
@@ -25,105 +21,153 @@ type Ilmoitus = {
   kategoria: string
   maksuluokka: string
   kuva_url: string | null
-  premium_alku?: string
-  premium_loppu?: string
-  premium_tyyppi?: string
-  tapahtuma_alku?: string
-  tapahtuma_loppu?: string
-  voimassa_alku?: string
-  voimassa_loppu?: string
-
+  premium_alku?: string | null
+  premium_loppu?: string | null
+  premium_tyyppi?: string | null
+  tapahtuma_alku?: string | null
+  tapahtuma_loppu?: string | null
+  voimassa_alku?: string | null
+  voimassa_loppu?: string | null
 }
+
+type Params = { id?: string }
 
 export default function MuokkaaIlmoitusta() {
   const router = useRouter()
-  const params = useParams()
-  const ilmoitusId = params?.id as string
+  const params = useParams() as unknown as Params
+  const ilmoitusId = params?.id ?? ''
+
+  const wrapperRef = useRef<HTMLDivElement>(null)
 
   const [ilmoitus, setIlmoitus] = useState<Ilmoitus | null>(null)
   const [loading, setLoading] = useState(true)
-  const wrapperRef = useRef<HTMLDivElement>(null)
-  const [voimassaAlku, setVoimassaAlku] = useState<Date | undefined>()
-  const [voimassaKesto, setVoimassaKesto] = useState('30')
-  const [errors, setErrors] = useState<{ kuvaus?: string }>({})
 
-
-
-
+  // FORM STATE (sama idea kuin LisääIlmoitus)
   const [otsikko, setOtsikko] = useState('')
   const [kuvaus, setKuvaus] = useState('')
   const [sijainti, setSijainti] = useState('')
   const [kategoria, setKategoria] = useState('')
-  const [tyyppi, setTyyppi] = useState('perus')
-  const [kuva, setKuva] = useState<File | null>(null)
-  const [esikatselu, setEsikatselu] = useState('')
-  const [alku, setAlku] = useState<Date | undefined>()
+  const [tyyppi, setTyyppi] = useState<'perus' | 'premium'>('perus')
+
+  // Perus näkyvyys
+  const [voimassaAlku, setVoimassaAlku] = useState<Date | undefined>(undefined)
+  const [voimassaKesto, setVoimassaKesto] = useState('30')
+
+  // Premium näkyvyys
+  const [alku, setAlku] = useState<Date | undefined>(undefined)
   const [kesto, setKesto] = useState('7')
   const [varatutPaivat, setVaratutPaivat] = useState<Date[]>([])
-  const [tapahtumaAlku, setTapahtumaAlku] = useState<Date | undefined>()
-  const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | undefined>()
+
+  // Tapahtumat
+  const [tapahtumaAlku, setTapahtumaAlku] = useState<Date | undefined>(undefined)
+  const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | undefined>(undefined)
+
+  // Kuva + rajaus
+  const [kuva, setKuva] = useState<File | null>(null)
+  const [esikatselu, setEsikatselu] = useState<string>('')
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
+  const [showCropper, setShowCropper] = useState(false)
+
+  // Ehdotukset + submit
   const [sijaintiehdotukset, setSijaintiehdotukset] = useState<string[]>([])
-const [crop, setCrop] = useState({ x: 0, y: 0 })
-const [zoom, setZoom] = useState(1)
-const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
-const [showCropper, setShowCropper] = useState(false)
-const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
+  // Loppupäivät (näytettävä/logiikka)
+  const premiumLoppuDate = useMemo(() => {
+    if (!alku) return null
+    const days = parseInt(kesto || '0', 10) || 0
+    return new Date(alku.getTime() + days * 86400000)
+  }, [alku, kesto])
 
+  const perusLoppuDate = useMemo(() => {
+    const start = voimassaAlku ?? new Date()
+    const days = parseInt(voimassaKesto || '0', 10) || 0
+    return new Date(start.getTime() + days * 86400000)
+  }, [voimassaAlku, voimassaKesto])
+
+  // 1) HAE ILMOITUS
   useEffect(() => {
     if (!ilmoitusId) return
 
     const haeIlmoitus = async () => {
-      const { data, error } = await supabase.from('ilmoitukset').select('*').eq('id', ilmoitusId).single()
-      if (error || !data) return alert('Ilmoitusta ei löytynyt.')
-      setIlmoitus(data)
-      setOtsikko(data.otsikko || '')
-      setKuvaus(data.kuvaus || '')
-      setSijainti(data.sijaint || '')
-      setKategoria(data.kategoria || '')
-      setTyyppi(data.maksuluokka || 'perus')
-      setEsikatselu(data.kuva_url || '')
-      if (data.premium_alku) setAlku(new Date(data.premium_alku))
-      if (data.premium_alku && data.premium_loppu) {
-        const alkuDate = new Date(data.premium_alku)
-        const loppuDate = new Date(data.premium_loppu)
-        const kestoPaivia = Math.round((loppuDate.getTime() - alkuDate.getTime()) / (1000 * 60 * 60 * 24))
-        setKesto(kestoPaivia.toString())
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('ilmoitukset')
+        .select('*')
+        .eq('id', ilmoitusId)
+        .single()
+
+      if (error || !data) {
+        alert('Ilmoitusta ei löytynyt.')
+        setLoading(false)
+        return
       }
-      if (data.tapahtuma_alku) setTapahtumaAlku(new Date(data.tapahtuma_alku))
-      if (data.tapahtuma_loppu) setTapahtumaLoppu(new Date(data.tapahtuma_loppu))
+
+      const row = data as Ilmoitus
+      setIlmoitus(row)
+
+      setOtsikko(row.otsikko ?? '')
+      setKuvaus(row.kuvaus ?? '')
+      setSijainti(row.sijainti ?? '') // ✅ korjaus: oli "sijaint"
+      setKategoria(row.kategoria ?? '')
+      setTyyppi((row.maksuluokka === 'premium' ? 'premium' : 'perus') as 'perus' | 'premium')
+      setEsikatselu(row.kuva_url ?? '')
+
+      // Premium pvm + kesto
+      if (row.premium_alku) setAlku(new Date(row.premium_alku))
+      if (row.premium_alku && row.premium_loppu) {
+        const a = new Date(row.premium_alku)
+        const l = new Date(row.premium_loppu)
+        const kestoPaivia = Math.round((l.getTime() - a.getTime()) / 86400000)
+        setKesto(String(Math.max(1, kestoPaivia)))
+      }
+
+      // Tapahtumat pvm
+      if (row.tapahtuma_alku) setTapahtumaAlku(new Date(row.tapahtuma_alku))
+      if (row.tapahtuma_loppu) setTapahtumaLoppu(new Date(row.tapahtuma_loppu))
+
+      // Perus voimassaolo (jos löytyy)
+      if (row.voimassa_alku) setVoimassaAlku(new Date(row.voimassa_alku))
+      if (row.voimassa_alku && row.voimassa_loppu) {
+        const a = new Date(row.voimassa_alku)
+        const l = new Date(row.voimassa_loppu)
+        const kestoPaivia = Math.round((l.getTime() - a.getTime()) / 86400000)
+        setVoimassaKesto(String(Math.max(1, kestoPaivia)))
+      }
+
       setLoading(false)
     }
 
-    haeIlmoitus()
+    void haeIlmoitus()
   }, [ilmoitusId])
 
+  // 2) SIJAINTI-EHDOTUKSET
   useEffect(() => {
     if (sijainti.length === 0) {
       setSijaintiehdotukset([])
       return
     }
-
-    const ehdotukset = paikkakunnat
-      .filter((nimi: string) =>
-        nimi.toLowerCase().startsWith(sijainti.toLowerCase())
-      )
+    const ehdotukset = (paikkakunnat as string[])
+      .filter((nimi) => nimi.toLowerCase().startsWith(sijainti.toLowerCase()))
       .slice(0, 10)
-
     setSijaintiehdotukset(ehdotukset)
   }, [sijainti])
 
   useEffect(() => {
-  function onClickOutside(e: MouseEvent) {
-    if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-      setSijaintiehdotukset([])
+    function onClickOutside(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setSijaintiehdotukset([])
+      }
     }
-  }
-  document.addEventListener('mousedown', onClickOutside)
-  return () => document.removeEventListener('mousedown', onClickOutside)
-}, [])
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
 
-
+  // 3) VARATUT PREMIUM-PÄIVÄT (etusivu)
   useEffect(() => {
     const haeVaratut = async () => {
       const nytISO = new Date().toISOString()
@@ -133,84 +177,123 @@ const [isSubmitting, setIsSubmitting] = useState(false)
         .eq('premium_tyyppi', 'etusivu')
         .gte('premium_loppu', nytISO)
 
-
-
-      const paivaLaskuri: { [päivä: string]: number } = {}
-      data?.forEach((ilmo: { premium_alku: string; premium_loppu: string }) => {
-        const alku = new Date(ilmo.premium_alku)
-        const loppu = new Date(ilmo.premium_loppu)
-        for (let d = alku; d <= loppu; d = addDays(d, 1)) {
+      const paivaLaskuri: Record<string, number> = {}
+      ;(data ?? []).forEach((r) => {
+        const row = r as { premium_alku: string; premium_loppu: string }
+        const a = new Date(row.premium_alku)
+        const l = new Date(row.premium_loppu)
+        for (let d = a; d <= l; d = addDays(d, 1)) {
           const key = d.toISOString().split('T')[0]
           paivaLaskuri[key] = (paivaLaskuri[key] || 0) + 1
         }
       })
 
       const punaiset = Object.entries(paivaLaskuri)
-        .filter(([, count]) => count >= 20)
-        .map(([päivä]) => new Date(päivä))
+        .filter(([, count]) => count >= 52) // sama raja kuin LisääIlmoitus
+        .map(([paiva]) => new Date(paiva))
 
       setVaratutPaivat(punaiset)
     }
 
     if (tyyppi === 'premium') {
-      haeVaratut()
+      void haeVaratut()
     }
   }, [tyyppi])
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault()
-  if (isSubmitting) return
-  setIsSubmitting(true)
+  // 4) VALIDOINNIT (sama filosofia kuin LisääIlmoitus)
+  const validateForm = () => {
+    const e: Record<string, string> = {}
 
-  if (!ilmoitus) {
-    alert('Ilmoitus ei ole ladattu vielä.')
-    setIsSubmitting(false)
-    return
-  }
+    const ots = otsikko.trim()
+    const kuv = kuvaus.trim()
+    const sij = sijainti.trim()
 
+    if (!ots) e.otsikko = 'Otsikko on pakollinen.'
+    else if (ots.length < 5) e.otsikko = 'Otsikon pitää olla vähintään 5 merkkiä.'
 
-  let kuvaUrl = ilmoitus.kuva_url
+    if (!kuv) e.kuvaus = 'Kuvaus on pakollinen.'
+    else if (kuv.length < 20) e.kuvaus = 'Kuvauksen pitää olla vähintään 20 merkkiä.'
 
+    if (!sij) e.sijainti = 'Sijainti on pakollinen.'
+    if (!kategoria) e.kategoria = 'Valitse kategoria.'
 
-    if (kuva) {
-      const tiedostonimi = `${Date.now()}_${kuva.name}`
-      const { error } = await supabase.storage.from('kuvat').upload(tiedostonimi, kuva)
-      if (!error) {
-        const { data: publicUrl } = supabase.storage.from('kuvat').getPublicUrl(tiedostonimi)
-        kuvaUrl = publicUrl.publicUrl
+    if (tyyppi === 'premium' && !alku) e.alku = 'Valitse premium-alkupäivä.'
+
+    if (kategoria === 'Tapahtumat') {
+      if (!tapahtumaAlku) e.tapahtumaAlku = 'Valitse tapahtuman alkupäivä.'
+      if (tapahtumaAlku && tapahtumaLoppu && tapahtumaLoppu < tapahtumaAlku) {
+        e.tapahtumaLoppu = 'Loppupäivä ei voi olla ennen alkua.'
       }
     }
 
-    const loppuDate = alku ? new Date(alku.getTime() + parseInt(kesto) * 86400000) : null
-    const perusAlku = voimassaAlku ?? new Date()
-const perusLoppu = new Date(perusAlku.getTime() + parseInt(voimassaKesto) * 86400000)
+    setErrors(e)
+    return Object.keys(e).length === 0
+  }
 
-    const { error } = await supabase
-      .from('ilmoitukset')
-      .update({
-        otsikko,
-        kuvaus,
-        sijainti,
-        kategoria,
-        maksuluokka: tyyppi,
-        kuva_url: kuvaUrl,
-        premium: tyyppi === 'premium',
-        premium_alku: tyyppi === 'premium' ? alku?.toISOString() : null,
-        premium_loppu: tyyppi === 'premium' ? loppuDate?.toISOString() : null,
-        premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
-        tapahtuma_alku: kategoria === 'Tapahtumat' ? tapahtumaAlku?.toISOString() : null,
-        tapahtuma_loppu: kategoria === 'Tapahtumat' ? tapahtumaLoppu?.toISOString() : null,
-        voimassa_alku: tyyppi !== 'premium' ? perusAlku.toISOString() : null,
-        voimassa_loppu: tyyppi !== 'premium' ? perusLoppu.toISOString() : null,
+  // 5) SUBMIT
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (isSubmitting) return
 
-      })
-      .eq('id', ilmoitusId)
+    setSubmitError(null)
+    setErrors({})
 
-    if (!error) {
+    if (!validateForm()) return
+    if (!ilmoitus) return
+
+    setIsSubmitting(true)
+
+    try {
+      // 5.1 Upload kuva jos valittu
+      let kuvaUrl: string | null = ilmoitus.kuva_url
+
+      if (kuva) {
+        const tiedostonimi = `${Date.now()}_${kuva.name}`
+        const { error: uploadError } = await supabase.storage.from('kuvat').upload(tiedostonimi, kuva)
+        if (uploadError) throw new Error('Kuvan lataus epäonnistui: ' + uploadError.message)
+
+        const { data: publicUrl } = supabase.storage.from('kuvat').getPublicUrl(tiedostonimi)
+        kuvaUrl = publicUrl.publicUrl
+      }
+
+      // 5.2 Päivämäärät
+      const premiumLoppu = alku ? new Date(alku.getTime() + (parseInt(kesto, 10) || 0) * 86400000) : null
+      const perusAlku = voimassaAlku ?? new Date()
+      const perusLoppu = new Date(perusAlku.getTime() + (parseInt(voimassaKesto, 10) || 0) * 86400000)
+
+      // 5.3 Update
+      const { error } = await supabase
+        .from('ilmoitukset')
+        .update({
+          otsikko,
+          kuvaus,
+          sijainti,
+          kategoria,
+          maksuluokka: tyyppi,
+          kuva_url: kuvaUrl,
+
+          premium: tyyppi === 'premium',
+          premium_alku: tyyppi === 'premium' ? alku?.toISOString() : null,
+          premium_loppu: tyyppi === 'premium' ? premiumLoppu?.toISOString() : null,
+          premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
+
+          tapahtuma_alku: kategoria === 'Tapahtumat' ? tapahtumaAlku?.toISOString() : null,
+          tapahtuma_loppu: kategoria === 'Tapahtumat' ? tapahtumaLoppu?.toISOString() : null,
+
+          voimassa_alku: tyyppi !== 'premium' ? perusAlku.toISOString() : null,
+          voimassa_loppu: tyyppi !== 'premium' ? perusLoppu.toISOString() : null,
+        })
+        .eq('id', ilmoitusId)
+
+      if (error) throw new Error(error.message)
+
       alert('Ilmoitus päivitetty!')
       router.push('/profiili')
-    } else {
-      alert('Päivitys epäonnistui: ' + error.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Päivitys epäonnistui.'
+      setSubmitError(message)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -219,237 +302,252 @@ const perusLoppu = new Date(perusAlku.getTime() + parseInt(voimassaKesto) * 8640
   return (
     <main className="max-w-xl mx-auto px-4 py-8 bg-white rounded shadow my-12">
       <h1 className="text-2xl font-bold mb-4">Muokkaa ilmoitusta</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
+
+      {submitError && (
+        <div className="border border-red-200 bg-red-50 text-red-800 rounded p-3 text-sm mb-3">
+          {submitError}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} noValidate className="space-y-4">
+        {/* OTSIKKO */}
         <input
           type="text"
           placeholder="Otsikko"
           value={otsikko}
           onChange={(e) => setOtsikko(e.target.value)}
           maxLength={80}
-          required
           className="w-full border px-4 py-2 rounded"
         />
         <p className="text-sm text-gray-500 text-right">{otsikko.length}/80 merkkiä</p>
+        {errors.otsikko && <p className="text-sm text-red-600">{errors.otsikko}</p>}
 
+        {/* KUVAUS */}
         <textarea
           placeholder="Kuvaus"
           value={kuvaus}
           onChange={(e) => setKuvaus(e.target.value)}
-          required
           className="w-full border px-4 py-2 rounded"
         />
+        {errors.kuvaus && <p className="text-sm text-red-600">{errors.kuvaus}</p>}
 
-        {errors.kuvaus && (
-  <p className="text-sm text-red-600 mt-1">
-    {errors.kuvaus}
-  </p>
-)}
-
-
+        {/* SIJAINTI */}
         <div ref={wrapperRef} className="relative">
-  <input
-    type="text"
-    placeholder="Sijainti (esim. Tampere)"
-    value={sijainti}
-    onChange={(e) => setSijainti(e.target.value)}
-    onKeyDown={(e) => {
-      if (e.key === 'Enter' && sijaintiehdotukset.length > 0) {
-        e.preventDefault()
-        const exact = sijaintiehdotukset.find(
-          (p) => p.toLowerCase() === sijainti.toLowerCase()
-        )
-        const valittu = exact || sijaintiehdotukset[0]
-        setSijainti(valittu)
-        setSijaintiehdotukset([])
-      }
-    }}
-    className="w-full border px-4 py-2 rounded"
-  />
+          <input
+            type="text"
+            placeholder="Sijainti (esim. Tampere)"
+            value={sijainti}
+            onChange={(e) => setSijainti(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && sijaintiehdotukset.length > 0) {
+                e.preventDefault()
+                const exact = sijaintiehdotukset.find((p) => p.toLowerCase() === sijainti.toLowerCase())
+                const valittu = exact || sijaintiehdotukset[0]
+                setSijainti(valittu)
+                setSijaintiehdotukset([])
+              }
+            }}
+            className="w-full border px-4 py-2 rounded"
+          />
 
-  {sijaintiehdotukset.length > 0 && (
-    <ul className="absolute z-10 bg-white border w-full mt-1 rounded shadow text-sm max-h-40 overflow-y-auto">
-      {sijaintiehdotukset.map((ehdotus, i) => (
-        <li
-          key={i}
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => {
-            setSijainti(ehdotus)
-            setSijaintiehdotukset([])
-          }}
-          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-        >
-          {ehdotus}
-        </li>
-      ))}
-    </ul>
-  )}
-</div>
+          {sijaintiehdotukset.length > 0 && (
+            <ul className="absolute z-10 bg-white border w-full mt-1 rounded shadow text-sm max-h-40 overflow-y-auto">
+              {sijaintiehdotukset.map((ehdotus, i) => (
+                <li
+                  key={i}
+                  onMouseDown={(ev) => ev.preventDefault()}
+                  onClick={() => {
+                    setSijainti(ehdotus)
+                    setSijaintiehdotukset([])
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                >
+                  {ehdotus}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        {errors.sijainti && <p className="text-sm text-red-600">{errors.sijainti}</p>}
 
-
-        <select value={kategoria} onChange={(e) => setKategoria(e.target.value)} required className="w-full border px-4 py-2 rounded">
+        {/* KATEGORIA */}
+        <select value={kategoria} onChange={(e) => setKategoria(e.target.value)} className="w-full border px-4 py-2 rounded">
           <option value="">Valitse kategoria</option>
           <option value="Palvelut">Palvelut</option>
           <option value="Hyvinvointi ja Kauneus">Hyvinvointi ja Kauneus</option>
           <option value="Koti ja Remontointi">Koti ja Remontointi</option>
           <option value="Eläinpalvelut">Eläinpalvelut</option>
-          <option value="Pientuottajat">Pientuottajat</option>
           <option value="Käsityöläiset">Käsityöläiset</option>
           <option value="Media ja Luovuus">Media ja Luovuus</option>
-          <option value="Kurssit ja Koulutukset">Kurssit ja Koulutukset</option>
           <option value="Vuokratilat ja Juhlapaikat">Vuokratilat ja Juhlapaikat</option>
-          <option value="Ilmoitustaulu">Ilmoitustaulu</option>
-          <option value="Tapahtumat">Tapahtumat</option>          
+          <option value="Tapahtumat">Tapahtumat</option>
         </select>
+        {errors.kategoria && <p className="text-sm text-red-600">{errors.kategoria}</p>}
 
+        {/* TAPAHTUMAT */}
         {kategoria === 'Tapahtumat' && (
           <>
-            <label>Tapahtuman alkupäivä:</label>
+            <label className="block">Tapahtuman alkupäivä:</label>
             <DayPicker selected={tapahtumaAlku} onSelect={setTapahtumaAlku} locale={fi} mode="single" />
-            <label>Tapahtuman loppupäivä:</label>
+            {errors.tapahtumaAlku && <p className="text-sm text-red-600">{errors.tapahtumaAlku}</p>}
+
+            <label className="block">Tapahtuman loppupäivä:</label>
             <DayPicker selected={tapahtumaLoppu} onSelect={setTapahtumaLoppu} locale={fi} mode="single" />
+            {errors.tapahtumaLoppu && <p className="text-sm text-red-600">{errors.tapahtumaLoppu}</p>}
           </>
         )}
 
+        {/* KUVA */}
         <input
-  type="file"
-  accept="image/*"
-  onChange={async (e) => {
-    const tiedosto = e.target.files?.[0]
-    if (!tiedosto) return
+          type="file"
+          accept="image/*"
+          onChange={async (e) => {
+            const tiedosto = e.target.files?.[0]
+            if (!tiedosto) return
 
-    try {
-      const pakattu = await imageCompression(tiedosto, {
-        maxSizeMB: 0.5,
-        maxWidthOrHeight: 1200,
-        useWebWorker: true,
-      })
+            try {
+              const pakattu = await imageCompression(tiedosto, {
+                maxSizeMB: 0.5,
+                maxWidthOrHeight: 1200,
+                useWebWorker: true,
+              })
 
-      const reader = new FileReader()
-reader.onload = (event: ProgressEvent<FileReader>) => {
-  const tulos = event.target?.result
-  if (typeof tulos === 'string') {
-    setEsikatselu(tulos)
-    setShowCropper(true)
-  }
-}
-reader.readAsDataURL(pakattu)
+              const reader = new FileReader()
+              reader.onload = (event: ProgressEvent<FileReader>) => {
+                const result = event.target?.result
+                if (typeof result === 'string') {
+                  setEsikatselu(result)
+                  setShowCropper(true)
+                }
+              }
+              reader.readAsDataURL(pakattu)
+            } catch (err: unknown) {
+              console.error('Kuvan pakkaus epäonnistui:', err)
+              alert('Kuvan pakkaus epäonnistui.')
+            }
+          }}
+          className="w-full"
+        />
 
+        {showCropper && esikatselu && (
+          <div className="relative w-full h-64 bg-gray-200 rounded overflow-hidden">
+            <Cropper
+              image={esikatselu}
+              crop={crop}
+              zoom={zoom}
+              aspect={4 / 3}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={(_, area) => setCroppedAreaPixels(area)}
+            />
+            <button
+              type="button"
+              onClick={async () => {
+                if (!esikatselu || !croppedAreaPixels) return
+                const out = await getCroppedImg(esikatselu, croppedAreaPixels)
 
-    
-    } catch (err) {
-      console.error('Kuvan pakkaus epäonnistui:', err)
-      alert('Kuvan pakkaus epäonnistui.')
-    }
-  }}
-  className="w-full"
-/>
+                // out voi olla File tai Blob -> tehdään varmasti File
+                const file =
+                  out instanceof File
+                    ? out
+                    : new File([out], 'rajaus.jpg', { type: 'image/jpeg' })
 
-{showCropper && esikatselu && (
-  <div className="relative w-full h-64 bg-gray-200">
-    <Cropper
-      image={esikatselu}
-      crop={crop}
-      zoom={zoom}
-      aspect={4 / 3}
-      onCropChange={setCrop}
-      onZoomChange={setZoom}
-      onCropComplete={(_: Area, croppedAreaPixels: Area) => setCroppedAreaPixels(croppedAreaPixels)}
+                setKuva(file)
+                setEsikatselu(URL.createObjectURL(file))
+                setShowCropper(false)
+              }}
+              className="absolute bottom-2 right-2 bg-[#3f704d] text-white px-4 py-2 rounded"
+            >
+              Käytä rajattua kuvaa
+            </button>
+          </div>
+        )}
 
-    />
-    <button
-      type="button"
-      onClick={async () => {
-        if (!esikatselu || !croppedAreaPixels) return
-        const croppedFile = await getCroppedImg(esikatselu, croppedAreaPixels)
-        setKuva(croppedFile)
-        setEsikatselu(URL.createObjectURL(croppedFile))
-        setShowCropper(false)
-      }}
-      className="absolute bottom-2 right-2 bg-green-600 text-white px-4 py-2 rounded"
-    >
-      Käytä rajattua kuvaa
-    </button>
-  </div>
-)}
+        {esikatselu && !showCropper && (
+          <div className="relative w-full h-40 bg-gray-100 rounded overflow-hidden">
+            <Image
+              src={esikatselu}
+              alt="Esikatselu"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 500px"
+            />
+          </div>
+        )}
 
-{esikatselu && !showCropper && (
-  <div className="relative w-full h-32">
-    <Image
-      src={esikatselu}
-      alt="Esikatselu"
-      fill
-      style={{ objectFit: 'cover' }}
-      className="rounded shadow"
-      sizes="(max-width: 768px) 100vw, 33vw"
-    />
-  </div>
-)}
-<label>Valitse ilmoitustyyppi:</label>
-<select
-  value={tyyppi}
-  onChange={(e) => setTyyppi(e.target.value)}
-  className="w-full border px-4 py-2 rounded"
->
-  <option value="perus">Perusilmoitus</option>
-  <option value="premium">Premium näkyvyys</option>
-</select>
+        {/* NÄKYVYYS */}
+        <label className="block font-medium">Valitse ilmoitustyyppi:</label>
+        <select
+          value={tyyppi}
+          onChange={(e) => setTyyppi(e.target.value === 'premium' ? 'premium' : 'perus')}
+          className="w-full border px-4 py-2 rounded"
+        >
+          <option value="perus">Perusilmoitus</option>
+          <option value="premium">Premium näkyvyys</option>
+        </select>
 
-{tyyppi === 'perus' && (
-  <>
-    <label>Näkyvyysaika:</label>
-    <select
-      value={voimassaKesto}
-      onChange={(e) => setVoimassaKesto(e.target.value)}
-      className="w-full border px-4 py-2 rounded"
-    >
-      <option value="7">7 päivää</option>
-      <option value="14">14 päivää</option>
-      <option value="30">30 päivää</option>
-      <option value="60">60 päivää</option>
-      <option value="90">90 päivää</option>
-    </select>
+        {tyyppi === 'perus' && (
+          <>
+            <label className="block">Näkyvyysaika:</label>
+            <select
+              value={voimassaKesto}
+              onChange={(e) => setVoimassaKesto(e.target.value)}
+              className="w-full border px-4 py-2 rounded"
+            >
+              <option value="7">7 päivää</option>
+              <option value="14">14 päivää</option>
+              <option value="30">30 päivää</option>
+              <option value="60">60 päivää</option>
+              <option value="90">90 päivää</option>
+            </select>
 
-    <label>Ilmoituksen alkupäivä:</label>
-    <DayPicker
-      mode="single"
-      selected={voimassaAlku}
-      onSelect={setVoimassaAlku}
-      locale={fi}
-    />
-  </>
-)}
+            <label className="block">Ilmoituksen alkupäivä:</label>
+            <DayPicker mode="single" selected={voimassaAlku} onSelect={setVoimassaAlku} locale={fi} />
 
-{tyyppi === 'premium' && (
-  <>
-    <label>Näkyvyysaika:</label>
-    <select
-      value={kesto}
-      onChange={(e) => setKesto(e.target.value)}
-      className="w-full border px-4 py-2 rounded"
-    >
-      <option value="7">7 päivää</option>
-      <option value="14">14 päivää</option>
-      <option value="30">30 päivää</option>
-      <option value="60">60 päivää</option>
-      <option value="90">90 päivää</option>
-    </select>
+            <p className="text-sm text-gray-600">
+              Näkyy: <strong>{(voimassaAlku ?? new Date()).toLocaleDateString('fi-FI')} – {perusLoppuDate.toLocaleDateString('fi-FI')}</strong>
+            </p>
+          </>
+        )}
 
-    <label>Premium-alkupäivä:</label>
-    <DayPicker
-      mode="single"
-      selected={alku}
-      onSelect={setAlku}
-      modifiers={{ varattu: varatutPaivat }}
-      modifiersClassNames={{ varattu: 'bg-red-500 text-white' }}
-      locale={fi}
-    />
-  </>
-)}
+        {tyyppi === 'premium' && (
+          <>
+            <label className="block">Näkyvyysaika:</label>
+            <select value={kesto} onChange={(e) => setKesto(e.target.value)} className="w-full border px-4 py-2 rounded">
+              <option value="7">7 päivää</option>
+              <option value="14">14 päivää</option>
+              <option value="30">30 päivää</option>
+              <option value="60">60 päivää</option>
+              <option value="90">90 päivää</option>
+            </select>
 
+            <label className="block">Premium-alkupäivä:</label>
+            <DayPicker
+              mode="single"
+              selected={alku}
+              onSelect={setAlku}
+              modifiers={{ varattu: varatutPaivat }}
+              modifiersClassNames={{ varattu: 'bg-red-500 text-white' }}
+              locale={fi}
+            />
+            {errors.alku && <p className="text-sm text-red-600">{errors.alku}</p>}
 
+            {alku && premiumLoppuDate && (
+              <p className="text-sm text-gray-600">
+                Premium: <strong>{alku.toLocaleDateString('fi-FI')} – {premiumLoppuDate.toLocaleDateString('fi-FI')}</strong>
+              </p>
+            )}
+          </>
+        )}
 
-        <button type="submit" className="bg-[#3f704d] text-white px-6 py-2 rounded hover:bg-[#2f5332]">
-          Tallenna muutokset
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className={`bg-[#3f704d] text-white px-6 py-2 rounded hover:bg-[#2f5332] ${
+            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+        >
+          {isSubmitting ? 'Tallennetaan...' : 'Tallenna muutokset'}
         </button>
       </form>
     </main>
