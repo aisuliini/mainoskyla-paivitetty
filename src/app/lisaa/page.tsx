@@ -44,7 +44,6 @@ const [sahkoposti, setSahkoposti] = useState('')
 const [linkki, setLinkki] = useState('') // verkkosivu / some
 const [cta, setCta] = useState<'puhelin' | 'email' | 'linkki' | 'ei'>('puhelin')
 
-const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(1) // mobiili: 1-4, desktop: 0
 // AJA KAIKKI VALIDOINNIT + PALAUTA VIRHEET (ei jää "stale errors" -ongelmaa)
 const validateAll = () => {
   const e: Record<string, string> = {}
@@ -95,9 +94,6 @@ const submitNow = async () => {
 
   const errs = validateAll()
   if (Object.keys(errs).length > 0) {
-    const targetStep = getFirstErrorStep(errs)
-    setStep(targetStep)
-    scrollToTop()
     return
   }
 
@@ -120,29 +116,6 @@ const submitNow = async () => {
 const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault()
   await submitNow()
-}
-
-const scrollToTop = () => {
-  if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
-const nextStep = () => {
-  const ok = validateStep(step)
-  if (!ok) return
-
-setStep((s) => {
-  const cur = s === 0 ? 1 : s
-  return Math.min(4, cur + 1) as 0 | 1 | 2 | 3 | 4
-})
-  scrollToTop()
-}
-
-const prevStep = () => {
-setStep((s) => {
-  const cur = s === 0 ? 1 : s
-  return Math.max(1, cur - 1) as 0 | 1 | 2 | 3 | 4
-})
-  scrollToTop()
 }
 
 
@@ -212,18 +185,6 @@ useEffect(() => {
   haeKayttaja()
 }, [])
 
-useEffect(() => {
-  const update = () => {
-    if (typeof window === 'undefined') return
-    setStep(window.innerWidth >= 768 ? 0 : 1)
-  }
-  update()
-  window.addEventListener('resize', update)
-  return () => window.removeEventListener('resize', update)
-}, [])
-
-
-
 
   useEffect(() => {
   const haePremiumKalenteri = async () => {
@@ -288,83 +249,6 @@ const isSafeUrl = (raw: string) => {
   } catch {
     return false
   }
-}
-
-
-// Validointi vain nykyiselle stepille (mobiili)
-const validateStep = (currentStep: 0 | 1 | 2 | 3 | 4) => {
-  const e: Record<string, string> = {}
-  if (currentStep === 0) {
-  return true
-}
-
-  const ots = otsikko.trim()
-  const kuv = kuvaus.trim()
-  const sij = sijainti.trim()
-
-  const p = puhelin.trim()
-  const s = sahkoposti.trim()
-  const l = linkki.trim()
-
-  // STEP 1: perustiedot
-  if (currentStep === 1) {
-    if (!ots) e.otsikko = 'Otsikko on pakollinen.'
-    else if (ots.length < 5) e.otsikko = 'Otsikon pitää olla vähintään 5 merkkiä.'
-
-    if (!kuv) e.kuvaus = 'Kuvaus on pakollinen.'
-    else if (kuv.length < 20) e.kuvaus = 'Kuvauksen pitää olla vähintään 20 merkkiä.'
-
-    if (!sij) e.sijainti = 'Sijainti on pakollinen.'
-    if (!kategoria) e.kategoria = 'Valitse kategoria.'
-
-    if (kategoria === 'Tapahtumat') {
-      if (!tapahtumaAlku) e.tapahtumaAlku = 'Valitse tapahtuman alkupäivä.'
-      if (tapahtumaAlku && tapahtumaLoppu && tapahtumaLoppu < tapahtumaAlku) {
-        e.tapahtumaLoppu = 'Loppupäivä ei voi olla ennen alkupäivää.'
-      }
-    }
-  }
-
-  // STEP 2: yhteystiedot
-  if (currentStep === 2) {
-    if (!p && !s && !l) {
-      e.yhteys = 'Lisää vähintään yksi yhteystieto (puhelin, sähköposti tai linkki).'
-    }
-
-    if (s && !/^\S+@\S+\.\S+$/.test(s)) {
-      e.sahkoposti = 'Sähköposti ei näytä oikealta.'
-    }
-
-    if (l && !isSafeUrl(l)) {
-      e.linkki =
-        'Linkin täytyy alkaa https:// ja lyhytlinkit (bit.ly/tinyurl/t.co) eivät ole sallittuja.'
-    }
-  }
-
-  // STEP 4: premium-alku pakollinen
-  if (currentStep === 4) {
-    if (tyyppi === 'premium' && !alku) e.alku = 'Valitse premium-alkupäivä.'
-  }
-
-  setErrors((prev) => ({ ...prev, ...e }))
-  return Object.keys(e).length === 0
-}
-
-// Määrittää mille stepille hypätään jos koko lomake on virheellinen
-const getFirstErrorStep = (errs: Record<string, string>): 1 | 2 | 3 | 4 => {
-  const keys = Object.keys(errs)
-
-  if (
-    keys.some((k) =>
-      ['otsikko', 'kuvaus', 'sijainti', 'kategoria', 'tapahtumaAlku', 'tapahtumaLoppu'].includes(k)
-    )
-  ) return 1
-
-  if (keys.some((k) => ['yhteys', 'sahkoposti', 'linkki'].includes(k))) return 2
-
-  if (keys.some((k) => ['alku'].includes(k))) return 4
-
-  return 1
 }
 
 
@@ -537,30 +421,10 @@ return
   className="space-y-4"
 >
 
-          {/* Sticky step header (mobiili) */}
-<div className="md:hidden sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-white/90 backdrop-blur border-b">
-  <div className="flex items-center justify-between gap-3">
-    <div className="text-sm font-medium text-[#1E3A41]">
-      Vaihe {step}/4
-    </div>
-    <div className="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden">
-      <div
-        className="h-full bg-[#4F6763]"
-        style={{ width: `${(step / 4) * 100}%` }}
-      />
-    </div>
-    <div className="text-xs text-gray-600 whitespace-nowrap">
-      {step === 1 && 'Perustiedot'}
-      {step === 2 && 'Yhteystiedot'}
-      {step === 3 && 'Kuva'}
-      {step === 4 && 'Näkyvyys'}
-    </div>
-  </div>
-</div>
 
 
 {/* STEP 1: Perustiedot */}
-<div className={`${step === 1 ? 'block' : 'hidden'} md:block space-y-4`}>
+<div className="space-y-4">
 
 
 
@@ -699,7 +563,7 @@ return
 
 
 {/* STEP 2: Yhteystiedot */}
-<div className={`${step === 2 || step === 0 ? 'block' : 'hidden'} md:block space-y-4`}>
+<div className="space-y-4">
 
   <p className="text-sm text-gray-600">
     Valitse ensisijainen tapa, jolla haluat asiakkaan ottavan yhteyttä.
@@ -754,7 +618,7 @@ return
 
 
 {/* STEP 3: Kuva */}
-<div className={`${step === 3 || step === 0 ? 'block' : 'hidden'} md:block space-y-4`}>
+<div className="space-y-4">
 
 <label className="block font-medium">
   Kuva (valinnainen)
@@ -814,30 +678,27 @@ if (replaceIndex !== null) {
     {esikatselut.map((src, idx) => (
       <div key={idx} className="relative aspect-[4/3] w-full bg-gray-100 rounded overflow-hidden">
         <Image
-          src={src}
-          alt={`Esikatselu ${idx + 1}`}
-          fill
-          className="object-cover"
-          sizes="50vw"
-        />
-        <button
-          type="button"
-          onClick={() => {
-  const urlToRemove = esikatselut[idx]
-  if (urlToRemove) URL.revokeObjectURL(urlToRemove)
+  src={src}
+  alt={`Esikatselu ${idx + 1}`}
+  fill
+  className="object-cover pointer-events-none"
+  sizes="50vw"
+/>
 
-  setEsikatselut((prev) => prev.filter((_, i) => i !== idx))
-  setKuvat((prev) => prev.filter((_, i) => i !== idx))
-}}
+<button
+  type="button"
+  onClick={() => {
+    const urlToRemove = esikatselut[idx]
+    if (urlToRemove) URL.revokeObjectURL(urlToRemove)
 
+    setEsikatselut((prev) => prev.filter((_, i) => i !== idx))
+    setKuvat((prev) => prev.filter((_, i) => i !== idx))
+  }}
+  className="absolute top-2 right-2 z-20 rounded bg-white/95 px-2 py-1 text-xs shadow"
+>
+  Poista
+</button>
 
-
-className="absolute top-2 right-2 z-10 pointer-events-auto rounded bg-white/90 px-2 py-1 text-xs shadow"
-
-
-        >
-          Poista
-        </button>
       </div>
     ))}
   </div>
@@ -850,10 +711,7 @@ className="absolute top-2 right-2 z-10 pointer-events-auto rounded bg-white/90 p
 </div>
 
 {/* STEP 4: Näkyvyys */}
-<div className={`${step === 4 || step === 0 ? 'block' : 'hidden'} md:block space-y-4`}>
-
-
-
+<div className="space-y-4">
           <label className="block font-medium">Valitse ilmoitustyyppi:</label>
           <select value={tyyppi} onChange={(e) => setTyyppi(e.target.value)} className="w-full border px-4 py-2 rounded">
             <option value="perus">Perusilmoitus </option>
@@ -921,7 +779,7 @@ className="absolute top-2 right-2 z-10 pointer-events-auto rounded bg-white/90 p
 </div>
 
 {/* Desktop: Julkaise ilmoitus */}
-<div className="hidden md:flex justify-end pt-6 border-t">
+<div className="flex justify-end pt-6 border-t">
   <button
     type="button"
     onClick={submitNow}
@@ -933,47 +791,6 @@ className="absolute top-2 right-2 z-10 pointer-events-auto rounded bg-white/90 p
     {isSubmitting ? 'Julkaistaan...' : 'Julkaise ilmoitus'}
   </button>
 </div>
-
-
-
-{/* Mobiili: Step-navigointi (sticky alhaalla) */}
-<div className="md:hidden sticky bottom-0 left-0 right-0 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-white/90 backdrop-blur border-t">
-  <div className="flex items-center gap-3">
-    <button
-      type="button"
-      onClick={prevStep}
-      disabled={step === 1}
-      className={`w-1/2 px-4 py-3 rounded border font-medium ${
-        step === 1 ? 'opacity-50 cursor-not-allowed' : ''
-      }`}
-    >
-      Takaisin
-    </button>
-
-    {step < 4 ? (
-      <button
-        type="button"
-        onClick={nextStep}
-        className="w-1/2 px-4 py-3 rounded bg-[#4F6763] text-white font-medium"
-      >
-        Seuraava
-      </button>
-    ) : (
-      <button
-  type="button"
-  onClick={submitNow}
-  disabled={isSubmitting}
-  className={`w-1/2 px-4 py-3 rounded bg-[#3f704d] text-white font-medium ${
-    isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-  }`}
->
-  {isSubmitting ? 'Julkaistaan...' : 'Julkaise'}
-</button>
-
-    )}
-  </div>
-</div>
-
 
         </form>
             </>
