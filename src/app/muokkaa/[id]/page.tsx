@@ -30,12 +30,11 @@ type Ilmoitus = {
   voimassa_loppu?: string | null
 }
 
-type Params = { id?: string }
-
 export default function MuokkaaIlmoitusta() {
   const router = useRouter()
-  const params = useParams() as unknown as Params
+  const params = useParams<{ id: string }>()
   const ilmoitusId = params?.id ?? ''
+
 
   const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -202,100 +201,164 @@ export default function MuokkaaIlmoitusta() {
 
   // 4) VALIDOINNIT (sama filosofia kuin LisääIlmoitus)
   const validateForm = () => {
-    const e: Record<string, string> = {}
+  const e: Record<string, string> = {}
 
-    const ots = otsikko.trim()
-    const kuv = kuvaus.trim()
-    const sij = sijainti.trim()
+  const ots = otsikko.trim()
+  const kuv = kuvaus.trim()
+  const sij = sijainti.trim()
 
-    if (!ots) e.otsikko = 'Otsikko on pakollinen.'
-    else if (ots.length < 5) e.otsikko = 'Otsikon pitää olla vähintään 5 merkkiä.'
+  if (!ots) e.otsikko = 'Otsikko on pakollinen.'
+  else if (ots.length < 5) e.otsikko = 'Otsikon pitää olla vähintään 5 merkkiä.'
 
-    if (!kuv) e.kuvaus = 'Kuvaus on pakollinen.'
-    else if (kuv.length < 20) e.kuvaus = 'Kuvauksen pitää olla vähintään 20 merkkiä.'
+  if (!kuv) e.kuvaus = 'Kuvaus on pakollinen.'
+  else if (kuv.length < 20) e.kuvaus = 'Kuvauksen pitää olla vähintään 20 merkkiä.'
 
-    if (!sij) e.sijainti = 'Sijainti on pakollinen.'
-    if (!kategoria) e.kategoria = 'Valitse kategoria.'
+  if (!sij) e.sijainti = 'Sijainti on pakollinen.'
+  if (!kategoria) e.kategoria = 'Valitse kategoria.'
 
-    if (tyyppi === 'premium' && !alku) e.alku = 'Valitse premium-alkupäivä.'
+  // Premium vaatii alkupäivän
+  if (tyyppi === 'premium' && !alku) e.alku = 'Valitse premium-alkupäivä.'
 
-    if (kategoria === 'Tapahtumat') {
-      if (!tapahtumaAlku) e.tapahtumaAlku = 'Valitse tapahtuman alkupäivä.'
-      if (tapahtumaAlku && tapahtumaLoppu && tapahtumaLoppu < tapahtumaAlku) {
-        e.tapahtumaLoppu = 'Loppupäivä ei voi olla ennen alkua.'
-      }
+  // Perus: jos käyttäjä on valinnut päivämäärän pickerissä, ok. Jos ei, ok (käytetään new Date()).
+  // Ei pakollista validointia tässä.
+
+  // Tapahtumat
+  if (kategoria === 'Tapahtumat') {
+    if (!tapahtumaAlku) e.tapahtumaAlku = 'Valitse tapahtuman alkupäivä.'
+    if (tapahtumaAlku && tapahtumaLoppu && tapahtumaLoppu < tapahtumaAlku) {
+      e.tapahtumaLoppu = 'Loppupäivä ei voi olla ennen alkua.'
     }
-
-    setErrors(e)
-    return Object.keys(e).length === 0
   }
+
+  setErrors(e)
+  return Object.keys(e).length === 0
+}
+
 
   // 5) SUBMIT
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (isSubmitting) return
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault()
+  if (isSubmitting) return
 
-    setSubmitError(null)
-    setErrors({})
+  setSubmitError(null)
+  setErrors({})
 
-    if (!validateForm()) return
-    if (!ilmoitus) return
+  if (!validateForm()) return
+  if (!ilmoitus) return
 
-    setIsSubmitting(true)
+  setIsSubmitting(true)
 
-    try {
-      // 5.1 Upload kuva jos valittu
-      let kuvaUrl: string | null = ilmoitus.kuva_url
+  try {
+    // 1) Jos premium -> tarkista kalenteri (ettei ylitä 52)
+    if (tyyppi === 'premium' && alku && premiumLoppuDate) {
+      const nytISO = new Date().toISOString()
+      const { data: aktiiviset, error: calErr } = await supabase
+        .from('ilmoitukset')
+        .select('id, premium_alku, premium_loppu')
+        .eq('premium', true)
+        .eq('premium_tyyppi', 'etusivu')
+        .gte('premium_loppu', nytISO)
+        .not('premium_alku', 'is', null)
+        .not('premium_loppu', 'is', null)
 
-      if (kuva) {
-        const tiedostonimi = `${Date.now()}_${kuva.name}`
-        const { error: uploadError } = await supabase.storage.from('kuvat').upload(tiedostonimi, kuva)
-        if (uploadError) throw new Error('Kuvan lataus epäonnistui: ' + uploadError.message)
+      if (calErr) throw new Error(calErr.message)
 
-        const { data: publicUrl } = supabase.storage.from('kuvat').getPublicUrl(tiedostonimi)
-        kuvaUrl = publicUrl.publicUrl
+      const paivaLaskuri: Record<string, number> = {}
+      ;(aktiiviset ?? []).forEach((r) => {
+        const row = r as { id: string; premium_alku: string; premium_loppu: string }
+        // ✅ jos muokkaat tätä samaa ilmoitusta, ei lasketa sitä mukaan
+        if (row.id === ilmoitusId) return
+
+        const a = new Date(row.premium_alku)
+        const l = new Date(row.premium_loppu)
+        for (let d = a; d <= l; d = addDays(d, 1)) {
+          const key = d.toISOString().split('T')[0]
+          paivaLaskuri[key] = (paivaLaskuri[key] || 0) + 1
+        }
+      })
+
+      const valitut: Date[] = []
+      for (let d = new Date(alku); d <= premiumLoppuDate; d = addDays(d, 1)) {
+        valitut.push(new Date(d))
       }
 
-      // 5.2 Päivämäärät
-      const premiumLoppu = alku ? new Date(alku.getTime() + (parseInt(kesto, 10) || 0) * 86400000) : null
-      const perusAlku = voimassaAlku ?? new Date()
-      const perusLoppu = new Date(perusAlku.getTime() + (parseInt(voimassaKesto, 10) || 0) * 86400000)
+      const ylitykset = valitut.filter((p) => {
+        const key = p.toISOString().split('T')[0]
+        return (paivaLaskuri[key] || 0) >= 52
+      })
 
-      // 5.3 Update
-      const { error } = await supabase
-        .from('ilmoitukset')
-        .update({
-          otsikko,
-          kuvaus,
-          sijainti,
-          kategoria,
-          maksuluokka: tyyppi,
-          kuva_url: kuvaUrl,
-
-          premium: tyyppi === 'premium',
-          premium_alku: tyyppi === 'premium' ? alku?.toISOString() : null,
-          premium_loppu: tyyppi === 'premium' ? premiumLoppu?.toISOString() : null,
-          premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
-
-          tapahtuma_alku: kategoria === 'Tapahtumat' ? tapahtumaAlku?.toISOString() : null,
-          tapahtuma_loppu: kategoria === 'Tapahtumat' ? tapahtumaLoppu?.toISOString() : null,
-
-          voimassa_alku: tyyppi !== 'premium' ? perusAlku.toISOString() : null,
-          voimassa_loppu: tyyppi !== 'premium' ? perusLoppu.toISOString() : null,
-        })
-        .eq('id', ilmoitusId)
-
-      if (error) throw new Error(error.message)
-
-      alert('Ilmoitus päivitetty!')
-      router.push('/profiili')
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Päivitys epäonnistui.'
-      setSubmitError(message)
-    } finally {
-      setIsSubmitting(false)
+      if (ylitykset.length > 0) {
+        throw new Error('Valituilla päivillä ei ole enää vapaata premium-näkyvyyspaikkaa.')
+      }
     }
+
+    // 2) Upload kuva jos valittu
+    let kuvaUrl: string | null = ilmoitus.kuva_url
+
+    if (kuva) {
+      const tiedostonimi = `${Date.now()}_${kuva.name}`
+      const { error: uploadError } = await supabase.storage.from('kuvat').upload(tiedostonimi, kuva)
+      if (uploadError) throw new Error('Kuvan lataus epäonnistui: ' + uploadError.message)
+
+      const { data: publicUrl } = supabase.storage.from('kuvat').getPublicUrl(tiedostonimi)
+      kuvaUrl = publicUrl.publicUrl
+    }
+
+    // 3) Päivämäärät
+    const premiumLoppu =
+      alku ? new Date(alku.getTime() + (parseInt(kesto || '0', 10) || 0) * 86400000) : null
+
+    const perusAlku = voimassaAlku ?? new Date()
+    const perusLoppu = new Date(perusAlku.getTime() + (parseInt(voimassaKesto || '0', 10) || 0) * 86400000)
+
+    const tapahtumaLoppuFinal =
+      kategoria === 'Tapahtumat' ? (tapahtumaLoppu ?? tapahtumaAlku) : null
+
+    const voimassaLoppuFinal =
+      kategoria === 'Tapahtumat' && tapahtumaLoppuFinal
+        ? tapahtumaLoppuFinal
+        : (tyyppi === 'premium' ? premiumLoppu : perusLoppu)
+
+    // 4) Update
+    const { error } = await supabase
+      .from('ilmoitukset')
+      .update({
+        otsikko,
+        kuvaus,
+        sijainti,
+        kategoria,
+        maksuluokka: tyyppi,
+        kuva_url: kuvaUrl,
+
+        premium: tyyppi === 'premium' && !!alku && alku <= new Date(),
+        premium_alku: tyyppi === 'premium' ? alku?.toISOString() : null,
+        premium_loppu: tyyppi === 'premium' ? premiumLoppu?.toISOString() : null,
+        premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
+
+        tapahtuma_alku: kategoria === 'Tapahtumat' ? tapahtumaAlku?.toISOString() : null,
+        tapahtuma_loppu: kategoria === 'Tapahtumat' ? tapahtumaLoppuFinal?.toISOString() : null,
+
+        voimassa_alku:
+          tyyppi === 'premium'
+            ? (alku?.toISOString() ?? null)
+            : perusAlku.toISOString(),
+
+        voimassa_loppu: voimassaLoppuFinal ? voimassaLoppuFinal.toISOString() : null,
+      })
+      .eq('id', ilmoitusId)
+
+    if (error) throw new Error(error.message)
+
+    alert('Ilmoitus päivitetty!')
+    router.push('/profiili')
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Päivitys epäonnistui.'
+    setSubmitError(message)
+  } finally {
+    setIsSubmitting(false)
   }
+}
+
 
   if (loading) return <p className="text-center py-8">Ladataan...</p>
 
@@ -309,7 +372,17 @@ export default function MuokkaaIlmoitusta() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} noValidate className="space-y-4">
+      <form
+  onSubmit={handleSubmit}
+  noValidate
+  onKeyDown={(e) => {
+    if (e.key !== 'Enter') return
+    const t = e.target as HTMLElement
+    if (t.tagName !== 'TEXTAREA') e.preventDefault()
+  }}
+  className="space-y-4"
+>
+
         {/* OTSIKKO */}
         <input
           type="text"
@@ -523,13 +596,15 @@ export default function MuokkaaIlmoitusta() {
 
             <label className="block">Premium-alkupäivä:</label>
             <DayPicker
-              mode="single"
-              selected={alku}
-              onSelect={setAlku}
-              modifiers={{ varattu: varatutPaivat }}
-              modifiersClassNames={{ varattu: 'bg-red-500 text-white' }}
-              locale={fi}
+            mode="single"
+            selected={alku}
+            onSelect={setAlku}
+            disabled={varatutPaivat}
+            modifiers={{ varattu: varatutPaivat }}
+            modifiersClassNames={{ varattu: 'bg-red-500 text-white' }}
+            locale={fi}
             />
+
             {errors.alku && <p className="text-sm text-red-600">{errors.alku}</p>}
 
             {alku && premiumLoppuDate && (

@@ -12,15 +12,16 @@ type Ilmoitus = {
   id: string
   otsikko: string
   kuvaus: string
-  sijaint: string
-  kuva_url?: string
-  nayttoja?: number
-  luotu?: string
-  nostettu_at?: string
-  user_id?: string
-  voimassa_alku?: string
-  voimassa_loppu?: string
+  sijainti?: string | null
+  kuva_url?: string | null
+  nayttoja?: number | null
+  luotu?: string | null
+  nostettu_at?: string | null
+  user_id?: string | null
+  voimassa_alku?: string | null
+  voimassa_loppu?: string | null
 }
+
 
 
 export default function ProfiiliSivu() {
@@ -136,7 +137,7 @@ export default function ProfiiliSivu() {
               <div className="p-4">
                 <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>
                 <p className="text-sm text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
-                <p className="text-xs text-gray-500">{ilmo.sijaint}</p>
+                <p className="text-xs text-gray-500">{ilmo.sijainti ?? ''}</p>
 
                 {ilmo.voimassa_alku && ilmo.voimassa_loppu && (
   <p className="text-xs text-gray-500 mt-1">

@@ -1,26 +1,62 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import Image from 'next/image'
+import KuvaCarousel from '@/components/KuvaCarousel'
+import { FaInstagram, FaGlobe } from 'react-icons/fa'
+
 
 type Ilmoitus = {
   id: string
   otsikko: string
   kuvaus?: string | null
   kuva_url?: string | null
+  kuvat?: string | null
   nayttoja?: number | null
   luotu?: string | null
   voimassa_alku?: string | null
   voimassa_loppu?: string | null
+  user_id?: string | null
+
+  // ilmoituksen yhteystiedot
+  puhelin?: string | null
+  sahkoposti?: string | null
+  linkki?: string | null
 }
+
+
+
 
 export default function IlmoitusClient() {
   const params = useParams()
   const id = params.id as string
 
-  const [ilmoitus, setIlmoitus] = useState<Ilmoitus | null>(null)
+const [ilmoitus, setIlmoitus] = useState<Ilmoitus | null>(null)
+
+const kuvatArr = useMemo(() => {
+  const raw = ilmoitus?.kuvat
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) return parsed.filter(Boolean).slice(0, 4) as string[]
+    return null
+  } catch {
+    return null
+  }
+}, [ilmoitus?.kuvat])
+
+
+
+type Profiili = {
+  nimi?: string | null
+  email?: string | null
+  puhelin?: string | null
+  www?: string | null
+  kuva_url?: string | null
+}
+
+const [profiili, setProfiili] = useState<Profiili | null>(null)
 
   useEffect(() => {
   if (!id) return
@@ -34,7 +70,6 @@ export default function IlmoitusClient() {
   if (!last || now - Number(last) > THIRTY_MIN) {
     sessionStorage.setItem(key, String(now))
 
-    // fire-and-forget (ei hidasta)
     fetch('/api/ilmoitus/view', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -43,15 +78,55 @@ export default function IlmoitusClient() {
     }).catch(() => {})
   }
 
-  // Lataa ilmoitus
   const load = async () => {
-    const { data } = await supabase
+    // 1) Hae ilmoitus
+    const { data: ilmoData, error: ilmoErr } = await supabase
       .from('ilmoitukset')
-      .select('*')
+      .select('id, otsikko, kuvaus, kuva_url, kuvat, nayttoja, luotu, voimassa_alku, voimassa_loppu, user_id, puhelin, sahkoposti, linkki')
       .eq('id', id)
       .single()
 
-    setIlmoitus((data as Ilmoitus) ?? null)
+    if (ilmoErr) {
+      console.error('Ilmoituksen haku epäonnistui:', ilmoErr.message)
+      setIlmoitus(null)
+      setProfiili(null)
+      return
+    }
+
+    setIlmoitus((ilmoData as Ilmoitus) ?? null)
+
+    // 2) Hae yrittäjän/profiilin tiedot user_id:llä
+    const uid = (ilmoData as Ilmoitus)?.user_id ?? null
+    if (!uid) {
+      setProfiili(null)
+      return
+    }
+
+    // Yritä profiilit.id = auth.users.id
+    const { data: p1, error: e1 } = await supabase
+      .from('profiilit')
+      .select('nimi, email, puhelin, www, kuva_url')
+      .eq('id', uid)
+      .single()
+
+    if (!e1 && p1) {
+      setProfiili(p1 as any)
+      return
+    }
+
+    // Fallback: profiilit.user_id = auth.users.id
+    const { data: p2, error: e2 } = await supabase
+      .from('profiilit')
+      .select('nimi, email, puhelin, www, kuva_url')
+      .eq('user_id', uid)
+      .single()
+
+    if (!e2 && p2) {
+      setProfiili(p2 as any)
+      return
+    }
+
+    setProfiili(null)
   }
 
   load()
@@ -59,28 +134,95 @@ export default function IlmoitusClient() {
 
 
 
+
   if (!ilmoitus) return <p className="p-6">Ladataan…</p>
 
   return (
     <main className="max-w-2xl mx-auto p-6 bg-white rounded shadow my-12">
-      {ilmoitus.kuva_url && (
-        <div className="relative w-full h-64 rounded mb-4 overflow-hidden">
-          <Image
-            src={ilmoitus.kuva_url}
-            alt={ilmoitus.otsikko || 'Ilmoitus'}
-            fill
-            className="object-cover rounded"
-            sizes="(max-width: 768px) 100vw, 768px"
-            priority
-          />
-        </div>
-      )}
+      <div className="mb-4">
+  <KuvaCarousel
+    kuvaUrl={ilmoitus?.kuva_url ?? null}
+    kuvat={kuvatArr}
+    autoMs={5000}
+    max={4}
+    alt={ilmoitus?.otsikko ?? 'Ilmoitus'}
+  />
+</div>
+
+
+
+
 
       <h1 className="text-2xl font-bold break-words">{ilmoitus.otsikko}</h1>
+      <div className="mt-3 flex items-center gap-2">
+  {/* Profiilin www */}
+  {profiili?.www && (
+    <a
+      href={profiili.www.startsWith('http') ? profiili.www : `https://${profiili.www}`}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex h-10 w-10 items-center justify-center rounded-full border bg-white hover:bg-gray-50"
+      aria-label="Avaa verkkosivu"
+      title="Verkkosivu"
+    >
+      <FaGlobe />
+    </a>
+  )}
+
+  {/* Ilmoituksen linkki (voi olla IG tai muu) */}
+  {ilmoitus?.linkki && (
+    <a
+      href={ilmoitus.linkki}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex h-10 w-10 items-center justify-center rounded-full border bg-white hover:bg-gray-50"
+      aria-label="Avaa linkki"
+      title="Linkki"
+    >
+      {ilmoitus.linkki.includes('instagram.com') ? <FaInstagram /> : <FaGlobe />}
+    </a>
+  )}
+</div>
+
       <p className="mt-4 text-gray-800 whitespace-pre-line">{ilmoitus.kuvaus}</p>
       <p className="mt-2 text-sm text-gray-500">
   Katselukerrat: {ilmoitus.nayttoja ?? 0}
 </p>
+
+{(ilmoitus.puhelin || ilmoitus.sahkoposti || ilmoitus.linkki) && (
+  <div className="mt-6 border-t pt-4">
+    <h2 className="text-lg font-semibold mb-2">Yhteystiedot</h2>
+
+    {ilmoitus.puhelin && (
+      <p className="text-sm text-gray-800">
+        <b>Puhelin:</b>{' '}
+        <a className="underline" href={`tel:${ilmoitus.puhelin}`}>
+          {ilmoitus.puhelin}
+        </a>
+      </p>
+    )}
+
+    {ilmoitus.sahkoposti && (
+      <p className="text-sm text-gray-800">
+        <b>Sähköposti:</b>{' '}
+        <a className="underline" href={`mailto:${ilmoitus.sahkoposti}`}>
+          {ilmoitus.sahkoposti}
+        </a>
+      </p>
+    )}
+
+    {ilmoitus.linkki && (
+      <p className="text-sm text-gray-800">
+        <b>Linkki:</b>{' '}
+        <a className="underline" href={ilmoitus.linkki} target="_blank" rel="noreferrer">
+          {ilmoitus.linkki}
+        </a>
+      </p>
+    )}
+  </div>
+)}
+
+
 
     </main>
   )
