@@ -433,7 +433,7 @@ const handleUpload = async () => {
 }
 
   const nykyhetki = new Date()
-  let kuvaUrls: string[] = []
+const kuvaUrls: string[] = []
 
 if (kuvat.length > 0) {
   // ladataan max 4

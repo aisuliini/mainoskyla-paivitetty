@@ -110,7 +110,8 @@ const [profiili, setProfiili] = useState<Profiili | null>(null)
       .single()
 
     if (!e1 && p1) {
-      setProfiili(p1 as any)
+      setProfiili(p1 as Profiili)
+
       return
     }
 
@@ -122,7 +123,7 @@ const [profiili, setProfiili] = useState<Profiili | null>(null)
       .single()
 
     if (!e2 && p2) {
-      setProfiili(p2 as any)
+      setProfiili(p2 as Profiili)
       return
     }
 

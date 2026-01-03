@@ -199,40 +199,6 @@ export default function MuokkaaIlmoitusta() {
     }
   }, [tyyppi])
 
-  // 4) VALIDOINNIT (sama filosofia kuin LisääIlmoitus)
-  const validateForm = () => {
-  const e: Record<string, string> = {}
-
-  const ots = otsikko.trim()
-  const kuv = kuvaus.trim()
-  const sij = sijainti.trim()
-
-  if (!ots) e.otsikko = 'Otsikko on pakollinen.'
-  else if (ots.length < 5) e.otsikko = 'Otsikon pitää olla vähintään 5 merkkiä.'
-
-  if (!kuv) e.kuvaus = 'Kuvaus on pakollinen.'
-  else if (kuv.length < 20) e.kuvaus = 'Kuvauksen pitää olla vähintään 20 merkkiä.'
-
-  if (!sij) e.sijainti = 'Sijainti on pakollinen.'
-  if (!kategoria) e.kategoria = 'Valitse kategoria.'
-
-  // Premium vaatii alkupäivän
-  if (tyyppi === 'premium' && !alku) e.alku = 'Valitse premium-alkupäivä.'
-
-  // Perus: jos käyttäjä on valinnut päivämäärän pickerissä, ok. Jos ei, ok (käytetään new Date()).
-  // Ei pakollista validointia tässä.
-
-  // Tapahtumat
-  if (kategoria === 'Tapahtumat') {
-    if (!tapahtumaAlku) e.tapahtumaAlku = 'Valitse tapahtuman alkupäivä.'
-    if (tapahtumaAlku && tapahtumaLoppu && tapahtumaLoppu < tapahtumaAlku) {
-      e.tapahtumaLoppu = 'Loppupäivä ei voi olla ennen alkua.'
-    }
-  }
-
-  setErrors(e)
-  return Object.keys(e).length === 0
-}
 
 
   // 5) SUBMIT
