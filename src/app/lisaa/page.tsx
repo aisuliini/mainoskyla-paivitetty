@@ -70,6 +70,7 @@ const validateAll = () => {
     }
   }
 
+
   const p = puhelin.trim()
   const s = sahkoposti.trim()
   const l = linkki.trim()
@@ -84,6 +85,24 @@ const validateAll = () => {
   return e
 }
 
+const scrollToFirstError = () => {
+  const firstErrorKey = Object.keys(errors)[0]
+  if (!firstErrorKey) return
+
+  // yritetään löytää kenttä name / id / data-error -attribuutilla
+  const el =
+    document.querySelector(`[name="${firstErrorKey}"]`) ||
+    document.querySelector(`[data-error="${firstErrorKey}"]`)
+
+  if (el instanceof HTMLElement) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    el.focus?.()
+  } else {
+    // fallback: scroll ylös
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
 // Tämä tekee oikeasti julkaisun (vain kun kutsutaan nappia painamalla)
 const submitNow = async () => {
   if (isSubmitting) return
@@ -93,9 +112,11 @@ const submitNow = async () => {
   setErrors({})
 
   const errs = validateAll()
-  if (Object.keys(errs).length > 0) {
-    return
-  }
+if (Object.keys(errs).length > 0) {
+  setTimeout(scrollToFirstError, 50)
+  return
+}
+
 
   setIsSubmitting(true)
   try {
@@ -429,6 +450,7 @@ return
 
 
           <input
+  name="otsikko"
   type="text"
   placeholder="Otsikko"
   value={otsikko}
