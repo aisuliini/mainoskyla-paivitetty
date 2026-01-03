@@ -199,6 +199,37 @@ export default function MuokkaaIlmoitusta() {
     }
   }, [tyyppi])
 
+// 4) VALIDOINNIT (tarvitaan koska handleSubmit kutsuu validateForm())
+const validateForm = () => {
+  const e: Record<string, string> = {}
+
+  const ots = otsikko.trim()
+  const kuv = kuvaus.trim()
+  const sij = sijainti.trim()
+
+  if (!ots) e.otsikko = 'Otsikko on pakollinen.'
+  else if (ots.length < 5) e.otsikko = 'Otsikon pitää olla vähintään 5 merkkiä.'
+
+  if (!kuv) e.kuvaus = 'Kuvaus on pakollinen.'
+  else if (kuv.length < 20) e.kuvaus = 'Kuvauksen pitää olla vähintään 20 merkkiä.'
+
+  if (!sij) e.sijainti = 'Sijainti on pakollinen.'
+  if (!kategoria) e.kategoria = 'Valitse kategoria.'
+
+  // Premium: alkupäivä pakollinen
+  if (tyyppi === 'premium' && !alku) e.alku = 'Valitse premium-alkupäivä.'
+
+  // Tapahtumat: tapahtuman alku pakollinen + loppu ei ennen alkua
+  if (kategoria === 'Tapahtumat') {
+    if (!tapahtumaAlku) e.tapahtumaAlku = 'Valitse tapahtuman alkupäivä.'
+    if (tapahtumaAlku && tapahtumaLoppu && tapahtumaLoppu < tapahtumaAlku) {
+      e.tapahtumaLoppu = 'Loppupäivä ei voi olla ennen alkupäivää.'
+    }
+  }
+
+  setErrors(e)
+  return Object.keys(e).length === 0
+}
 
 
   // 5) SUBMIT
