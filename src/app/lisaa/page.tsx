@@ -22,6 +22,30 @@ export default function LisaaIlmoitus() {
   const [kuvaus, setKuvaus] = useState('')
   const [sijainti, setSijainti] = useState('')
 const [kuvat, setKuvat] = useState<File[]>([])  // AJA KAIKKI VALIDOINNIT + PALAUTA VIRHEET (ei jää "stale errors" -ongelmaa)
+  const [esikatselut, setEsikatselut] = useState<string[]>([])
+  const [replaceIndex, setReplaceIndex] = useState<number | null>(null)
+
+  const [tyyppi, setTyyppi] = useState('perus')
+const [alku, setAlku] = useState<Date | null>(null)
+  const [kesto, setKesto] = useState('7')
+  const [kategoria, setKategoria] = useState('')
+  const [varatutPaivat, setVaratutPaivat] = useState<Date[]>([])
+  const [sijaintiehdotukset, setSijaintiehdotukset] = useState<string[]>([])
+ const [tapahtumaAlku, setTapahtumaAlku] = useState<Date | null>(null)
+const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | null>(null)
+const [user, setUser] = useState<{ id: string } | null>(null)
+const [isSubmitting, setIsSubmitting] = useState(false)
+const [errors, setErrors] = useState<Record<string, string>>({})
+const [submitError, setSubmitError] = useState<string | null>(null)
+const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
+
+const [puhelin, setPuhelin] = useState('')
+const [sahkoposti, setSahkoposti] = useState('')
+const [linkki, setLinkki] = useState('') // verkkosivu / some
+const [cta, setCta] = useState<'puhelin' | 'email' | 'linkki' | 'ei'>('puhelin')
+
+const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(1) // mobiili: 1-4, desktop: 0
+// AJA KAIKKI VALIDOINNIT + PALAUTA VIRHEET (ei jää "stale errors" -ongelmaa)
 const validateAll = () => {
   const e: Record<string, string> = {}
 
@@ -66,9 +90,8 @@ const submitNow = async () => {
   if (isSubmitting) return
 
   setSubmitError(null)
-setSubmitSuccess(null)
-setErrors({})
-
+  setSubmitSuccess(null)
+  setErrors({})
 
   const errs = validateAll()
   if (Object.keys(errs).length > 0) {
@@ -80,13 +103,11 @@ setErrors({})
 
   setIsSubmitting(true)
   try {
-  await handleUpload()
-setSubmitSuccess('Ilmoitus julkaistu!')
-await new Promise((r) => setTimeout(r, 700))
-router.push('/profiili')
-
-} catch (err: unknown) {
-
+    await handleUpload()
+    setSubmitSuccess('Ilmoitus julkaistu!')
+    await new Promise((r) => setTimeout(r, 700))
+    router.push('/profiili')
+  } catch (err: unknown) {
     console.error('Julkaisu epäonnistui:', err)
     const message = err instanceof Error ? err.message : 'Julkaisu epäonnistui. Yritä uudelleen.'
     setSubmitError(message)
@@ -100,34 +121,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault()
   await submitNow()
 }
-
-
-
-
-
-  const [esikatselut, setEsikatselut] = useState<string[]>([])
-  const [replaceIndex, setReplaceIndex] = useState<number | null>(null)
-
-  const [tyyppi, setTyyppi] = useState('perus')
-const [alku, setAlku] = useState<Date | null>(null)
-  const [kesto, setKesto] = useState('7')
-  const [kategoria, setKategoria] = useState('')
-  const [varatutPaivat, setVaratutPaivat] = useState<Date[]>([])
-  const [sijaintiehdotukset, setSijaintiehdotukset] = useState<string[]>([])
- const [tapahtumaAlku, setTapahtumaAlku] = useState<Date | null>(null)
-const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | null>(null)
-const [user, setUser] = useState<{ id: string } | null>(null)
-const [isSubmitting, setIsSubmitting] = useState(false)
-const [errors, setErrors] = useState<Record<string, string>>({})
-const [submitError, setSubmitError] = useState<string | null>(null)
-const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
-
-const [puhelin, setPuhelin] = useState('')
-const [sahkoposti, setSahkoposti] = useState('')
-const [linkki, setLinkki] = useState('') // verkkosivu / some
-const [cta, setCta] = useState<'puhelin' | 'email' | 'linkki' | 'ei'>('puhelin')
-
-const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(1) // mobiili: 1-4, desktop: 0
 
 const scrollToTop = () => {
   if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -297,57 +290,6 @@ const isSafeUrl = (raw: string) => {
   }
 }
 
-
-const validateForm = () => {
-  const e: Record<string, string> = {}
-
-  const ots = otsikko.trim()
-  const kuv = kuvaus.trim()
-  const sij = sijainti.trim()
-
-  if (!ots) e.otsikko = 'Otsikko on pakollinen.'
-  else if (ots.length < 5) e.otsikko = 'Otsikon pitää olla vähintään 5 merkkiä.'
-
-  if (!kuv) e.kuvaus = 'Kuvaus on pakollinen.'
-  else if (kuv.length < 20) e.kuvaus = 'Kuvauksen pitää olla vähintään 20 merkkiä.'
-
-  if (!sij) e.sijainti = 'Sijainti on pakollinen.'
-
-  if (!kategoria) e.kategoria = 'Valitse kategoria.'
-
-  // Premium: alkupäivä pakollinen
-  if (tyyppi === 'premium' && !alku) e.alku = 'Valitse premium-alkupäivä.'
-
-  // Tapahtumat: tapahtuman alku pakollinen, loppu asetetaan automaattisesti jos puuttuu
-  if (kategoria === 'Tapahtumat') {
-    if (!tapahtumaAlku) e.tapahtumaAlku = 'Valitse tapahtuman alkupäivä.'
-    // jos loppu on asetettu, varmista ettei se ole ennen alkua
-    if (tapahtumaAlku && tapahtumaLoppu && tapahtumaLoppu < tapahtumaAlku) {
-      e.tapahtumaLoppu = 'Loppupäivä ei voi olla ennen alkupäivää.'
-    }
-  }
-
-  // Yhteystiedot: vähintään yksi tapa ottaa yhteyttä
-const p = puhelin.trim()
-const s = sahkoposti.trim()
-const l = linkki.trim()
-
-if (!p && !s && !l) {
-  e.yhteys = 'Lisää vähintään yksi yhteystieto (puhelin, sähköposti tai linkki).'
-}
-
-if (s && !/^\S+@\S+\.\S+$/.test(s)) {
-  e.sahkoposti = 'Sähköposti ei näytä oikealta.'
-}
-
-if (l && !isSafeUrl(l)) {
-  e.linkki = 'Linkin täytyy alkaa https:// ja lyhytlinkit (bit.ly/tinyurl/t.co) eivät ole sallittuja.'
-}
-
-
-  setErrors(e)
-  return Object.keys(e).length === 0
-}
 
 // Validointi vain nykyiselle stepille (mobiili)
 const validateStep = (currentStep: 0 | 1 | 2 | 3 | 4) => {
