@@ -262,13 +262,11 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 </h1>
 
 
-  <p className="mt-2 text-sm sm:text-base text-charcoal/70 leading-relaxed max-w-2xl text-center mx-auto">
-  Mainoskylä yhdistää ihmiset ja paikalliset yritykset
-  <span className="hidden sm:inline"> • </span>
-  <span className="block sm:inline mt-1 sm:mt-0">
-    Paikallinen mainospaikka yrittäjille ja tekijöille
-  </span>
+  <p className="hidden sm:block mt-2 text-sm sm:text-base text-charcoal/70 leading-relaxed max-w-2xl text-center mx-auto">
+  Mainoskylä yhdistää ihmiset ja paikalliset yritykset •
+  Paikallinen mainospaikka yrittäjille ja tekijöille
 </p>
+
 
 
 </div>
