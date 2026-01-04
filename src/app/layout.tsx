@@ -1,5 +1,6 @@
 // src/app/layout.tsx
 import './globals.css'
+import Script from 'next/script'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import CookieBanner from '@/components/CookieBanner'
@@ -27,8 +28,6 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
   },
-
-
 
   openGraph: {
     type: 'website',
@@ -67,24 +66,35 @@ export const metadata: Metadata = {
       'max-video-preview': -1,
     },
   },
-
-  // Kun Google Search Console, lisää tämä:
-  // verification: {
-  //   google: 'SUN_VERIFICATION_CODE_TAHAN',
-  // },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fi">
+      {/* Google tag (gtag.js) */}
+      <Script
+        async
+        src="https://www.googletagmanager.com/gtag/js?id=AW-17851457912"
+      />
+      <Script
+        id="google-ads-gtag"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-17851457912');
+          `,
+        }}
+      />
+
       <body
         className={`${inter.className} bg-[#F6F7F7] text-charcoal min-h-screen flex flex-col overflow-x-hidden`}
       >
         <AuthProvider>
           <Header />
-
           <main className="flex-grow w-full">{children}</main>
-
           <Footer />
           <CookieBanner />
           <Analytics />
