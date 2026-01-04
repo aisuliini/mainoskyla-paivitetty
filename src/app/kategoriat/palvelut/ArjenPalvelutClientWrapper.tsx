@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 
-const PalvelutClient = dynamic(() => import('./PalvelutClient'), {
+const PalvelutClient = dynamic(() => import('./ArjenPalvelutClient'), {
   ssr: false,
 })
 

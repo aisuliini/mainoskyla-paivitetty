@@ -21,7 +21,7 @@ type Ilmoitus = {
 }
 
 
-export default function PalvelutClientPage() {
+export default function ArjenPalvelutClientPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
@@ -41,7 +41,7 @@ export default function PalvelutClientPage() {
       let query = supabase
   .from('ilmoitukset')
   .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, voimassa_alku')
-  .eq('kategoria', 'Palvelut')
+  .eq('kategoria', 'ArjenPalvelut')
   .or(`voimassa_alku.is.null,voimassa_alku.lte.${nytISO}`)
   .order('premium', { ascending: false })
 
@@ -66,7 +66,7 @@ export default function PalvelutClientPage() {
 
   return (
     <main className="max-w-screen-xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Palvelut</h1>
+      <h1 className="text-2xl font-bold mb-6">Arjen palvelut</h1>
 
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <select

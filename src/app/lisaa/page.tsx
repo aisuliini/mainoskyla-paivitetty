@@ -103,7 +103,7 @@ const scrollToFirstError = () => {
   }
 }
 
-// Tämä tekee oikeasti julkaisun (vain kun kutsutaan nappia painamalla)
+// Tämä tekee julkaisun (vain kun kutsutaan nappia painamalla)
 const submitNow = async () => {
   if (isSubmitting) return
 
@@ -528,7 +528,7 @@ return
 
 
             <option value="">Valitse kategoria</option>
-            <option value="Palvelut">Palvelut</option>
+            <option value="Arjen palvelut">Arjen palvelut</option>
             <option value="Hyvinvointi ja Kauneus">Hyvinvointi ja Kauneus</option>
             <option value="Koti ja Remontointi">Koti ja Remontointi</option>
             <option value="Eläinpalvelut">Eläinpalvelut</option>

@@ -1,20 +1,20 @@
 import type { Metadata } from 'next'
-import PalvelutClientWrapper from './PalvelutClientWrapper'
+import ArjenPalvelutClientWrapper from './ArjenPalvelutClientWrapper'
 
 export const metadata: Metadata = {
-  title: 'Palvelut',
+  title: 'ArjenPalvelut | Mainoskylä',
   description:
     'Löydä paikalliset palvelut eri aloilta tai ilmoita omat palvelusi Mainoskylässä.',
-  alternates: { canonical: '/kategoriat/palvelut' },
+  alternates: { canonical: '/kategoriat/ArjenPalvelut' },
   openGraph: {
-    title: 'Palvelut | Mainoskylä',
+    title: 'ArjenPalvelut | Mainoskylä',
     description:
       'Löydä paikalliset palvelut eri aloilta tai ilmoita omat palvelusi Mainoskylässä.',
-    url: 'https://mainoskyla.fi/kategoriat/palvelut',
+    url: 'https://mainoskyla.fi/kategoriat/ArjenPalvelut',
     images: ['/og.jpg'],
   },
 }
 
 export default function Page() {
-  return <PalvelutClientWrapper />
+  return <ArjenPalvelutClientWrapper />
 }

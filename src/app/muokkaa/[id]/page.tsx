@@ -443,7 +443,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         {/* KATEGORIA */}
         <select value={kategoria} onChange={(e) => setKategoria(e.target.value)} className="w-full border px-4 py-2 rounded">
           <option value="">Valitse kategoria</option>
-          <option value="Palvelut">Palvelut</option>
+          <option value="Arjen palvelut">Arjen palvelut</option>
           <option value="Hyvinvointi ja Kauneus">Hyvinvointi ja Kauneus</option>
           <option value="Koti ja Remontointi">Koti ja Remontointi</option>
           <option value="Eläinpalvelut">Eläinpalvelut</option>

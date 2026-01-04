@@ -152,8 +152,8 @@ const hae = () => {
 
 const kategoriat = [
   {
-    nimi: "Palvelut",
-    href: "/kategoriat/palvelut",
+    nimi: "Arjen palvelut",
+    href: "/kategoriat/Arjen-palvelut",
     ikoni: <Hammer className="h-6 w-6 text-[#1E3A41]" />,
     enabled: true,
   },
