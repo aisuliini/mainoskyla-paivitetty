@@ -331,8 +331,8 @@ if (kuvat.length > 0) {
     const ylitykset = valitutPaivat.filter((p) => {
       const key = p.toISOString().split('T')[0]
       const maara = paivaLaskuri[key] || 0
-      return maara >= 52
-    })
+      return maara >= 6
+    }) //Premium-paikkoja on 6 kpl per päivä
 
     if (ylitykset.length > 0) {
       throw new Error('Valituilla päivillä ei ole enää vapaata premium-näkyvyyspaikkaa.')
