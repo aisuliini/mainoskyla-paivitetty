@@ -24,9 +24,9 @@ type Ilmoitus = {
 export default function ProfiiliSivu() {
   const router = useRouter()
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
-  const [isActionRunning, setIsActionRunning] = useState(false)
   const [loading, setLoading] = useState(true)
 
+  // 🔹 Hae kirjautunut käyttäjä + hänen ilmoitukset
   useEffect(() => {
     const haeKayttajaJaIlmoitukset = async () => {
       const { data: authData } = await supabase.auth.getSession()
@@ -46,7 +46,7 @@ export default function ProfiiliSivu() {
       if (error) {
         console.error('Virhe ilmoitusten haussa:', error.message)
       } else if (data) {
-        setIlmoitukset(data)
+        setIlmoitukset(data as Ilmoitus[])
       }
 
       setLoading(false)
@@ -55,76 +55,48 @@ export default function ProfiiliSivu() {
     haeKayttajaJaIlmoitukset()
   }, [router])
 
-  // 🔹 UUSI EFFECTI TÄSSÄ
-  useEffect(() => {
-    const handleShow = () => {
-      setIsActionRunning(false)
-    }
-
-    window.addEventListener('pageshow', handleShow)
-    document.addEventListener('visibilitychange', handleShow)
-    handleShow()
-
-    return () => {
-      window.removeEventListener('pageshow', handleShow)
-      document.removeEventListener('visibilitychange', handleShow)
-    }
-  }, [])
-
-
+  // 🔹 Julkaise uudelleen (päivitä luotu)
   const julkaiseUudelleen = async (ilmo: Ilmoitus) => {
-    if (isActionRunning) return
     if (!confirm('Julkaistaanko ilmoitus uudelleen?')) return
 
-    setIsActionRunning(true)
-    try {
-      const uusiPaiva = new Date().toISOString()
+    const uusiPaiva = new Date().toISOString()
 
-      const { error } = await supabase
-        .from('ilmoitukset')
-        .update({ luotu: uusiPaiva })
-        .eq('id', ilmo.id)
+    const { error } = await supabase
+      .from('ilmoitukset')
+      .update({ luotu: uusiPaiva })
+      .eq('id', ilmo.id)
 
-      if (error) {
-        console.error('Virhe julkaisussa:', error.message)
-        alert('Päivitys epäonnistui. Yritä uudelleen.')
-        return
-      }
-
-      setIlmoitukset((prev) =>
-        prev.map((i) => (i.id === ilmo.id ? { ...i, luotu: uusiPaiva } : i))
-      )
-    } finally {
-      setIsActionRunning(false)
+    if (error) {
+      console.error('Virhe julkaisussa:', error.message)
+      alert('Päivitys epäonnistui. Yritä uudelleen.')
+      return
     }
+
+    setIlmoitukset((prev) =>
+      prev.map((i) => (i.id === ilmo.id ? { ...i, luotu: uusiPaiva } : i))
+    )
   }
 
+  // 🔹 Poista yksittäinen ilmoitus
   const poistaIlmoitus = async (ilmo: Ilmoitus) => {
-    if (isActionRunning) return
     if (!confirm('Poistetaanko ilmoitus pysyvästi?')) return
 
-    setIsActionRunning(true)
-    try {
-      const { error } = await supabase
-        .from('ilmoitukset')
-        .delete()
-        .eq('id', ilmo.id)
+    const { error } = await supabase
+      .from('ilmoitukset')
+      .delete()
+      .eq('id', ilmo.id)
 
-      if (error) {
-        console.error('Virhe poistossa:', error.message)
-        alert('Poisto epäonnistui. Yritä uudelleen.')
-        return
-      }
-
-      setIlmoitukset((prev) => prev.filter((i) => i.id !== ilmo.id))
-    } finally {
-      setIsActionRunning(false)
+    if (error) {
+      console.error('Virhe poistossa:', error.message)
+      alert('Poisto epäonnistui. Yritä uudelleen.')
+      return
     }
+
+    setIlmoitukset((prev) => prev.filter((i) => i.id !== ilmo.id))
   }
 
+  // 🔹 Poista tili + kaikki ilmoitukset
   const poistaTili = async () => {
-    if (isActionRunning) return
-
     const { data: sessionData } = await supabase.auth.getSession()
     const user = sessionData?.session?.user
 
@@ -141,28 +113,23 @@ export default function ProfiiliSivu() {
       return
     }
 
-    setIsActionRunning(true)
-    try {
-      const { error: delError } = await supabase
-        .from('ilmoitukset')
-        .delete()
-        .eq('user_id', user.id)
+    const { error: delError } = await supabase
+      .from('ilmoitukset')
+      .delete()
+      .eq('user_id', user.id)
 
-      if (delError) {
-        console.error('Virhe poistossa:', delError.message)
-        alert('Virhe poistossa. Yritä uudelleen.')
-        return
-      }
-
-      await supabase.auth.signOut()
-
-      alert(
-        'Tili ja ilmoitukset poistettu. Jos haluat kokonaan poistaa kirjautumistilisi, ota yhteyttä ylläpitoon.'
-      )
-      router.push('/')
-    } finally {
-      setIsActionRunning(false)
+    if (delError) {
+      console.error('Virhe poistossa:', delError.message)
+      alert('Virhe poistossa. Yritä uudelleen.')
+      return
     }
+
+    await supabase.auth.signOut()
+
+    alert(
+      'Tili ja ilmoitukset poistettu. Jos haluat kokonaan poistaa kirjautumistilisi, ota yhteyttä ylläpitoon.'
+    )
+    router.push('/')
   }
 
   return (
@@ -180,7 +147,7 @@ export default function ProfiiliSivu() {
               key={ilmo.id}
               className="bg-white border rounded-lg shadow-sm overflow-hidden text-left w-full flex flex-col"
             >
-              {/* Yläosa: klikattava, avaa ilmoituksen */}
+              {/* Yläosa: klikattava kortti, avaa ilmoituksen */}
               <Link href={`/ilmoitukset/${ilmo.id}`} className="block w-full">
                 <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
                   {ilmo.kuva_url ? (
@@ -233,13 +200,12 @@ export default function ProfiiliSivu() {
                 </div>
               </Link>
 
-              {/* Alaosa: napit, eivät avaa ilmoitusta */}
+              {/* Alaosa: napit */}
               <div className="px-4 pb-4 pt-2 space-y-2 mt-auto">
                 <button
                   type="button"
                   onClick={() => julkaiseUudelleen(ilmo)}
-                  disabled={isActionRunning}
-                  className="w-full px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                   Julkaise uudelleen
                 </button>
@@ -247,8 +213,7 @@ export default function ProfiiliSivu() {
                 <button
                   type="button"
                   onClick={() => poistaIlmoitus(ilmo)}
-                  disabled={isActionRunning}
-                  className="w-full px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
                 >
                   Poista
                 </button>
@@ -256,8 +221,7 @@ export default function ProfiiliSivu() {
                 <button
                   type="button"
                   onClick={() => router.push(`/muokkaa/${ilmo.id}`)}
-                  disabled={isActionRunning}
-                  className="w-full px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded hover:bg-gray-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
                 >
                   Muokkaa
                 </button>
@@ -271,8 +235,7 @@ export default function ProfiiliSivu() {
         <button
           type="button"
           onClick={poistaTili}
-          disabled={isActionRunning}
-          className="bg-red-700 text-white px-6 py-3 rounded hover:bg-red-800 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="bg-red-700 text-white px-6 py-3 rounded hover:bg-red-800"
         >
           Poista käyttäjätili ja kaikki ilmoitukset
         </button>
