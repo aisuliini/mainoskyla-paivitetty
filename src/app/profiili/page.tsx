@@ -26,6 +26,7 @@ type Ilmoitus = {
 export default function ProfiiliSivu() {
   const router = useRouter()
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
+  const [busyId, setBusyId] = useState<string | null>(null)
 
 
   useEffect(() => {
@@ -49,20 +50,32 @@ export default function ProfiiliSivu() {
   }, [router])
 
   const julkaiseUudelleen = async (ilmo: Ilmoitus) => {
-    if (!confirm('Julkaistaanko ilmoitus uudelleen?')) return
-    const uusiPaiva = new Date().toISOString()
-    const { error } = await supabase
-  .from('ilmoitukset')
-  .update({ luotu: uusiPaiva })
-  .eq('id', ilmo.id)
+  if (busyId) return
+  if (!confirm('Julkaistaanko ilmoitus uudelleen?')) return
 
-if (!error) {
-  setIlmoitukset((prev) =>
-    prev.map((i) => (i.id === ilmo.id ? { ...i, luotu: uusiPaiva } : i))
-  )
+  setBusyId(ilmo.id)
+  try {
+    const uusiPaiva = new Date().toISOString()
+
+    const { error } = await supabase
+      .from('ilmoitukset')
+      .update({ luotu: uusiPaiva })
+      .eq('id', ilmo.id)
+
+    if (error) {
+      console.error(error)
+      alert('Päivitys epäonnistui. Yritä uudelleen.')
+      return
+    }
+
+    setIlmoitukset((prev) =>
+      prev.map((i) => (i.id === ilmo.id ? { ...i, luotu: uusiPaiva } : i))
+    )
+  } finally {
+    setBusyId(null)
+  }
 }
 
-  }
 
   const poistaTili = async () => {
   const { data: sessionData } = await supabase.auth.getSession()
@@ -97,10 +110,28 @@ if (!error) {
 }
 
   const poistaIlmoitus = async (ilmo: Ilmoitus) => {
-    if (!confirm('Poistetaanko ilmoitus pysyvästi?')) return
-    await supabase.from('ilmoitukset').delete().eq('id', ilmo.id)
+  if (busyId) return
+  if (!confirm('Poistetaanko ilmoitus pysyvästi?')) return
+
+  setBusyId(ilmo.id)
+  try {
+    const { error } = await supabase
+      .from('ilmoitukset')
+      .delete()
+      .eq('id', ilmo.id)
+
+    if (error) {
+      console.error(error)
+      alert('Poisto epäonnistui. Yritä uudelleen.')
+      return
+    }
+
     setIlmoitukset((prev) => prev.filter((i) => i.id !== ilmo.id))
+  } finally {
+    setBusyId(null)
   }
+}
+
 
   return (
     <main className="max-w-screen-xl mx-auto p-6">
@@ -172,7 +203,12 @@ if (!error) {
         <div className="px-4 pb-4 -mt-2 space-y-2">
           <button
             type="button"
-            onClick={() => julkaiseUudelleen(ilmo)}
+            onClick={(e) => {
+  e.stopPropagation()
+  julkaiseUudelleen(ilmo)
+}}
+disabled={busyId === ilmo.id}
+
             className="w-full px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Julkaise uudelleen
@@ -180,7 +216,11 @@ if (!error) {
 
           <button
             type="button"
-            onClick={() => poistaIlmoitus(ilmo)}
+onClick={(e) => {
+  e.stopPropagation()
+  poistaIlmoitus(ilmo)
+}}
+disabled={busyId === ilmo.id}
             className="w-full px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
           >
             Poista
@@ -188,7 +228,12 @@ if (!error) {
 
           <button
             type="button"
-            onClick={() => router.push(`/muokkaa/${ilmo.id}`)}
+onClick={(e) => {
+  e.stopPropagation()
+  if (busyId) return
+  router.push(`/muokkaa/${ilmo.id}`)
+}}
+disabled={busyId === ilmo.id}
             className="w-full px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
           >
             Muokkaa
