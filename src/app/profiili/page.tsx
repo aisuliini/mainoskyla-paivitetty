@@ -55,14 +55,27 @@ export default function ProfiiliSivu() {
     haeKayttajaJaIlmoitukset()
   }, [router])
 
-  // 🔹 Estä mobiilin back/forward-välimuisti (bfcache), jotta sivu oikeasti ladataan uudelleen
+  // 🔹 Estetään mobiilin bfcache / pakotetaan tuore sivu back-napin jälkeen
   useEffect(() => {
-    const handleUnload = () => {
-      // ei tarvitse tehdä mitään – pelkkä kuuntelija riittää
+    const handlePageShow = (event: Event & { persisted?: boolean }) => {
+      if (event.persisted) {
+        // sivu palautui back/forward-cachesta → ladataan kokonaan uudestaan
+        window.location.reload()
+      }
     }
 
+    // Safarissa pelkkä unload-listener usein riittää estämään bfcachen
+    const handleUnload = () => {
+      // ei tarvitse tehdä mitään, pelkkä handler riittää
+    }
+
+    window.addEventListener('pageshow', handlePageShow)
     window.addEventListener('unload', handleUnload)
-    return () => window.removeEventListener('unload', handleUnload)
+
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow)
+      window.removeEventListener('unload', handleUnload)
+    }
   }, [])
 
   // 🔹 Julkaise uudelleen (päivitä luotu)
