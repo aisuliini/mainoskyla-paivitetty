@@ -242,7 +242,7 @@ data?.forEach((ilmo: PremiumIlmoitus) => {
 
 
     const punaiset = Object.entries(paivaLaskuri)
-      .filter(([, count]) => count >= 52) // Näytä punaisena vain jos 52+ varattu
+      .filter(([, count]) => count >= 6) // Näytä punaisena vain jos 6+ varattu
       .map(([päivä]) => new Date(päivä))
 
     setVaratutPaivat(punaiset)

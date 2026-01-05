@@ -41,7 +41,7 @@ export default function ArjenPalvelutClientPage() {
       let query = supabase
   .from('ilmoitukset')
   .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, voimassa_alku')
-  .eq('kategoria', 'ArjenPalvelut')
+  .eq('kategoria', 'Arjen palvelut')
   .or(`voimassa_alku.is.null,voimassa_alku.lte.${nytISO}`)
   .order('premium', { ascending: false })
 
