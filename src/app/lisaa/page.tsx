@@ -81,41 +81,46 @@ const validateAll = () => {
     e.linkki = 'Linkin täytyy alkaa https:// ja lyhytlinkit (bit.ly/tinyurl/t.co) eivät ole sallittuja.'
   }
 
-  setErrors(e)
-  return e
+    return e
 }
 
-const scrollToFirstError = () => {
-  const firstErrorKey = Object.keys(errors)[0]
+
+const scrollToFirstError = (errs: Record<string, string>) => {
+  const firstErrorKey = Object.keys(errs)[0]
   if (!firstErrorKey) return
 
-  // yritetään löytää kenttä name / id / data-error -attribuutilla
   const el =
     document.querySelector(`[name="${firstErrorKey}"]`) ||
     document.querySelector(`[data-error="${firstErrorKey}"]`)
 
   if (el instanceof HTMLElement) {
     el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    el.focus?.()
+    // pieni viive auttaa mobiilissa fokuksen kanssa
+    setTimeout(() => {
+      el.focus?.()
+    }, 100)
   } else {
-    // fallback: scroll ylös
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
+
 
 // Tämä tekee julkaisun (vain kun kutsutaan nappia painamalla)
 const submitNow = async () => {
   if (isSubmitting) return
 
-  setSubmitError(null)
+    setSubmitError(null)
   setSubmitSuccess(null)
-  setErrors({})
 
   const errs = validateAll()
-if (Object.keys(errs).length > 0) {
-  setTimeout(scrollToFirstError, 50)
-  return
-}
+  if (Object.keys(errs).length > 0) {
+    setErrors(errs)
+    setTimeout(() => scrollToFirstError(errs), 50)
+    return
+  }
+
+  setErrors({})
+
 
 
   setIsSubmitting(true)
@@ -467,7 +472,15 @@ return
   </p>
 )}
 
-          <textarea placeholder="Kuvaus" value={kuvaus} onChange={(e) => setKuvaus(e.target.value)} required className="w-full border px-4 py-2 rounded" />
+    <textarea
+    name="kuvaus"
+    placeholder="Kuvaus"
+    value={kuvaus}
+    onChange={(e) => setKuvaus(e.target.value)}
+    required
+    className="w-full border px-4 py-2 rounded"
+    />
+
          {errors.kuvaus && (
          <p className="text-sm text-red-600 mt-1">
          {errors.kuvaus}
@@ -477,25 +490,26 @@ return
 
           <div ref={wrapperRef} className="relative">
             <input
-              type="text"
-              placeholder="Sijainti (esim. Porvoo)"
-              value={sijainti}
-              onChange={(e) => setSijainti(e.target.value)}
-              onKeyDown={(e) => {
-  if (e.key === 'Enter' && sijaintiehdotukset.length > 0) {
-    e.preventDefault()
-    const exact = sijaintiehdotukset.find(
-      (p) => p.toLowerCase() === sijainti.toLowerCase()
-    )
-    const valittu = exact || sijaintiehdotukset[0]
-    setSijainti(valittu)
-    setSijaintiehdotukset([])
-  }
-}}
+  name="sijainti"
+  type="text"
+  placeholder="Sijainti (esim. Porvoo)"
+  value={sijainti}
+  onChange={(e) => setSijainti(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' && sijaintiehdotukset.length > 0) {
+      e.preventDefault()
+      const exact = sijaintiehdotukset.find(
+        (p) => p.toLowerCase() === sijainti.toLowerCase()
+      )
+      const valittu = exact || sijaintiehdotukset[0]
+      setSijainti(valittu)
+      setSijaintiehdotukset([])
+    }
+  }}
+  required
+  className="w-full border px-4 py-2 rounded"
+/>
 
-              required
-              className="w-full border px-4 py-2 rounded"
-            />
             {sijaintiehdotukset.length > 0 && (
               <ul className="absolute z-10 bg-white border w-full mt-1 rounded shadow text-sm max-h-40 overflow-y-auto">
                 {sijaintiehdotukset.map((ehdotus, i) => (
@@ -523,7 +537,13 @@ return
 )}
 
 
-          <select value={kategoria} onChange={(e) => setKategoria(e.target.value)} required className="w-full border px-4 py-2 rounded">
+<select
+  name="kategoria"
+  value={kategoria}
+  onChange={(e) => setKategoria(e.target.value)}
+  required
+  className="w-full border px-4 py-2 rounded"
+>
 
 
 
@@ -546,43 +566,45 @@ return
 
           { kategoria === 'Tapahtumat' && (
   <>
-    <label className="block">Tapahtuman alkupäivä:</label>
-    <DayPicker
-  mode="single"
-  selected={tapahtumaAlku ?? undefined}
-  onSelect={(d) => setTapahtumaAlku(d ?? null)}
-  locale={fi}
-/>
+    <div data-error="tapahtumaAlku" tabIndex={-1}>
+      <label className="block">Tapahtuman alkupäivä:</label>
+      <DayPicker
+        mode="single"
+        selected={tapahtumaAlku ?? undefined}
+        onSelect={(d) => setTapahtumaAlku(d ?? null)}
+        locale={fi}
+      />
+    </div>
 
-
-    <label className="block">Tapahtuman loppupäivä:</label>
-    <DayPicker
-  mode="single"
-  selected={tapahtumaLoppu ?? undefined}
-  onSelect={(d) => setTapahtumaLoppu(d ?? null)}
-  locale={fi}
-/>
-
+    <div data-error="tapahtumaLoppu" tabIndex={-1}>
+      <label className="block">Tapahtuman loppupäivä:</label>
+      <DayPicker
+        mode="single"
+        selected={tapahtumaLoppu ?? undefined}
+        onSelect={(d) => setTapahtumaLoppu(d ?? null)}
+        locale={fi}
+      />
+    </div>
 
     {errors.tapahtumaAlku && (
-  <p className="text-sm text-red-600 mt-1">
-    {errors.tapahtumaAlku}
-  </p>
-)}
+      <p className="text-sm text-red-600 mt-1">
+        {errors.tapahtumaAlku}
+      </p>
+    )}
 
-{errors.tapahtumaLoppu && (
-  <p className="text-sm text-red-600 mt-1">
-    {errors.tapahtumaLoppu}
-  </p>
-)}
-
+    {errors.tapahtumaLoppu && (
+      <p className="text-sm text-red-600 mt-1">
+        {errors.tapahtumaLoppu}
+      </p>
+    )}
   </>
 )}
+
 </div>
 
 
 {/* STEP 2: Yhteystiedot */}
-<div className="space-y-4">
+<div className="space-y-4" data-error="yhteys">
 
   <p className="text-sm text-gray-600">
     Valitse ensisijainen tapa, jolla haluat asiakkaan ottavan yhteyttä.
@@ -610,21 +632,25 @@ return
   />
 
   <input
-    type="email"
-    placeholder="Sähköposti"
-    value={sahkoposti}
-    onChange={(e) => setSahkoposti(e.target.value)}
-    className="w-full border px-4 py-2 rounded"
-  />
+  name="sahkoposti"
+  type="email"
+  placeholder="Sähköposti"
+  value={sahkoposti}
+  onChange={(e) => setSahkoposti(e.target.value)}
+  className="w-full border px-4 py-2 rounded"
+/>
+
   {errors.sahkoposti && <p className="text-sm text-red-600">{errors.sahkoposti}</p>}
 
   <input
-    type="text"
-    placeholder="Linkki (https://instagram.com/... tai https://yritys.fi)"
-    value={linkki}
-    onChange={(e) => setLinkki(e.target.value)}
-    className="w-full border px-4 py-2 rounded"
-  />
+  name="linkki"
+  type="text"
+  placeholder="Linkki (https://instagram.com/... tai https://yritys.fi)"
+  value={linkki}
+  onChange={(e) => setLinkki(e.target.value)}
+  className="w-full border px-4 py-2 rounded"
+/>
+
   {errors.linkki && <p className="text-sm text-red-600">{errors.linkki}</p>}
 
   {errors.yhteys && <p className="text-sm text-red-600">{errors.yhteys}</p>}
@@ -767,15 +793,18 @@ if (replaceIndex !== null) {
                 <option value="90">90 päivää</option>
               </select>
 
-              <label className="block">Valitse premium-alkupäivä:</label>
-              <DayPicker
-  mode="single"
-  selected={alku ?? undefined}
-  onSelect={(d) => setAlku(d ?? null)}
-  modifiers={{ varattu: varatutPaivat }}
-  modifiersClassNames={{ varattu: 'bg-red-500 text-white' }}
-  locale={fi}
-/>
+              <div data-error="alku" tabIndex={-1}>
+  <label className="block">Valitse premium-alkupäivä:</label>
+  <DayPicker
+    mode="single"
+    selected={alku ?? undefined}
+    onSelect={(d) => setAlku(d ?? null)}
+    modifiers={{ varattu: varatutPaivat }}
+    modifiersClassNames={{ varattu: 'bg-red-500 text-white' }}
+    locale={fi}
+  />
+</div>
+
 
 
               {errors.alku && (
