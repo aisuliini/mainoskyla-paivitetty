@@ -38,18 +38,15 @@ export default function ElainpalvelutClientPage() {
 
       const nytISO = new Date().toISOString()
 
-      let query = supabase
-  .from('ilmoitukset')
-  .select('*')
-  .or(
-    `and(voimassa_alku.is.null,voimassa_loppu.is.null),
-     and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),
-     and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),
-     and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`
-  )
-  .eq('kategoria', 'Eläinpalvelut')
-  .order('premium', { ascending: false })
-  .order('luotu', { ascending: false })
+  let query = supabase
+    .from('ilmoitukset')
+    .select('*')
+    .eq('kategoria', 'Eläinpalvelut')
+    .or(
+      `and(voimassa_alku.is.null,voimassa_loppu.is.null),and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`
+    )
+    .order('premium', { ascending: false })
+    .order('luotu', { ascending: false })
       
 
 

@@ -41,7 +41,7 @@ export default function KotiJaRemontointiClientPage() {
       let query = supabase
   .from('ilmoitukset')
   .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, voimassa_alku')
-  .eq('kategoria', 'Koti & Remontointi')
+  .eq('kategoria', 'Koti ja Remontointi')
   .or(`voimassa_alku.is.null,voimassa_alku.lte.${nytISO}`)
   .order('premium', { ascending: false })
 

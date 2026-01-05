@@ -41,7 +41,7 @@ export default function MediaJaLuovuusClientPage() {
       let query = supabase
   .from('ilmoitukset')
   .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, voimassa_alku')
-  .eq('kategoria', 'Media & Luovuus')
+  .eq('kategoria', 'Media ja Luovuus')
   .or(`voimassa_alku.is.null,voimassa_alku.lte.${nytISO}`)
   .order('premium', { ascending: false })
 

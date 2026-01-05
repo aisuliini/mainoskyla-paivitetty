@@ -40,7 +40,7 @@ export default function VuokraJaJuhlatilatClientPage() {
       let query = supabase
   .from('ilmoitukset')
   .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, voimassa_alku')
-  .eq('kategoria', 'Vuokra ja Juhlatilat')
+  .eq('kategoria', 'Vuokratilat ja Juhlapaikat')
   .or(`voimassa_alku.is.null,voimassa_alku.lte.${nytISO}`)
   .order('premium', { ascending: false })
 
@@ -65,7 +65,7 @@ export default function VuokraJaJuhlatilatClientPage() {
 
   return (
     <main className="max-w-screen-xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Vuokra & Juhlatilat</h1>
+      <h1 className="text-2xl font-bold mb-6">Vuokratilat & Juhlapaikat</h1>
 
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <select
