@@ -27,7 +27,10 @@ export default function CookieBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 w-full bg-[#3f704d] text-white p-4 text-sm flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 z-50">
+<div
+  className="fixed inset-x-0 bottom-0 bg-[#3f704d] text-white p-4 text-sm flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 z-50"
+  style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+>
       <p>
         Käytämme evästeitä käyttökokemuksen parantamiseksi.{' '}
         <Link href="/tietosuoja" className="underline text-white hover:text-gray-200">

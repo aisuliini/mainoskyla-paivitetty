@@ -107,133 +107,107 @@ if (!error) {
       <h1 className="text-2xl font-bold mb-6">Omat ilmoitukset</h1>
 
       {ilmoitukset.length === 0 ? (
-        <p>Sinulla ei ole vielä ilmoituksia.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {ilmoitukset.map((ilmo) => (
-  <div
-    key={ilmo.id}
-    role="button"
-    tabIndex={0}
-    onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
-    onKeyDown={(e) => e.key === 'Enter' && router.push(`/ilmoitukset/${ilmo.id}`)}
-    className="
-      cursor-pointer
-      bg-white border rounded-lg shadow-sm overflow-hidden
-      text-left w-full
-      transition-all duration-200
-      hover:-translate-y-0.5 hover:shadow-md
-      focus:outline-none focus:ring-2 focus:ring-blue-500
-    "
-  >
+  <p>Sinulla ei ole vielä ilmoituksia.</p>
+) : (
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+    {ilmoitukset.map((ilmo) => (
+      <div
+        key={ilmo.id}
+        className="bg-white border rounded-lg shadow-sm overflow-hidden text-left w-full"
+      >
+        {/* 🔹 Klikattava alue: avaa ilmoituksen */}
+        <button
+          type="button"
+          onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
+          className="w-full text-left touch-manipulation"
+        >
+          <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
+            {ilmo.kuva_url ? (
+              <Image
+                src={ilmo.kuva_url}
+                alt={ilmo.otsikko}
+                width={400}
+                height={160}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="text-xs text-gray-400">Ei kuvaa</span>
+            )}
+          </div>
 
+          <div className="p-4">
+            <h3 className="font-semibold text-lg mb-1 truncate">
+              {ilmo.otsikko}
+            </h3>
 
-              <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
-                {ilmo.kuva_url ? (
-                  <Image
-                    src={ilmo.kuva_url}
-                    alt={ilmo.otsikko}
-                    width={400}
-                    height={160}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="text-xs text-gray-400">Ei kuvaa</span>
-                )}
-              </div>
+            <p className="text-sm text-gray-600 line-clamp-2">
+              {ilmo.kuvaus}
+            </p>
 
-              <div className="p-4">
-                <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>
-                <p className="text-sm text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
-                <p className="text-xs text-gray-500">{ilmo.sijainti ?? ''}</p>
+            <p className="text-xs text-gray-500">
+              {ilmo.sijainti ?? ''}
+            </p>
 
+            {ilmo.voimassa_alku && ilmo.voimassa_loppu && (
+              <p className="text-xs text-gray-500 mt-1">
+                Voimassa:{' '}
+                <strong>
+                  {new Date(ilmo.voimassa_alku).toLocaleDateString('fi-FI')}
+                </strong>{' '}
+                –{' '}
+                <strong>
+                  {new Date(ilmo.voimassa_loppu).toLocaleDateString('fi-FI')}
+                </strong>
+              </p>
+            )}
 
-                {ilmo.voimassa_alku && ilmo.voimassa_loppu && (
-  <p className="text-xs text-gray-500 mt-1">
-    Voimassa:{" "}
-    <strong>{new Date(ilmo.voimassa_alku).toLocaleDateString("fi-FI")}</strong>
-    {" "}–{" "}
-    <strong>{new Date(ilmo.voimassa_loppu).toLocaleDateString("fi-FI")}</strong>
-  </p>
+            <div className="flex items-center text-xs text-gray-500 mt-2 gap-1">
+              <Eye size={14} />
+              {ilmo.nayttoja || 0} katselukertaa
+            </div>
+          </div>
+        </button>
+
+        {/* 🔹 Napit EI avaa ilmoitusta */}
+        <div className="px-4 pb-4 -mt-2 space-y-2">
+          <button
+            type="button"
+            onClick={() => julkaiseUudelleen(ilmo)}
+            className="w-full px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Julkaise uudelleen
+          </button>
+
+          <button
+            type="button"
+            onClick={() => poistaIlmoitus(ilmo)}
+            className="w-full px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Poista
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push(`/muokkaa/${ilmo.id}`)}
+            className="w-full px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+          >
+            Muokkaa
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
 )}
 
-
-                <div className="flex items-center text-xs text-gray-500 mt-2 gap-1">
-                  <Eye size={14} className="inline-block" />
-                  {ilmo.nayttoja || 0} katselukertaa
-                </div>
-
-                <div className="mt-3 space-y-2">
-                  <button
-  type="button"
-  onClick={(e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    julkaiseUudelleen(ilmo)
-  }}
-  onPointerDown={(e) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }}
-  className="w-full px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
->
-  Julkaise uudelleen
-</button>
-
-
-
-                  <button
-  type="button"
-  onClick={(e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    poistaIlmoitus(ilmo)
-  }}
-  onPointerDown={(e) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }}
-  className="w-full px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
->
-  Poista
-</button>
-
-
-
-                  <button
-  type="button"
-  onClick={(e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    router.push(`/muokkaa/${ilmo.id}`)
-  }}
-  onPointerDown={(e) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }}
-  className="w-full px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
->
-  Muokkaa
-</button>
-
-
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="mt-8">
+<div className="mt-8">
   <button
-  type="button"
-  onClick={poistaTili}
+    type="button"
+    onClick={poistaTili}
     className="bg-red-700 text-white px-6 py-3 rounded hover:bg-red-800"
   >
     Poista käyttäjätili ja kaikki ilmoitukset
   </button>
 </div>
-
     </main>
   )
 }
