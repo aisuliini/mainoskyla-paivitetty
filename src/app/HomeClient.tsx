@@ -23,7 +23,6 @@ import {
   Heart,
   Home as HomeIcon,
   Book,
-  Megaphone,
   Calendar,
   Package
 } from "lucide-react";
