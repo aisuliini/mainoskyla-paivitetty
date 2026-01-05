@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 import { Eye } from 'lucide-react'
-import Image from 'next/image'
 
 type Ilmoitus = {
   id: string
@@ -24,11 +25,13 @@ export default function ProfiiliSivu() {
   const router = useRouter()
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
   const [isActionRunning, setIsActionRunning] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const haeKayttajaJaIlmoitukset = async () => {
       const { data: authData } = await supabase.auth.getSession()
       const currentUser = authData?.session?.user
+
       if (!currentUser) {
         router.push('/kirjaudu')
         return
@@ -42,10 +45,11 @@ export default function ProfiiliSivu() {
 
       if (error) {
         console.error('Virhe ilmoitusten haussa:', error.message)
-        return
+      } else if (data) {
+        setIlmoitukset(data)
       }
 
-      if (data) setIlmoitukset(data)
+      setLoading(false)
     }
 
     haeKayttajaJaIlmoitukset()
@@ -65,7 +69,7 @@ export default function ProfiiliSivu() {
         .eq('id', ilmo.id)
 
       if (error) {
-        console.error(error)
+        console.error('Virhe julkaisussa:', error.message)
         alert('Päivitys epäonnistui. Yritä uudelleen.')
         return
       }
@@ -90,7 +94,7 @@ export default function ProfiiliSivu() {
         .eq('id', ilmo.id)
 
       if (error) {
-        console.error(error)
+        console.error('Virhe poistossa:', error.message)
         alert('Poisto epäonnistui. Yritä uudelleen.')
         return
       }
@@ -148,21 +152,19 @@ export default function ProfiiliSivu() {
     <main className="max-w-screen-xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Omat ilmoitukset</h1>
 
-      {ilmoitukset.length === 0 ? (
+      {loading ? (
+        <p>Ladataan ilmoituksia...</p>
+      ) : ilmoitukset.length === 0 ? (
         <p>Sinulla ei ole vielä ilmoituksia.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {ilmoitukset.map((ilmo) => (
             <div
               key={ilmo.id}
-              className="bg-white border rounded-lg shadow-sm overflow-hidden text-left w-full"
+              className="bg-white border rounded-lg shadow-sm overflow-hidden text-left w-full flex flex-col"
             >
-              {/* Klikattava alue: avaa ilmoituksen */}
-              <button
-                type="button"
-                onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
-                className="w-full text-left touch-manipulation"
-              >
+              {/* Yläosa: klikattava, avaa ilmoituksen */}
+              <Link href={`/ilmoitukset/${ilmo.id}`} className="block w-full">
                 <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
                   {ilmo.kuva_url ? (
                     <Image
@@ -212,16 +214,13 @@ export default function ProfiiliSivu() {
                     {ilmo.nayttoja || 0} katselukertaa
                   </div>
                 </div>
-              </button>
+              </Link>
 
-              {/* Napit EI avaa ilmoitusta */}
-              <div className="px-4 pb-4 -mt-2 space-y-2">
+              {/* Alaosa: napit, eivät avaa ilmoitusta */}
+              <div className="px-4 pb-4 pt-2 space-y-2 mt-auto">
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    julkaiseUudelleen(ilmo)
-                  }}
+                  onClick={() => julkaiseUudelleen(ilmo)}
                   disabled={isActionRunning}
                   className="w-full px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
@@ -230,10 +229,7 @@ export default function ProfiiliSivu() {
 
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    poistaIlmoitus(ilmo)
-                  }}
+                  onClick={() => poistaIlmoitus(ilmo)}
                   disabled={isActionRunning}
                   className="w-full px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
@@ -242,11 +238,7 @@ export default function ProfiiliSivu() {
 
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    if (isActionRunning) return
-                    router.push(`/muokkaa/${ilmo.id}`)
-                  }}
+                  onClick={() => router.push(`/muokkaa/${ilmo.id}`)}
                   disabled={isActionRunning}
                   className="w-full px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded hover:bg-gray-300 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
