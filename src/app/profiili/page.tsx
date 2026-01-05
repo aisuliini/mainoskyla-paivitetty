@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { Eye } from 'lucide-react'
-import Link from 'next/link'
 import Image from 'next/image'
 
 
@@ -52,8 +51,17 @@ export default function ProfiiliSivu() {
   const julkaiseUudelleen = async (ilmo: Ilmoitus) => {
     if (!confirm('Julkaistaanko ilmoitus uudelleen?')) return
     const uusiPaiva = new Date().toISOString()
-    await supabase.from('ilmoitukset').update({ luotu: uusiPaiva }).eq('id', ilmo.id)
-    location.reload()
+    const { error } = await supabase
+  .from('ilmoitukset')
+  .update({ luotu: uusiPaiva })
+  .eq('id', ilmo.id)
+
+if (!error) {
+  setIlmoitukset((prev) =>
+    prev.map((i) => (i.id === ilmo.id ? { ...i, luotu: uusiPaiva } : i))
+  )
+}
+
   }
 
   const poistaTili = async () => {
@@ -139,15 +147,6 @@ export default function ProfiiliSivu() {
                 <p className="text-sm text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
                 <p className="text-xs text-gray-500">{ilmo.sijainti ?? ''}</p>
 
-                {ilmo.voimassa_alku && ilmo.voimassa_loppu && (
-  <p className="text-xs text-gray-500 mt-1">
-    Voimassa:{" "}
-    <strong>{new Date(ilmo.voimassa_alku).toLocaleDateString("fi-FI")}</strong>
-    {" "}–{" "}
-    <strong>{new Date(ilmo.voimassa_loppu).toLocaleDateString("fi-FI")}</strong>
-  </p>
-)}
-
 
                 {ilmo.voimassa_alku && ilmo.voimassa_loppu && (
   <p className="text-xs text-gray-500 mt-1">
@@ -172,10 +171,15 @@ export default function ProfiiliSivu() {
     e.stopPropagation()
     julkaiseUudelleen(ilmo)
   }}
+  onPointerDown={(e) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }}
   className="w-full px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
 >
   Julkaise uudelleen
 </button>
+
 
 
                   <button
@@ -185,30 +189,33 @@ export default function ProfiiliSivu() {
     e.stopPropagation()
     poistaIlmoitus(ilmo)
   }}
+  onPointerDown={(e) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }}
   className="w-full px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
 >
   Poista
 </button>
 
 
-                  <Link
-  href={`/muokkaa/${ilmo.id}`}
+
+                  <button
+  type="button"
   onClick={(e) => {
     e.preventDefault()
     e.stopPropagation()
     router.push(`/muokkaa/${ilmo.id}`)
   }}
-  onKeyDown={(e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      e.stopPropagation()
-      router.push(`/muokkaa/${ilmo.id}`)
-    }
+  onPointerDown={(e) => {
+    e.preventDefault()
+    e.stopPropagation()
   }}
-  className="block text-center w-full px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+  className="w-full px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
 >
   Muokkaa
-</Link>
+</button>
+
 
                 </div>
               </div>
@@ -219,7 +226,8 @@ export default function ProfiiliSivu() {
 
       <div className="mt-8">
   <button
-    onClick={poistaTili}
+  type="button"
+  onClick={poistaTili}
     className="bg-red-700 text-white px-6 py-3 rounded hover:bg-red-800"
   >
     Poista käyttäjätili ja kaikki ilmoitukset
