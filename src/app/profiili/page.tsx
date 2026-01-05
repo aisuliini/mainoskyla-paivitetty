@@ -55,18 +55,14 @@ export default function ProfiiliSivu() {
     haeKayttajaJaIlmoitukset()
   }, [router])
 
-  // 🔹 Korjaus mobiilin back-nappiin / bfcacheen
+  // 🔹 Estä mobiilin back/forward-välimuisti (bfcache), jotta sivu oikeasti ladataan uudelleen
   useEffect(() => {
-    const handlePageShow = (event: WindowEventMap['pageshow']) => {
-      // jos sivu palautetaan selaimen "back/forward cachesta"
-      if (event.persisted) {
-        // pakota uusi lataus -> event handlerit toimii taas
-        window.location.reload()
-      }
+    const handleUnload = () => {
+      // ei tarvitse tehdä mitään – pelkkä kuuntelija riittää
     }
 
-    window.addEventListener('pageshow', handlePageShow)
-    return () => window.removeEventListener('pageshow', handlePageShow)
+    window.addEventListener('unload', handleUnload)
+    return () => window.removeEventListener('unload', handleUnload)
   }, [])
 
   // 🔹 Julkaise uudelleen (päivitä luotu)
