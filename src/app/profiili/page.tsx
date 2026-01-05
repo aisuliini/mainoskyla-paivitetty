@@ -55,6 +55,23 @@ export default function ProfiiliSivu() {
     haeKayttajaJaIlmoitukset()
   }, [router])
 
+  // 🔹 UUSI EFFECTI TÄSSÄ
+  useEffect(() => {
+    const handleShow = () => {
+      setIsActionRunning(false)
+    }
+
+    window.addEventListener('pageshow', handleShow)
+    document.addEventListener('visibilitychange', handleShow)
+    handleShow()
+
+    return () => {
+      window.removeEventListener('pageshow', handleShow)
+      document.removeEventListener('visibilitychange', handleShow)
+    }
+  }, [])
+
+
   const julkaiseUudelleen = async (ilmo: Ilmoitus) => {
     if (isActionRunning) return
     if (!confirm('Julkaistaanko ilmoitus uudelleen?')) return
