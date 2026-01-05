@@ -200,12 +200,6 @@ const kategoriat = [
     enabled: false,
   },
   {
-    nimi: "Ilmoitustaulu",
-    href: "/kategoriat/ilmoitustaulu",
-    ikoni: <Megaphone className="h-6 w-6 text-[#1E3A41]" />,
-    enabled: false,
-  },
-  {
     nimi: "Tapahtumat",
     href: "/kategoriat/tapahtumat",
     ikoni: <Calendar className="h-6 w-6 text-[#1E3A41]" />,

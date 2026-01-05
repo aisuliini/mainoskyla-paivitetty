@@ -564,8 +564,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               onChange={(e) => setVoimassaKesto(e.target.value)}
               className="w-full border px-4 py-2 rounded"
             >
-              <option value="7">7 päivää</option>
-              <option value="14">14 päivää</option>
               <option value="30">30 päivää</option>
               <option value="60">60 päivää</option>
               <option value="90">90 päivää</option>
@@ -584,8 +582,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           <>
             <label className="block">Näkyvyysaika:</label>
             <select value={kesto} onChange={(e) => setKesto(e.target.value)} className="w-full border px-4 py-2 rounded">
-              <option value="7">7 päivää</option>
-              <option value="14">14 päivää</option>
               <option value="30">30 päivää</option>
               <option value="60">60 päivää</option>
               <option value="90">90 päivää</option>

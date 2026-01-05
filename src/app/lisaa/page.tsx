@@ -532,12 +532,9 @@ return
             <option value="Hyvinvointi ja Kauneus">Hyvinvointi ja Kauneus</option>
             <option value="Koti ja Remontointi">Koti ja Remontointi</option>
             <option value="Eläinpalvelut">Eläinpalvelut</option>
-            <option value="Pientuottajat">Pientuottajat</option>
             <option value="Käsityöläiset">Käsityöläiset</option>
             <option value="Media ja Luovuus">Media ja Luovuus</option>
-            <option value="Kurssit ja Koulutukset">Kurssit ja Koulutukset</option>
             <option value="Vuokratilat ja Juhlapaikat">Vuokratilat ja Juhlapaikat</option>
-            <option value="Ilmoitustaulu">Ilmoitustaulu</option>
             <option value="Tapahtumat">Tapahtumat</option>    
           </select>
 
@@ -748,8 +745,6 @@ if (replaceIndex !== null) {
       onChange={(e) => setKesto(e.target.value)}
       className="w-full border px-4 py-2 rounded"
     >
-      <option value="7">7 päivää</option>
-      <option value="14">14 päivää</option>
       <option value="30">30 päivää</option>
       <option value="60">60 päivää</option>
       <option value="90">90 päivää</option>
@@ -762,8 +757,6 @@ if (replaceIndex !== null) {
             <>
               <label className="block">Näkyvyysaika:</label>
               <select value={kesto} onChange={(e) => setKesto(e.target.value)} className="w-full border px-4 py-2 rounded">
-                <option value="7">7 päivää</option>
-                <option value="14">14 päivää</option>
                 <option value="30">30 päivää</option>
                 <option value="60">60 päivää</option>
                 <option value="90">90 päivää</option>
