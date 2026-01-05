@@ -731,14 +731,19 @@ if (replaceIndex !== null) {
 
 {/* STEP 4: Näkyvyys */}
 <div className="space-y-4">
-          <label className="block font-medium">Valitse ilmoitustyyppi:</label>
-          <select value={tyyppi} onChange={(e) => setTyyppi(e.target.value)} className="w-full border px-4 py-2 rounded">
-            <option value="perus">Perusilmoitus </option>
-            <option value="premium">Premium näkyvyys</option>
-          </select>
+  <label className="block font-medium">Valitse ilmoitustyyppi:</label>
+  <select
+    value={tyyppi}
+    onChange={(e) => setTyyppi(e.target.value)}
+    className="w-full border px-4 py-2 rounded"
+  >
+    <option value="perus">Kategoriailmoitus</option>
+    <option value="premium">Etusivun näkyvyys</option>
+  </select>
 
-          {tyyppi === 'perus' && (
-  <>
+  {tyyppi === 'perus' && (
+    <>
+
     <label className="block">Näkyvyysaika (päiviä):</label>
     <select
       value={kesto}
