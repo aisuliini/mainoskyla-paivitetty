@@ -57,7 +57,7 @@ export default function ProfiiliSivu() {
 
   // 🔹 Korjaus mobiilin back-nappiin / bfcacheen
   useEffect(() => {
-    const handlePageShow = (event: any) => {
+    const handlePageShow = (event: WindowEventMap['pageshow']) => {
       // jos sivu palautetaan selaimen "back/forward cachesta"
       if (event.persisted) {
         // pakota uusi lataus -> event handlerit toimii taas
