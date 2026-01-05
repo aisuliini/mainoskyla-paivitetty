@@ -26,7 +26,20 @@ export default function ProfiiliSivu() {
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
   const [loading, setLoading] = useState(true)
 
-  // 🔹 Hae kirjautunut käyttäjä + hänen ilmoitukset
+  // 🆕 1) Tunnista takaisin-navigointi (back/forward) ja päivitä sivu
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const entries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
+    const nav = entries[0]
+
+    if (nav && nav.type === 'back_forward') {
+      // Tämä ajetaan kun käyttäjä palaa esim. ilmoituksesta takaisin profiiliin
+      router.refresh()
+    }
+  }, [router])
+
+  // 2) Hae kirjautunut käyttäjä + hänen ilmoitukset
   useEffect(() => {
     const haeKayttajaJaIlmoitukset = async () => {
       const { data: authData } = await supabase.auth.getSession()
@@ -55,7 +68,7 @@ export default function ProfiiliSivu() {
     haeKayttajaJaIlmoitukset()
   }, [router])
 
-  // 🔹 Julkaise uudelleen (päivitä luotu)
+  // Julkaise uudelleen (päivitä luotu)
   const julkaiseUudelleen = async (ilmo: Ilmoitus) => {
     if (!confirm('Julkaistaanko ilmoitus uudelleen?')) return
 
@@ -77,7 +90,7 @@ export default function ProfiiliSivu() {
     )
   }
 
-  // 🔹 Poista yksittäinen ilmoitus
+  // Poista yksittäinen ilmoitus
   const poistaIlmoitus = async (ilmo: Ilmoitus) => {
     if (!confirm('Poistetaanko ilmoitus pysyvästi?')) return
 
@@ -95,7 +108,7 @@ export default function ProfiiliSivu() {
     setIlmoitukset((prev) => prev.filter((i) => i.id !== ilmo.id))
   }
 
-  // 🔹 Poista tili + kaikki ilmoitukset
+  // Poista tili + kaikki ilmoitukset
   const poistaTili = async () => {
     const { data: sessionData } = await supabase.auth.getSession()
     const user = sessionData?.session?.user
