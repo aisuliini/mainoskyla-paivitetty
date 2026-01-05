@@ -89,6 +89,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         }}
       />
 
+            <Script
+        id="bfcache-fix"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            if (typeof window !== 'undefined') {
+              window.addEventListener('pageshow', function (event) {
+                if (event.persisted) {
+                  window.location.reload();
+                }
+              });
+            }
+          `,
+        }}
+      />
+
+
       <body
         className={`${inter.className} bg-[#F6F7F7] text-charcoal min-h-screen flex flex-col overflow-x-hidden`}
       >
