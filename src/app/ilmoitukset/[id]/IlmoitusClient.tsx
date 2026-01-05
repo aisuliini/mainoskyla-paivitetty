@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import KuvaCarousel from '@/components/KuvaCarousel'
@@ -30,7 +30,9 @@ type Ilmoitus = {
 
 export default function IlmoitusClient() {
   const params = useParams()
+  const router = useRouter()
   const id = params.id as string
+
 
 const [ilmoitus, setIlmoitus] = useState<Ilmoitus | null>(null)
 
@@ -136,95 +138,107 @@ const [profiili, setProfiili] = useState<Profiili | null>(null)
 
 
 
-  if (!ilmoitus) return <p className="p-6">Ladataan…</p>
+    if (!ilmoitus) return <p className="p-6">Ladataan…</p>
 
   return (
     <main className="max-w-2xl mx-auto p-6 bg-white rounded shadow my-12">
+      {/* Takaisin-nappi profiiliin */}
       <div className="mb-4">
-  <KuvaCarousel
-    kuvaUrl={ilmoitus?.kuva_url ?? null}
-    kuvat={kuvatArr}
-    autoMs={5000}
-    max={4}
-    alt={ilmoitus?.otsikko ?? 'Ilmoitus'}
-  />
-</div>
+        <button
+          type="button"
+          onClick={() => router.push('/profiili')}
+          className="text-sm text-[#1E3A41] underline underline-offset-2"
+        >
+          ← Takaisin omiin ilmoituksiin
+        </button>
+      </div>
 
-
-
-
+      <div className="mb-4">
+        <KuvaCarousel
+          kuvaUrl={ilmoitus?.kuva_url ?? null}
+          kuvat={kuvatArr}
+          autoMs={5000}
+          max={4}
+          alt={ilmoitus?.otsikko ?? 'Ilmoitus'}
+        />
+      </div>
 
       <h1 className="text-2xl font-bold break-words">{ilmoitus.otsikko}</h1>
-      <div className="mt-3 flex items-center gap-2">
-  {/* Profiilin www */}
-  {profiili?.www && (
-    <a
-      href={profiili.www.startsWith('http') ? profiili.www : `https://${profiili.www}`}
-      target="_blank"
-      rel="noreferrer"
-      className="inline-flex h-10 w-10 items-center justify-center rounded-full border bg-white hover:bg-gray-50"
-      aria-label="Avaa verkkosivu"
-      title="Verkkosivu"
-    >
-      <FaGlobe />
-    </a>
-  )}
 
-  {/* Ilmoituksen linkki (voi olla IG tai muu) */}
-  {ilmoitus?.linkki && (
-    <a
-      href={ilmoitus.linkki}
-      target="_blank"
-      rel="noreferrer"
-      className="inline-flex h-10 w-10 items-center justify-center rounded-full border bg-white hover:bg-gray-50"
-      aria-label="Avaa linkki"
-      title="Linkki"
-    >
-      {ilmoitus.linkki.includes('instagram.com') ? <FaInstagram /> : <FaGlobe />}
-    </a>
-  )}
-</div>
+      <div className="mt-3 flex items-center gap-2">
+        {/* Profiilin www */}
+        {profiili?.www && (
+          <a
+            href={profiili.www.startsWith('http') ? profiili.www : `https://${profiili.www}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border bg-white hover:bg-gray-50"
+            aria-label="Avaa verkkosivu"
+            title="Verkkosivu"
+          >
+            <FaGlobe />
+          </a>
+        )}
+
+        {/* Ilmoituksen linkki (voi olla IG tai muu) */}
+        {ilmoitus?.linkki && (
+          <a
+            href={ilmoitus.linkki}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border bg-white hover:bg-gray-50"
+            aria-label="Avaa linkki"
+            title="Linkki"
+          >
+            {ilmoitus.linkki.includes('instagram.com') ? <FaInstagram /> : <FaGlobe />}
+          </a>
+        )}
+      </div>
 
       <p className="mt-4 text-gray-800 whitespace-pre-line">{ilmoitus.kuvaus}</p>
+
       <p className="mt-2 text-sm text-gray-500">
-  Katselukerrat: {ilmoitus.nayttoja ?? 0}
-</p>
-
-{(ilmoitus.puhelin || ilmoitus.sahkoposti || ilmoitus.linkki) && (
-  <div className="mt-6 border-t pt-4">
-    <h2 className="text-lg font-semibold mb-2">Yhteystiedot</h2>
-
-    {ilmoitus.puhelin && (
-      <p className="text-sm text-gray-800">
-        <b>Puhelin:</b>{' '}
-        <a className="underline" href={`tel:${ilmoitus.puhelin}`}>
-          {ilmoitus.puhelin}
-        </a>
+        Katselukerrat: {ilmoitus.nayttoja ?? 0}
       </p>
-    )}
 
-    {ilmoitus.sahkoposti && (
-      <p className="text-sm text-gray-800">
-        <b>Sähköposti:</b>{' '}
-        <a className="underline" href={`mailto:${ilmoitus.sahkoposti}`}>
-          {ilmoitus.sahkoposti}
-        </a>
-      </p>
-    )}
+      {(ilmoitus.puhelin || ilmoitus.sahkoposti || ilmoitus.linkki) && (
+        <div className="mt-6 border-t pt-4">
+          <h2 className="text-lg font-semibold mb-2">Yhteystiedot</h2>
 
-    {ilmoitus.linkki && (
-      <p className="text-sm text-gray-800">
-        <b>Linkki:</b>{' '}
-        <a className="underline" href={ilmoitus.linkki} target="_blank" rel="noreferrer">
-          {ilmoitus.linkki}
-        </a>
-      </p>
-    )}
-  </div>
-)}
+          {ilmoitus.puhelin && (
+            <p className="text-sm text-gray-800">
+              <b>Puhelin:</b>{' '}
+              <a className="underline" href={`tel:${ilmoitus.puhelin}`}>
+                {ilmoitus.puhelin}
+              </a>
+            </p>
+          )}
 
+          {ilmoitus.sahkoposti && (
+            <p className="text-sm text-gray-800">
+              <b>Sähköposti:</b>{' '}
+              <a className="underline" href={`mailto:${ilmoitus.sahkoposti}`}>
+                {ilmoitus.sahkoposti}
+              </a>
+            </p>
+          )}
 
-
+          {ilmoitus.linkki && (
+            <p className="text-sm text-gray-800">
+              <b>Linkki:</b>{' '}
+              <a
+                className="underline"
+                href={ilmoitus.linkki}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {ilmoitus.linkki}
+              </a>
+            </p>
+          )}
+        </div>
+      )}
     </main>
   )
 }
+
