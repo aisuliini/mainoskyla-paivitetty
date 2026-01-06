@@ -26,33 +26,45 @@ export default function OmatIlmoituksetSivu() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const hae = async () => {
-      const { data: authData } = await supabase.auth.getSession()
-      const currentUser = authData?.session?.user
+  let mounted = true
 
-      if (!currentUser) {
-        router.replace('/kirjaudu')
-        return
-      }
+  const hae = async () => {
+    const { data: authData } = await supabase.auth.getSession()
+    const currentUser = authData?.session?.user
 
-      const { error, data } = await supabase
-        .from('ilmoitukset')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('luotu', { ascending: false })
-
-      if (error) {
-        console.error('Virhe ilmoitusten haussa:', error.message)
-      } else if (data) {
-        setIlmoitukset(data as Ilmoitus[])
-      }
-
-      setLoading(false)
+    if (!currentUser) {
+      router.replace('/kirjaudu')
       return
     }
 
-    hae()
-  }, [router])
+    const { error, data } = await supabase
+      .from('ilmoitukset')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('luotu', { ascending: false })
+
+    if (!mounted) return
+
+    if (error) {
+      console.error('Virhe ilmoitusten haussa:', error.message)
+    } else {
+      setIlmoitukset((data as Ilmoitus[]) ?? [])
+    }
+
+    setLoading(false)
+  }
+
+  hae()
+
+  const onFocus = () => hae()
+  window.addEventListener('focus', onFocus)
+
+  return () => {
+    mounted = false
+    window.removeEventListener('focus', onFocus)
+  }
+}, [router])
+
 
   const julkaiseUudelleen = async (ilmo: Ilmoitus) => {
     if (!confirm('Julkaistaanko ilmoitus uudelleen?')) return
@@ -171,7 +183,7 @@ export default function OmatIlmoituksetSivu() {
                 
 
                 {/* Napit */}
-                <div className="px-4 pb-4 pt-2 space-y-2 mt-auto">
+                <div className="px-4 pb-4 pt-2 space-y-2 mt-auto relative z-10">
                   {vanha && (
                     <button
                       type="button"
