@@ -67,9 +67,6 @@ export default function AsetuksetSivu() {
     <main className="max-w-screen-md mx-auto p-6">
       <div className="flex items-center justify-between gap-4 mb-6">
         <h1 className="text-2xl font-bold">Asetukset</h1>
-        <Link href="/profiili" className="text-sm text-gray-600 hover:underline">
-          ← Takaisin profiiliin
-        </Link>
       </div>
 
       <div className="bg-white border rounded-xl p-5 shadow-sm">

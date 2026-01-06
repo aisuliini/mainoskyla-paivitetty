@@ -102,9 +102,6 @@ export default function OmatIlmoituksetSivu() {
     <main className="max-w-screen-xl mx-auto p-6">
       <div className="flex items-center justify-between gap-4 mb-6">
         <h1 className="text-2xl font-bold">Omat ilmoitukset</h1>
-        <Link href="/profiili" className="text-sm text-gray-600 hover:underline">
-          ← Takaisin profiiliin
-        </Link>
       </div>
 
       {loading ? (
@@ -122,22 +119,30 @@ export default function OmatIlmoituksetSivu() {
                 className="bg-white border rounded-lg shadow-sm overflow-hidden text-left w-full flex flex-col"
               >
                 {/* Linkki vain yläosaan -> napit toimii varmasti */}
-                <Link href={`/ilmoitukset/${ilmo.id}`} className="block w-full">
-                  <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
-                    {ilmo.kuva_url ? (
-                      <Image
-                        src={ilmo.kuva_url}
-                        alt={ilmo.otsikko}
-                        width={400}
-                        height={160}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-xs text-gray-400">Ei kuvaa</span>
-                    )}
-                  </div>
+                <div
+  role="button"
+  tabIndex={0}
+  onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
+  onKeyDown={(e) => e.key === 'Enter' && router.push(`/ilmoitukset/${ilmo.id}`)}
+  className="block w-full cursor-pointer"
+>
+  <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
+    {ilmo.kuva_url ? (
+      <Image
+        src={ilmo.kuva_url}
+        alt={ilmo.otsikko}
+        width={400}
+        height={160}
+        className="h-full w-full object-cover"
+      />
+    ) : (
+      <span className="text-xs text-gray-400">Ei kuvaa</span>
+    )}
+  </div>
 
-                  <div className="p-4">
+  <div className="p-4">
+    {/* tämä sisältö pysyy ENNALLAAN */}
+
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>
                       {vanha && (
@@ -162,8 +167,9 @@ export default function OmatIlmoituksetSivu() {
                       <Eye size={14} />
                       {ilmo.nayttoja || 0} katselukertaa
                     </div>
-                  </div>
-                </Link>
+                  </div>    
+                </div>
+                
 
                 {/* Napit */}
                 <div className="px-4 pb-4 pt-2 space-y-2 mt-auto">
