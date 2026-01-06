@@ -27,16 +27,32 @@ function AluehakuSisalto() {
     const hae = async () => {
       if (!hakusana) return
 
-      const { data, error } = await supabase
-        .from('ilmoitukset')
-        .select('*')
-        .or(`sijainti.ilike.*${hakusana}*,otsikko.ilike.*${hakusana}*,kuvaus.ilike.*${hakusana}*`)
-        .order('luotu', { ascending: false })
+      const nytISO = new Date().toISOString()
+
+const { data, error } = await supabase
+  .from('ilmoitukset')
+  .select('id, otsikko, kuvaus, sijainti, kuva_url, luotu')
+  .or(
+    `sijainti.ilike.%${hakusana}%,
+     otsikko.ilike.%${hakusana}%,
+     kuvaus.ilike.%${hakusana}%`.replace(/\s+/g, '')
+  )
+  .or(
+    `and(voimassa_alku.is.null,voimassa_loppu.is.null),
+     and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),
+     and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),
+     and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`.replace(/\s+/g, '')
+  )
+  .order('luotu', { ascending: false })
+  .limit(60)
+
+
+
 
       if (!error && data) setIlmoitukset(data as Ilmoitus[])
     }
     hae()
-  }, [hakusana, router])
+    }, [hakusana])
 
   return (
     <main className="max-w-screen-xl mx-auto p-6">

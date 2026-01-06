@@ -104,14 +104,23 @@ const scrollNytSuosittua = (dir: 'left' | 'right') => {
 
   useEffect(() => {
   const haeNytSuosittua = async () => {
-    const { data, error } = await supabase
+    const nytISO = new Date().toISOString()
+
+const { data, error } = await supabase
   .from('ilmoitukset')
-  .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, kategoria')
-  .not('kuva_url', 'is', null)
-  .neq('kuva_url', '')
+  .select('*')
+  .or(
+    `and(voimassa_alku.is.null,voimassa_loppu.is.null),
+     and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),
+     and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),
+     and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`
+      .replace(/\s+/g, '') // ⬅️ TÄRKEÄ
+
+  )
   .order('nayttoja', { ascending: false })
   .order('luotu', { ascending: false })
   .limit(20)
+
 
   console.log('Nyt suosittua error:', error)
 console.log('Nyt suosittua data:', data)
@@ -380,7 +389,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
     <div className="mt-2 sm:mt-3 -mx-4 px-4 pr-6">
       <div
   ref={nytSuosittuaRef}
-  className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar"
+className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar scroll-smooth"
   style={{ WebkitOverflowScrolling: 'touch' }}
 >
 
