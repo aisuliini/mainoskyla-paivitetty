@@ -173,11 +173,10 @@ useEffect(() => {
 
 useEffect(() => {
   return () => {
-    // vapauta kaikki esikatselu-URL:t kun poistutaan sivulta
     esikatselut.forEach((u) => URL.revokeObjectURL(u))
   }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [])
+}, [esikatselut])
+
 
 
 
@@ -242,7 +241,7 @@ data?.forEach((ilmo: PremiumIlmoitus) => {
 
 
     const punaiset = Object.entries(paivaLaskuri)
-      .filter(([, count]) => count >= 6) // Näytä punaisena vain jos 6+ varattu
+      .filter(([, count]) => count >= 6) // Näytä punaisena vain jos 52+ varattu
       .map(([päivä]) => new Date(päivä))
 
     setVaratutPaivat(punaiset)

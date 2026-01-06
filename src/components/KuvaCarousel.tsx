@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import type { PointerEvent } from 'react'
 import Image from 'next/image'
 
 export default function KuvaCarousel({
@@ -25,38 +26,45 @@ export default function KuvaCarousel({
   const [i, setI] = useState(0)
   const [paused, setPaused] = useState(false)
 
-  // swipe
   const startX = useRef<number | null>(null)
   const deltaX = useRef<number>(0)
+
+  const resumeTimerRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (resumeTimerRef.current) window.clearTimeout(resumeTimerRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     if (urls.length <= 1) return
     if (paused) return
 
-    const t = setInterval(() => {
+    const t = window.setInterval(() => {
       setI((p) => (p + 1) % urls.length)
     }, autoMs)
 
-    return () => clearInterval(t)
+    return () => window.clearInterval(t)
   }, [urls.length, autoMs, paused])
 
   useEffect(() => {
-    // jos urls muuttuu, varmista että index pysyy validina
-    setI((p) => Math.min(p, Math.max(0, urls.length - 1)))
-  }, [urls.length])
+  setI(0)
+}, [urls.join('|')])
+
 
   if (urls.length === 0) return null
 
   const prev = () => setI((p) => (p - 1 + urls.length) % urls.length)
   const next = () => setI((p) => (p + 1) % urls.length)
 
-  const onPointerDown = (e: React.PointerEvent) => {
+  const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     setPaused(true)
     startX.current = e.clientX
     deltaX.current = 0
   }
 
-  const onPointerMove = (e: React.PointerEvent) => {
+  const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
     if (startX.current === null) return
     deltaX.current = e.clientX - startX.current
   }
@@ -66,14 +74,13 @@ export default function KuvaCarousel({
     startX.current = null
     deltaX.current = 0
 
-    // swipe threshold
     if (Math.abs(dx) > 40) {
       if (dx > 0) prev()
       else next()
     }
 
-    // jatka autoplay pienen viiveen jälkeen
-    setTimeout(() => setPaused(false), 1200)
+    if (resumeTimerRef.current) window.clearTimeout(resumeTimerRef.current)
+    resumeTimerRef.current = window.setTimeout(() => setPaused(false), 1200)
   }
 
   return (
@@ -93,13 +100,12 @@ export default function KuvaCarousel({
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 900px"
-          priority
+          priority={i === 0}
         />
       </div>
 
       {urls.length > 1 && (
         <>
-          {/* nuolet */}
           <button
             type="button"
             onClick={prev}
@@ -117,7 +123,6 @@ export default function KuvaCarousel({
             ›
           </button>
 
-          {/* pallot */}
           <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
             {urls.map((_, idx) => (
               <button
@@ -125,9 +130,7 @@ export default function KuvaCarousel({
                 type="button"
                 onClick={() => setI(idx)}
                 aria-label={`Näytä kuva ${idx + 1}`}
-                className={`h-2.5 w-2.5 rounded-full ${
-                  idx === i ? 'bg-white' : 'bg-white/55'
-                }`}
+                className={`h-2.5 w-2.5 rounded-full ${idx === i ? 'bg-white' : 'bg-white/55'}`}
               />
             ))}
           </div>

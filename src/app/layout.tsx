@@ -7,15 +7,25 @@ import CookieBanner from '@/components/CookieBanner'
 import { Analytics } from '@vercel/analytics/react'
 import { AuthProvider } from '@/context/AuthContext'
 import { Inter } from 'next/font/google'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 
 const inter = Inter({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
 })
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#F6F7F7',
+}
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://mainoskyla.fi'),
+
+  alternates: {
+    canonical: '/',
+  },
 
   title: {
     default: 'Mainoskylä – löydä paikalliset palvelut ja ilmoita helposti',
@@ -35,8 +45,7 @@ export const metadata: Metadata = {
     url: 'https://mainoskyla.fi',
     siteName: 'Mainoskylä',
     title: 'Mainoskylä – löydä paikalliset palvelut ja ilmoita helposti',
-    description:
-      'Löydä paikalliset palvelut tai tule löydetyksi. Ilmoitukset koko Suomesta.',
+    description: 'Löydä paikalliset palvelut tai tule löydetyksi. Ilmoitukset koko Suomesta.',
     images: [
       {
         url: '/og.jpg',
@@ -50,8 +59,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Mainoskylä',
-    description:
-      'Löydä paikalliset palvelut tai tule löydetyksi. Ilmoitukset koko Suomesta.',
+    description: 'Löydä paikalliset palvelut tai tule löydetyksi. Ilmoitukset koko Suomesta.',
     images: ['/og.jpg'],
   },
 
@@ -70,12 +78,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fi">
+    <html lang="fi" suppressHydrationWarning>
+      <head>
+        {/* small perf win */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+      </head>
+
       {/* Google tag (gtag.js) */}
-      <Script
-        async
-        src="https://www.googletagmanager.com/gtag/js?id=AW-17851457912"
-      />
+      <Script async src="https://www.googletagmanager.com/gtag/js?id=AW-17851457912" />
       <Script
         id="google-ads-gtag"
         strategy="afterInteractive"
@@ -89,13 +99,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         }}
       />
 
-
       <body
+        suppressHydrationWarning
         className={`${inter.className} bg-[#F6F7F7] text-charcoal min-h-screen flex flex-col overflow-x-hidden`}
       >
         <AuthProvider>
           <Header />
-        <main className="flex-grow w-full pb-24">{children}</main>
+          <main className="flex-grow w-full pb-24">{children}</main>
           <Footer />
           <CookieBanner />
           <Analytics />
