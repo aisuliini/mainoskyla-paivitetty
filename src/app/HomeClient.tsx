@@ -139,11 +139,12 @@ setSuositukset(filtered.slice(0, 6))
 
 const hae = () => {
   const query = hakusana.trim()
-  if (!query) return
+  setSuositukset([])
 
+  if (!query) return
   router.push(`/aluehaku?sijainti=${encodeURIComponent(query)}`)
-  setSuositukset([]) // piilota dropdown
 }
+
 
 
 
@@ -268,20 +269,28 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 {/* 🔎 Haku (ilman korttia) */}
 <div className="w-full max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto mt-4 sm:mt-6 text-left">
   <div className="w-full">
-    {/* Haku input */}
-    <div className="relative">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        hae()
+      }}
+      className="relative"
+    >
       <input
-        type="text"
+        type="search"
         placeholder="Hae paikkakunta tai palvelu..."
         value={hakusana}
         onChange={(e) => setHakusana(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && hae()}
         className="w-full rounded-full border border-charcoal/15 bg-white pl-5 pr-12 py-4 text-charcoal placeholder:text-charcoal/50 focus:ring-2 focus:ring-persikka"
+        inputMode="search"
+        enterKeyHint="search"
+        autoCorrect="off"
+        autoCapitalize="none"
+        spellCheck={false}
       />
 
       <button
-        type="button"
-        onClick={hae}
+        type="submit"
         className="absolute right-4 top-1/2 -translate-y-1/2 text-charcoal/70 hover:text-persikka transition"
         aria-label="Hae"
       >
@@ -289,11 +298,12 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
       </button>
 
       {suositukset.length > 0 && (
-<ul className="absolute bg-white/95 backdrop-blur border border-black/10 rounded-2xl shadow-md w-full mt-2 z-20 max-h-56 overflow-y-auto">
+        <ul className="absolute bg-white/95 backdrop-blur border border-black/10 rounded-2xl shadow-md w-full mt-2 z-20 max-h-56 overflow-y-auto">
           {suositukset.map((ehto, idx) => (
             <li
               key={idx}
               className="px-4 py-2 hover:bg-[#f0f0f0] cursor-pointer text-left"
+              onMouseDown={(e) => e.preventDefault()} // estää inputin blur-ongelmia mobiilissa
               onClick={() => {
                 setHakusana(ehto)
                 setSuositukset([])
@@ -305,31 +315,30 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
           ))}
         </ul>
       )}
-    </div>
-
-
+    </form>
 
     {/* Sekundäärinen polku */}
     <div className="mt-4 flex justify-center sm:justify-start">
-  <button
-    type="button"
-    onClick={() => router.push('/lisaa')}
-    className="
-      rounded-full
-      px-6 py-2.5
-      text-sm font-semibold
-      bg-[#EDF5F2]
-      hover:bg-[#DCEEE8]
-      text-[#1E3A41]
-      ring-1 ring-black/10
-      transition
-    "
-  >
-    ➕ Ilmoita ilmaiseksi
-  </button>
+      <button
+        type="button"
+        onClick={() => router.push('/lisaa')}
+        className="
+          rounded-full
+          px-6 py-2.5
+          text-sm font-semibold
+          bg-[#EDF5F2]
+          hover:bg-[#DCEEE8]
+          text-[#1E3A41]
+          ring-1 ring-black/10
+          transition
+        "
+      >
+        ➕ Ilmoita ilmaiseksi
+      </button>
     </div>
   </div>
 </div>
+
 
 
 
