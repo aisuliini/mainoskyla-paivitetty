@@ -11,14 +11,32 @@ export default function KirjauduSivu() {
   const router = useRouter()
 
   useEffect(() => {
+  let cancelled = false
+
   const tarkista = async () => {
-    const { data } = await supabase.auth.getUser()
-    if (data?.user) {
-      router.push('/profiili')
+    const { data, error } = await supabase.auth.getUser()
+
+    // Jos refresh token on rikki/vanha → siivoa session tokenit
+    if (error) {
+      await supabase.auth.signOut()
+      if (!cancelled) setViesti("")
+      return
+    }
+
+    const user = data?.user
+
+    if (user && user.email_confirmed_at) {
+      router.push("/profiili")
     }
   }
+
   tarkista()
+
+  return () => {
+    cancelled = true
+  }
 }, [router])
+
 
   const kirjauduSalasanalla = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,10 +46,12 @@ export default function KirjauduSivu() {
     })
 
     if (error) {
-      setViesti("⚠️ Kirjautuminen epäonnistui: " + error.message)
-    } else {
-      router.push("/profiili") // vaihda tarvittaessa
-    }
+  // jos auth-storage on sekaisin (vanha refresh token), siivoa ja näytä viesti
+  await supabase.auth.signOut()
+  setViesti("⚠️ Rekisteröityminen epäonnistui: " + error.message)
+  return
+}
+
   }
 
   return (
