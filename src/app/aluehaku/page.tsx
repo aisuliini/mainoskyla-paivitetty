@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useMemo, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import Image from 'next/image'
@@ -10,136 +10,193 @@ type Ilmoitus = {
   otsikko: string
   kuvaus: string
   sijainti: string
-  kuva_url?: string
-  luotu?: string
+  kuva_url?: string | null
+  luotu?: string | null
 }
 
 function AluehakuSisalto() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const hakusana = searchParams.get('sijainti') || ''
+
+  // ✅ PRO-malli:
+  // - q = "mitä etsit?" (tulee Headerin hausta)
+  // - sijainti = "missä?" (tällä sivulla suodatetaan)
+  //
+  // HUOM: jos sulla oli vanha malli jossa käytit ?sijainti= hakusanana,
+  // se toimii edelleen jos q puuttuu ja sijainti-parametria käytetään hakusanana.
+  const qParam = (searchParams.get('q') || '').trim()
+  const sijaintiParam = (searchParams.get('sijainti') || '').trim()
+
+  // Backward compatibility vanhaan (sun nykyinen koodi käytti sijainti-paramia hakusanana)
+  const hakusana = qParam || (qParam === '' && sijaintiParam ? sijaintiParam : '')
+
+  // Paikkakuntafiltteri (vain jos q on käytössä – muuten sitä ei ole järkeä pakottaa)
+  const [paikkakunta, setPaikkakunta] = useState<string>(qParam ? sijaintiParam : '')
+
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
-  
-  // UUSI tila parannettua hakukenttää varten:
-  const [hakuKentta, setHakuKentta] = useState(hakusana)
+  const [loading, setLoading] = useState(false)
+
+  // Pidä input synkassa URLin kanssa (esim. back/forward)
+  useEffect(() => {
+    setPaikkakunta(qParam ? sijaintiParam : '')
+  }, [qParam, sijaintiParam])
+
+  const otsikkoTeksti = useMemo(() => {
+    if (!hakusana) return 'Haku'
+    if (qParam && sijaintiParam) return `Hakutulokset: ${qParam} — ${sijaintiParam}`
+    return `Hakutulokset: ${hakusana}`
+  }, [hakusana, qParam, sijaintiParam])
 
   useEffect(() => {
     const hae = async () => {
-      if (!hakusana) return
+      if (!hakusana) {
+        setIlmoitukset([])
+        return
+      }
 
+      setLoading(true)
       const nytISO = new Date().toISOString()
 
-const { data, error } = await supabase
-  .from('ilmoitukset')
-  .select('id, otsikko, kuvaus, sijainti, kuva_url, luotu')
-  .or(
-    `sijainti.ilike.%${hakusana}%,
-     otsikko.ilike.%${hakusana}%,
-     kuvaus.ilike.%${hakusana}%`.replace(/\s+/g, '')
-  )
-  .or(
-    `and(voimassa_alku.is.null,voimassa_loppu.is.null),
-     and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),
-     and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),
-     and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`.replace(/\s+/g, '')
-  )
-  .order('luotu', { ascending: false })
-  .limit(60)
+      let query = supabase
+        .from('ilmoitukset')
+        .select('id, otsikko, kuvaus, sijainti, kuva_url, luotu')
+        // voimassaoloehdot (sama kuin sulla)
+        .or(
+          `and(voimassa_alku.is.null,voimassa_loppu.is.null),
+           and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),
+           and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),
+           and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`.replace(/\s+/g, '')
+        )
 
+      // ✅ "MITÄ" haku (otsikko/kuvaus/sijainti) – kun q on käytössä, haetaan sillä
+      // (Jos tullaan vanhalla paramilla, hakusana voi olla sijaintiParam, mutta toimii silti.)
+      query = query.or(
+        `otsikko.ilike.%${hakusana}%,
+         kuvaus.ilike.%${hakusana}%,
+         sijainti.ilike.%${hakusana}%`.replace(/\s+/g, '')
+      )
 
+      // ✅ "MISSÄ" suodatin (vain kun q-param on käytössä eli ollaan PRO-mallissa)
+      if (qParam && sijaintiParam) {
+        query = query.ilike('sijainti', `%${sijaintiParam}%`)
+      }
 
+      const { data, error } = await query.order('luotu', { ascending: false }).limit(60)
 
-      if (!error && data) setIlmoitukset(data as Ilmoitus[])
+      if (error) {
+        console.error('Aluehaku virhe:', error.message)
+        setIlmoitukset([])
+      } else {
+        setIlmoitukset((data as Ilmoitus[]) ?? [])
+      }
+
+      setLoading(false)
     }
+
     hae()
-    }, [hakusana])
+  }, [hakusana, qParam, sijaintiParam])
+
+  const paivitaPaikkakuntaURL = () => {
+    if (!qParam) return // jos ei q:ta, tätä filtteriä ei käytetä
+    const next = new URLSearchParams(searchParams.toString())
+
+    const value = paikkakunta.trim()
+    if (!value) next.delete('sijainti')
+    else next.set('sijainti', value)
+
+    router.replace(`/aluehaku?${next.toString()}`)
+  }
 
   return (
     <main className="max-w-screen-xl mx-auto p-6">
-      
-      {/* UUSI hakukenttä Tori.fi-tyyliin */}
-      <div className="mb-8 w-full max-w-md mx-auto">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Hae paikkakunta tai sana..."
-            value={hakuKentta}
-            onChange={(e) => setHakuKentta(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                const params = new URLSearchParams()
-                if (hakuKentta) params.set('sijainti', hakuKentta)
-                router.push(`/aluehaku?${params.toString()}`)
-              }
-            }}
-            className="w-full px-4 py-2 border border-[#D1E2D2] rounded-full focus:ring-2 focus:ring-[#F99584]/50"
-          />
-          <button
-            type="button"
-            onClick={() => {
-              const params = new URLSearchParams()
-              if (hakuKentta) params.set('sijainti', hakuKentta)
-              router.push(`/aluehaku?${params.toString()}`)
-            }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#1E3A41] text-white px-4 py-1 rounded-full text-sm hover:bg-[#27494e] active:scale-95 transition"
-          >
-            Hae
-          </button>
+      {!hakusana ? (
+        <div className="max-w-xl">
+          <h1 className="text-2xl font-bold mb-2">Haku</h1>
+          <p className="text-gray-600">
+            Kirjoita hakusana yläpalkin hakuun (esim. doula), niin näytän tulokset tässä.
+            <br />
+            Tällä sivulla voit rajata tuloksia paikkakunnalla.
+          </p>
         </div>
-      </div>
-
-      {/* VANHA hakukenttä säilytetty koskemattomana */}
-      <div className="mb-6 max-w-md">
-        <input
-          type="text"
-          placeholder="Hae paikkakunta tai sana..."
-          value={hakusana}
-          onChange={(e) => {
-            const uusi = e.target.value
-            const params = new URLSearchParams()
-            if (uusi) params.set('sijainti', uusi)
-            router.push(`/aluehaku?${params.toString()}`)
-          }}
-          className="w-full px-4 py-2 border rounded"
-        />
-      </div>
-
-      <h1 className="text-2xl font-bold mb-4">Hakutulokset: {hakusana}</h1>
-
-      {ilmoitukset.length === 0 ? (
-        <p>Ei tuloksia haulle.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {ilmoitukset.map((ilmo) => (
-            <div key={ilmo.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
-              {ilmo.kuva_url && (
-                <div className="relative w-full h-40">
-                  <Image
-                    src={ilmo.kuva_url}
-                    alt={ilmo.otsikko}
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="rounded-t"
-                  />
-                </div>
-              )}
+        <>
+          <h1 className="text-2xl font-bold mb-4">{otsikkoTeksti}</h1>
 
-              <div className="p-4">
-                <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>
-                <p className="text-sm text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
-                <p className="text-xs text-gray-500">{ilmo.sijainti}</p>
+          {/* ✅ TÄRKEIN MUUTOS: ei toista "Mitä etsit?" -kenttää täällä.
+              Täällä on vain "MISSÄ" eli paikkakuntafiltteri (PRO-malli). */}
+          {qParam ? (
+            <div className="mb-5 flex flex-col sm:flex-row gap-3 sm:items-end">
+              <div className="w-full sm:max-w-sm">
+                <label className="block text-sm font-medium mb-1">📍 Paikkakunta (valinnainen)</label>
+                <input
+                  value={paikkakunta}
+                  onChange={(e) => setPaikkakunta(e.target.value)}
+                  placeholder="Esim. Turku"
+                  className="w-full border rounded-lg px-3 py-2"
+                />
+              </div>
+
+              <div className="flex gap-2">
                 <button
-                  onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
-                  className="mt-3 px-4 py-2 text-sm bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
+                  type="button"
+                  onClick={paivitaPaikkakuntaURL}
+                  className="px-4 py-2 text-sm bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
                 >
-                  Näytä
+                  Rajaa
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPaikkakunta('')
+                    const next = new URLSearchParams(searchParams.toString())
+                    next.delete('sijainti')
+                    router.replace(`/aluehaku?${next.toString()}`)
+                  }}
+                  className="px-4 py-2 text-sm border rounded hover:bg-gray-50"
+                >
+                  Tyhjennä
                 </button>
               </div>
             </div>
-          ))}
-        </div>
+          ) : null}
+
+          {loading ? (
+            <p>Ladataan tuloksia...</p>
+          ) : ilmoitukset.length === 0 ? (
+            <p>Ei tuloksia haulle.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {ilmoitukset.map((ilmo) => (
+                <div key={ilmo.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
+                  <div className="relative w-full h-40 bg-gray-100">
+                    <Image
+                      src={ilmo.kuva_url || '/placeholder.jpg'}
+                      alt={ilmo.otsikko}
+                      fill
+                      style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="rounded-t"
+                    />
+                  </div>
+
+                  <div className="p-4">
+                    <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>
+                    <p className="text-sm text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
+                    <p className="text-xs text-gray-500">{ilmo.sijainti}</p>
+
+                    <button
+                      onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
+                      className="mt-3 px-4 py-2 text-sm bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
+                    >
+                      Näytä
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </main>
   )

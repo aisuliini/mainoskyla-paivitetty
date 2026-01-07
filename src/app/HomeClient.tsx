@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import Katselukerrat from '@/components/Katselukerrat';
@@ -50,8 +50,7 @@ type SuosittuIlmoitus = {
 
 export default function Home() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const [hakusana, setHakusana] = useState(searchParams.get('sijainti') || '')
+  const [hakusana, setHakusana] = useState('')
   const [premiumIlmoitukset, setPremiumIlmoitukset] = useState<PremiumIlmoitus[]>([])
   const [suositukset, setSuositukset] = useState<string[]>([])
   const [nytSuosittua, setNytSuosittua] = useState<SuosittuIlmoitus[]>([])
@@ -151,8 +150,10 @@ const hae = () => {
   setSuositukset([])
 
   if (!query) return
-  router.push(`/aluehaku?sijainti=${encodeURIComponent(query)}`)
+  router.push(`/aluehaku?q=${encodeURIComponent(query)}`)
 }
+
+
 
 
 
@@ -287,7 +288,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
     >
       <input
         type="search"
-        placeholder="Hae paikkakunta tai palvelu..."
+        placeholder="Hae palvelua tai tekijää..."
         value={hakusana}
         onChange={(e) => setHakusana(e.target.value)}
         className="
