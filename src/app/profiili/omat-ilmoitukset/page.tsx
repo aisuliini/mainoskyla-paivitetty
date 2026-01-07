@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
@@ -25,61 +25,89 @@ export default function OmatIlmoituksetSivu() {
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
   const [loading, setLoading] = useState(true)
 
+  // estää päällekkäiset refreshSession-kutsut
+  const refreshingRef = useRef(false)
+
+  const ensureFreshSession = async () => {
+    if (refreshingRef.current) return
+    refreshingRef.current = true
+    try {
+      const { data } = await supabase.auth.getSession()
+      if (data.session) {
+        await supabase.auth.refreshSession()
+      }
+    } finally {
+      refreshingRef.current = false
+    }
+  }
+
+  const getUserOrRedirect = async () => {
+    await ensureFreshSession()
+    const { data, error } = await supabase.auth.getUser()
+    const user = data?.user ?? null
+    if (error || !user) {
+      router.replace('/kirjaudu')
+      return null
+    }
+    return user
+  }
+
+  const haeIlmoitukset = async () => {
+    const user = await getUserOrRedirect()
+    if (!user) return
+
+    setLoading(true)
+
+    const { error, data } = await supabase
+      .from('ilmoitukset')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('luotu', { ascending: false })
+
+    if (error) {
+      console.error('Virhe ilmoitusten haussa:', error.message)
+    } else {
+      setIlmoitukset((data as Ilmoitus[]) ?? [])
+    }
+
+    setLoading(false)
+  }
+
   useEffect(() => {
     let mounted = true
 
-    const hae = async () => {
-      // ✅ varmempi kuin getSession()
-      const { data: userRes, error: userErr } = await supabase.auth.getUser()
-      const currentUser = userRes?.user
-
-      if (userErr || !currentUser) {
-        router.replace('/kirjaudu')
-        return
-      }
-
-      setLoading(true)
-
-      const { error, data } = await supabase
-        .from('ilmoitukset')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('luotu', { ascending: false })
-
+    const safeHae = async () => {
       if (!mounted) return
-
-      if (error) {
-        console.error('Virhe ilmoitusten haussa:', error.message)
-      } else {
-        setIlmoitukset((data as Ilmoitus[]) ?? [])
-      }
-
-      setLoading(false)
+      await haeIlmoitukset()
     }
 
-    hae()
+    safeHae()
 
-    // ✅ refetch kun palaat takaisin tai vaihdat välilehteä
-    const onFocus = () => hae()
+    // iOS/back (BFCache) -> pageshow on kriittinen
+    const onPageShow = () => safeHae()
+    const onFocus = () => safeHae()
     const onVis = () => {
-      if (document.visibilityState === 'visible') hae()
+      if (document.visibilityState === 'visible') safeHae()
     }
-    const onPageShow = () => hae()
 
+    window.addEventListener('pageshow', onPageShow)
     window.addEventListener('focus', onFocus)
     document.addEventListener('visibilitychange', onVis)
-    window.addEventListener('pageshow', onPageShow)
 
     return () => {
       mounted = false
+      window.removeEventListener('pageshow', onPageShow)
       window.removeEventListener('focus', onFocus)
       document.removeEventListener('visibilitychange', onVis)
-      window.removeEventListener('pageshow', onPageShow)
     }
-  }, [router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const julkaiseUudelleen = async (ilmo: Ilmoitus) => {
     if (!confirm('Julkaistaanko ilmoitus uudelleen?')) return
+
+    const user = await getUserOrRedirect()
+    if (!user) return
 
     const uusiPaiva = new Date().toISOString()
 
@@ -87,19 +115,16 @@ export default function OmatIlmoituksetSivu() {
       .from('ilmoitukset')
       .update({ luotu: uusiPaiva })
       .eq('id', ilmo.id)
+      .eq('user_id', user.id) // ✅ varmistaa osuman + RLS
 
     if (error) {
       console.error('Virhe julkaisussa:', error.message)
-      alert('Päivitys epäonnistui. Yritä uudelleen.')
+      alert(error.message)
       return
     }
 
     setIlmoitukset((prev) => {
-      const updated = prev.map((i) =>
-        i.id === ilmo.id ? { ...i, luotu: uusiPaiva } : i
-      )
-
-      // ✅ lajittele uudelleen, niin käyttäjä näkee heti että toimi
+      const updated = prev.map((i) => (i.id === ilmo.id ? { ...i, luotu: uusiPaiva } : i))
       return updated.sort((a, b) => {
         const da = new Date(a.luotu ?? 0).getTime()
         const db = new Date(b.luotu ?? 0).getTime()
@@ -111,11 +136,18 @@ export default function OmatIlmoituksetSivu() {
   const poistaIlmoitus = async (ilmo: Ilmoitus) => {
     if (!confirm('Poistetaanko ilmoitus pysyvästi?')) return
 
-    const { error } = await supabase.from('ilmoitukset').delete().eq('id', ilmo.id)
+    const user = await getUserOrRedirect()
+    if (!user) return
+
+    const { error } = await supabase
+      .from('ilmoitukset')
+      .delete()
+      .eq('id', ilmo.id)
+      .eq('user_id', user.id) // ✅ varmistaa osuman + RLS
 
     if (error) {
       console.error('Virhe poistossa:', error.message)
-      alert('Poisto epäonnistui. Yritä uudelleen.')
+      alert(error.message)
       return
     }
 
@@ -152,7 +184,9 @@ export default function OmatIlmoituksetSivu() {
                   role="button"
                   tabIndex={0}
                   onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
-                  onKeyDown={(e) => e.key === 'Enter' && router.push(`/ilmoitukset/${ilmo.id}`)}
+                  onKeyDown={(e) =>
+                    e.key === 'Enter' && router.push(`/ilmoitukset/${ilmo.id}`)
+                  }
                   className="block w-full cursor-pointer"
                 >
                   <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
@@ -185,7 +219,8 @@ export default function OmatIlmoituksetSivu() {
                     {ilmo.voimassa_alku && ilmo.voimassa_loppu && (
                       <p className="text-xs text-gray-500 mt-1">
                         Voimassa:{' '}
-                        <strong>{new Date(ilmo.voimassa_alku).toLocaleDateString('fi-FI')}</strong> –{' '}
+                        <strong>{new Date(ilmo.voimassa_alku).toLocaleDateString('fi-FI')}</strong>{' '}
+                        –{' '}
                         <strong>{new Date(ilmo.voimassa_loppu).toLocaleDateString('fi-FI')}</strong>
                       </p>
                     )}
