@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
@@ -27,8 +27,12 @@ export default function OmatIlmoituksetSivu() {
 
   // estää päällekkäiset refreshSession-kutsut
   const refreshingRef = useRef(false)
+  // estää vanhojen requestien tulosten “ylikirjoituksen”
+  const reqIdRef = useRef(0)
+  // estää setState unmountin jälkeen
+  const activeRef = useRef(true)
 
-  const ensureFreshSession = async () => {
+  const ensureFreshSession = useCallback(async () => {
     if (refreshingRef.current) return
     refreshingRef.current = true
     try {
@@ -39,9 +43,9 @@ export default function OmatIlmoituksetSivu() {
     } finally {
       refreshingRef.current = false
     }
-  }
+  }, [])
 
-  const getUserOrRedirect = async () => {
+  const getUserOrRedirect = useCallback(async () => {
     await ensureFreshSession()
     const { data, error } = await supabase.auth.getUser()
     const user = data?.user ?? null
@@ -50,44 +54,56 @@ export default function OmatIlmoituksetSivu() {
       return null
     }
     return user
-  }
+  }, [ensureFreshSession, router])
 
-  const haeIlmoitukset = async () => {
+  const haeIlmoitukset = useCallback(async () => {
+    const myReqId = ++reqIdRef.current
+
     const user = await getUserOrRedirect()
     if (!user) return
 
-    setLoading(true)
+    if (activeRef.current) setLoading(true)
 
-    const { error, data } = await supabase
+    const { data, error } = await supabase
       .from('ilmoitukset')
       .select('*')
       .eq('user_id', user.id)
       .order('luotu', { ascending: false })
 
+    // jos tuli uusi pyyntö tämän jälkeen, älä kirjoita vanhalla datalla
+    if (myReqId !== reqIdRef.current) return
+
+    if (!activeRef.current) return
+
     if (error) {
       console.error('Virhe ilmoitusten haussa:', error.message)
+      setIlmoitukset([])
     } else {
       setIlmoitukset((data as Ilmoitus[]) ?? [])
     }
 
     setLoading(false)
-  }
+  }, [getUserOrRedirect])
 
   useEffect(() => {
-    let mounted = true
+    activeRef.current = true
 
-    const safeHae = async () => {
-      if (!mounted) return
-      await haeIlmoitukset()
+    // Ensilataus
+    haeIlmoitukset()
+
+    // iOS Safari BFCache: back/forward paluu voi jättää Supabasen “jäätyneeksi”
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        window.location.reload()
+        return
+      }
+      haeIlmoitukset()
     }
 
-    safeHae()
+    const onFocus = () => haeIlmoitukset()
 
-    // iOS/back (BFCache) -> pageshow on kriittinen
-    const onPageShow = () => safeHae()
-    const onFocus = () => safeHae()
     const onVis = () => {
-      if (document.visibilityState === 'visible') safeHae()
+      if (document.visibilityState === 'visible') haeIlmoitukset()
     }
 
     window.addEventListener('pageshow', onPageShow)
@@ -95,64 +111,64 @@ export default function OmatIlmoituksetSivu() {
     document.addEventListener('visibilitychange', onVis)
 
     return () => {
-      mounted = false
+      activeRef.current = false
       window.removeEventListener('pageshow', onPageShow)
       window.removeEventListener('focus', onFocus)
       document.removeEventListener('visibilitychange', onVis)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [haeIlmoitukset])
 
-  const julkaiseUudelleen = async (ilmo: Ilmoitus) => {
-    if (!confirm('Julkaistaanko ilmoitus uudelleen?')) return
+  const julkaiseUudelleen = useCallback(
+    async (ilmo: Ilmoitus) => {
+      if (!confirm('Julkaistaanko ilmoitus uudelleen?')) return
 
-    const user = await getUserOrRedirect()
-    if (!user) return
+      const user = await getUserOrRedirect()
+      if (!user) return
 
-    const uusiPaiva = new Date().toISOString()
+      const uusiPaiva = new Date().toISOString()
 
-    const { error } = await supabase
-      .from('ilmoitukset')
-      .update({ luotu: uusiPaiva })
-      .eq('id', ilmo.id)
-      .eq('user_id', user.id) // ✅ varmistaa osuman + RLS
+      const { error } = await supabase
+        .from('ilmoitukset')
+        .update({ luotu: uusiPaiva })
+        .eq('id', ilmo.id)
+        .eq('user_id', user.id)
 
-    if (error) {
-      console.error('Virhe julkaisussa:', error.message)
-      alert(error.message)
-      return
-    }
+      if (error) {
+        console.error('Virhe julkaisussa:', error.message)
+        alert(error.message)
+        return
+      }
 
-    setIlmoitukset((prev) => {
-      const updated = prev.map((i) => (i.id === ilmo.id ? { ...i, luotu: uusiPaiva } : i))
-      return updated.sort((a, b) => {
-        const da = new Date(a.luotu ?? 0).getTime()
-        const db = new Date(b.luotu ?? 0).getTime()
-        return db - da
-      })
-    })
-  }
+      // pro: varmista että lista päivittyy varmasti oikein (myös iOS/backissa)
+      await haeIlmoitukset()
+    },
+    [getUserOrRedirect, haeIlmoitukset]
+  )
 
-  const poistaIlmoitus = async (ilmo: Ilmoitus) => {
-    if (!confirm('Poistetaanko ilmoitus pysyvästi?')) return
+  const poistaIlmoitus = useCallback(
+    async (ilmo: Ilmoitus) => {
+      if (!confirm('Poistetaanko ilmoitus pysyvästi?')) return
 
-    const user = await getUserOrRedirect()
-    if (!user) return
+      const user = await getUserOrRedirect()
+      if (!user) return
 
-    const { error } = await supabase
-      .from('ilmoitukset')
-      .delete()
-      .eq('id', ilmo.id)
-      .eq('user_id', user.id) // ✅ varmistaa osuman + RLS
+      const { error } = await supabase
+        .from('ilmoitukset')
+        .delete()
+        .eq('id', ilmo.id)
+        .eq('user_id', user.id)
 
-    if (error) {
-      console.error('Virhe poistossa:', error.message)
-      alert(error.message)
-      return
-    }
+      if (error) {
+        console.error('Virhe poistossa:', error.message)
+        alert(error.message)
+        return
+      }
 
-    setIlmoitukset((prev) => prev.filter((i) => i.id !== ilmo.id))
-  }
+      // pro: refetch, ettei jää “vanha lista” näkyviin BFCache-tilassa
+      await haeIlmoitukset()
+    },
+    [getUserOrRedirect, haeIlmoitukset]
+  )
 
   const onVanhentunut = (ilmo: Ilmoitus) => {
     if (!ilmo.voimassa_loppu) return false
@@ -184,9 +200,7 @@ export default function OmatIlmoituksetSivu() {
                   role="button"
                   tabIndex={0}
                   onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
-                  onKeyDown={(e) =>
-                    e.key === 'Enter' && router.push(`/ilmoitukset/${ilmo.id}`)
-                  }
+                  onKeyDown={(e) => e.key === 'Enter' && router.push(`/ilmoitukset/${ilmo.id}`)}
                   className="block w-full cursor-pointer"
                 >
                   <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
@@ -219,8 +233,7 @@ export default function OmatIlmoituksetSivu() {
                     {ilmo.voimassa_alku && ilmo.voimassa_loppu && (
                       <p className="text-xs text-gray-500 mt-1">
                         Voimassa:{' '}
-                        <strong>{new Date(ilmo.voimassa_alku).toLocaleDateString('fi-FI')}</strong>{' '}
-                        –{' '}
+                        <strong>{new Date(ilmo.voimassa_alku).toLocaleDateString('fi-FI')}</strong> –{' '}
                         <strong>{new Date(ilmo.voimassa_loppu).toLocaleDateString('fi-FI')}</strong>
                       </p>
                     )}
@@ -261,9 +274,9 @@ export default function OmatIlmoituksetSivu() {
                   <button
                     type="button"
                     onClick={(e) => {
-                      e.stopPropagation()
-                      poistaIlmoitus(ilmo)
-                    }}
+                        e.stopPropagation()
+                        poistaIlmoitus(ilmo)
+                      }}
                     className="w-full px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
                   >
                     Poista

@@ -28,7 +28,6 @@ export default function KotiJaRemontointiClientPage() {
   const [page, setPage] = useState<number>(1)
   const [hasMore, setHasMore] = useState(false)
   const [jarjestys, setJarjestys] = useState<'uusin' | 'vanhin' | 'suosituin'>('uusin')
-  const [sijainti, setSijainti] = useState(searchParams.get('sijainti') || '')
 
   useEffect(() => {
     const haeIlmoitukset = async () => {
@@ -50,9 +49,7 @@ export default function KotiJaRemontointiClientPage() {
       if (jarjestys === 'vanhin') query = query.order('luotu', { ascending: true })
       if (jarjestys === 'suosituin') query = query.order('nayttoja', { ascending: false })
 
-      if (sijainti.trim()) {
-        query = query.ilike('sijainti', `%${sijainti.trim()}%`)
-      }
+    
 
       const { data, error } = await query.range(from, to)
       if (!error && data) {
@@ -62,7 +59,7 @@ export default function KotiJaRemontointiClientPage() {
     }
 
     haeIlmoitukset()
-  }, [page, jarjestys, sijainti])
+  }, [page, jarjestys])
 
   return (
     <main className="max-w-screen-xl mx-auto p-6">
@@ -79,24 +76,7 @@ export default function KotiJaRemontointiClientPage() {
           <option value="suosituin">Suosituin</option>
         </select>
 
-        <input
-          type="text"
-          placeholder="Paikkakunta..."
-          value={sijainti}
-          onChange={(e) => {
-            const uusiSijainti = e.target.value
-            setSijainti(uusiSijainti)
-
-            const params = new URLSearchParams(searchParams.toString())
-            if (uusiSijainti) {
-              params.set('sijainti', uusiSijainti)
-            } else {
-              params.delete('sijainti')
-            }
-            router.push(`?${params.toString()}`)
-          }}
-          className="border px-3 py-2 rounded"
-        />
+    
       </div>
 
       {ilmoitukset.length === 0 ? (

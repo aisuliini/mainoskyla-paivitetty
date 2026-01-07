@@ -290,7 +290,11 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
         placeholder="Hae paikkakunta tai palvelu..."
         value={hakusana}
         onChange={(e) => setHakusana(e.target.value)}
-        className="w-full rounded-full border border-charcoal/15 bg-white pl-5 pr-12 py-4 text-charcoal placeholder:text-charcoal/50 focus:ring-2 focus:ring-persikka"
+        className="
+        w-full rounded-full border border-charcoal/15 bg-white
+        pl-5 pr-12 py-4 text-charcoal placeholder:text-charcoal/50
+      outline-none focus:outline-none focus:ring-0 focus:border-charcoal/30
+"      
         inputMode="search"
         enterKeyHint="search"
         autoCorrect="off"

@@ -28,7 +28,6 @@ export default function ElainpalvelutClientPage() {
   const [page, setPage] = useState<number>(1)
   const [hasMore, setHasMore] = useState(false)
   const [jarjestys, setJarjestys] = useState<'uusin' | 'vanhin' | 'suosituin'>('uusin')
-  const [sijainti, setSijainti] = useState(searchParams.get('sijainti') || '')
 
 
   useEffect(() => {
@@ -67,7 +66,7 @@ export default function ElainpalvelutClientPage() {
     }
 
     haeIlmoitukset()
-  }, [page, jarjestys, sijainti])
+  }, [page, jarjestys])
 
   return (
     <main className="max-w-screen-xl mx-auto p-6">
@@ -84,26 +83,6 @@ export default function ElainpalvelutClientPage() {
           <option value="suosituin">Suosituin</option>
         </select>
 
-        <input
-          type="text"
-          placeholder="Paikkakunta..."
-          value={sijainti}
-          onChange={(e) => {
-            const uusiSijainti = e.target.value
-            setSijainti(uusiSijainti)
-
-            const params = new URLSearchParams(searchParams.toString())
-            if (uusiSijainti) {
-              params.set('sijainti', uusiSijainti)
-            } else {
-              params.delete('sijainti')
-            }
-            router.replace(`?${params.toString()}`)
-
-          }}
-          className="border px-3 py-2 rounded"
-        />
-      </div>
 
       {ilmoitukset.length === 0 ? (
         <p>Ei ilmoituksia.</p>
