@@ -75,8 +75,6 @@ export default function HyvinvointiJaKauneusClientPage() {
           <option value="vanhin">Vanhin</option>
           <option value="suosituin">Suosituin</option>
         </select>
-
-  
       </div>
 
       {ilmoitukset.length === 0 ? (

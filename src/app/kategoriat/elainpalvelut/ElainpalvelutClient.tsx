@@ -1,11 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import Image from 'next/image'
-import Katselukerrat from '@/components/Katselukerrat';
-
+import Katselukerrat from '@/components/Katselukerrat'
 
 const PER_PAGE = 12
 
@@ -20,48 +19,40 @@ type Ilmoitus = {
   premium?: boolean
 }
 
-
 export default function ElainpalvelutClientPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
   const [page, setPage] = useState<number>(1)
   const [hasMore, setHasMore] = useState(false)
   const [jarjestys, setJarjestys] = useState<'uusin' | 'vanhin' | 'suosituin'>('uusin')
 
-
   useEffect(() => {
     const haeIlmoitukset = async () => {
       const from = (page - 1) * PER_PAGE
       const to = from + PER_PAGE - 1
-
       const nytISO = new Date().toISOString()
 
-  let query = supabase
-    .from('ilmoitukset')
-    .select('*')
-    .eq('kategoria', 'Eläinpalvelut')
-    .or(
-      `and(voimassa_alku.is.null,voimassa_loppu.is.null),and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`
-    )
-    .order('premium', { ascending: false })
-    .order('luotu', { ascending: false })
-      
-
-
+      let query = supabase
+        .from('ilmoitukset')
+        .select('*')
+        .eq('kategoria', 'Eläinpalvelut')
+        .or(
+          `and(voimassa_alku.is.null,voimassa_loppu.is.null),and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`
+        )
+        .order('premium', { ascending: false })
 
       if (jarjestys === 'uusin') query = query.order('luotu', { ascending: false })
       if (jarjestys === 'vanhin') query = query.order('luotu', { ascending: true })
       if (jarjestys === 'suosituin') query = query.order('nayttoja', { ascending: false })
 
-      if (sijainti.trim()) {
-        query = query.ilike('sijainti', `%${sijainti.trim()}%`)
-      }
-
       const { data, error } = await query.range(from, to)
+
       if (!error && data) {
         setIlmoitukset(data as Ilmoitus[])
         setHasMore(data.length === PER_PAGE)
+      } else {
+        setIlmoitukset([])
+        setHasMore(false)
       }
     }
 
@@ -72,6 +63,7 @@ export default function ElainpalvelutClientPage() {
     <main className="max-w-screen-xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Eläinpalvelut</h1>
 
+      {/* TOPBAR */}
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <select
           value={jarjestys}
@@ -82,37 +74,35 @@ export default function ElainpalvelutClientPage() {
           <option value="vanhin">Vanhin</option>
           <option value="suosituin">Suosituin</option>
         </select>
-
+      </div>
 
       {ilmoitukset.length === 0 ? (
         <p>Ei ilmoituksia.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {ilmoitukset.map((ilmo) => (
-<div
-  key={ilmo.id}
-  className={`rounded-lg overflow-hidden shadow-sm border
-${ilmo.premium === true ? 'bg-[#F3F8F6] border-[#6A837F]' : 'bg-white border-gray-200'}
-  `}
->
+            <div
+              key={ilmo.id}
+              className={`rounded-lg overflow-hidden shadow-sm border ${
+                ilmo.premium === true ? 'bg-[#F3F8F6] border-[#6A837F]' : 'bg-white border-gray-200'
+              }`}
+            >
               <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
-  {ilmo.premium === true && (
-    <span className="absolute top-2 left-2 z-10 bg-[#4F6763] text-white text-xs px-2 py-1 rounded-full shadow">
-      Premium
-    </span>
-  )}
+                {ilmo.premium === true && (
+                  <span className="absolute top-2 left-2 z-10 bg-[#4F6763] text-white text-xs px-2 py-1 rounded-full shadow">
+                    Premium
+                  </span>
+                )}
 
-  <Image
-    src={ilmo.kuva_url || '/placeholder.jpg'}
-    alt={ilmo.otsikko}
-    fill
-    style={{ objectFit: 'cover' }}
-    sizes="(max-width: 768px) 100vw, 33vw"
-    className="rounded-t"
-  />
-</div>
-
-
+                <Image
+                  src={ilmo.kuva_url || '/placeholder.jpg'}
+                  alt={ilmo.otsikko}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="rounded-t"
+                />
+              </div>
 
               <div className="p-4">
                 <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>
@@ -121,6 +111,7 @@ ${ilmo.premium === true ? 'bg-[#F3F8F6] border-[#6A837F]' : 'bg-white border-gra
                 <Katselukerrat count={ilmo.nayttoja || 0} small />
 
                 <button
+                  type="button"
                   onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
                   className="mt-3 px-4 py-2 text-sm bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
                 >
@@ -134,6 +125,7 @@ ${ilmo.premium === true ? 'bg-[#F3F8F6] border-[#6A837F]' : 'bg-white border-gra
 
       <div className="flex justify-center gap-4 mt-6">
         <button
+          type="button"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page === 1}
           className="px-4 py-2 border rounded disabled:opacity-50"
@@ -141,6 +133,7 @@ ${ilmo.premium === true ? 'bg-[#F3F8F6] border-[#6A837F]' : 'bg-white border-gra
           Edellinen
         </button>
         <button
+          type="button"
           onClick={() => setPage((p) => p + 1)}
           disabled={!hasMore}
           className="px-4 py-2 border rounded disabled:opacity-50"
