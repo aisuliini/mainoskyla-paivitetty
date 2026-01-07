@@ -23,12 +23,13 @@ export default function KuvaCarousel({
     return kuvaUrl ? [kuvaUrl] : []
   }, [kuvat, kuvaUrl, max])
 
+  const urlsKey = useMemo(() => urls.join('|'), [urls])
+
   const [i, setI] = useState(0)
   const [paused, setPaused] = useState(false)
 
   const startX = useRef<number | null>(null)
   const deltaX = useRef<number>(0)
-
   const resumeTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -36,6 +37,10 @@ export default function KuvaCarousel({
       if (resumeTimerRef.current) window.clearTimeout(resumeTimerRef.current)
     }
   }, [])
+
+  useEffect(() => {
+    setI(0)
+  }, [urlsKey])
 
   useEffect(() => {
     if (urls.length <= 1) return
@@ -46,12 +51,7 @@ export default function KuvaCarousel({
     }, autoMs)
 
     return () => window.clearInterval(t)
-  }, [urls.length, autoMs, paused])
-
-  useEffect(() => {
-  setI(0)
-}, [urls.join('|')])
-
+  }, [urlsKey, urls.length, autoMs, paused])
 
   if (urls.length === 0) return null
 
