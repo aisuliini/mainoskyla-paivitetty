@@ -64,14 +64,17 @@ export default function OmatIlmoituksetSivu() {
     const onVis = () => {
       if (document.visibilityState === 'visible') hae()
     }
+    const onPageShow = () => hae()
 
     window.addEventListener('focus', onFocus)
     document.addEventListener('visibilitychange', onVis)
+    window.addEventListener('pageshow', onPageShow)
 
     return () => {
       mounted = false
       window.removeEventListener('focus', onFocus)
       document.removeEventListener('visibilitychange', onVis)
+      window.removeEventListener('pageshow', onPageShow)
     }
   }, [router])
 
