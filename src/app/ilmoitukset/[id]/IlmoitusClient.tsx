@@ -30,7 +30,6 @@ type Ilmoitus = {
 
 export default function IlmoitusClient() {
   const params = useParams()
-  const router = useRouter()
   const id = params.id as string
 
 
@@ -142,16 +141,6 @@ const [profiili, setProfiili] = useState<Profiili | null>(null)
 
   return (
     <main className="max-w-2xl mx-auto p-6 bg-white rounded shadow my-12">
-      {/* Takaisin-nappi profiiliin */}
-      <div className="mb-4">
-        <button
-          type="button"
-          onClick={() => router.push('/profiili')}
-          className="text-sm text-[#1E3A41] underline underline-offset-2"
-        >
-          ← Takaisin omiin ilmoituksiin
-        </button>
-      </div>
 
       <div className="mb-4">
         <KuvaCarousel

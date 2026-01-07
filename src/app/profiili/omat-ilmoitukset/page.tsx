@@ -26,45 +26,54 @@ export default function OmatIlmoituksetSivu() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-  let mounted = true
+    let mounted = true
 
-  const hae = async () => {
-    const { data: authData } = await supabase.auth.getSession()
-    const currentUser = authData?.session?.user
+    const hae = async () => {
+      // ✅ varmempi kuin getSession()
+      const { data: userRes, error: userErr } = await supabase.auth.getUser()
+      const currentUser = userRes?.user
 
-    if (!currentUser) {
-      router.replace('/kirjaudu')
-      return
+      if (userErr || !currentUser) {
+        router.replace('/kirjaudu')
+        return
+      }
+
+      setLoading(true)
+
+      const { error, data } = await supabase
+        .from('ilmoitukset')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('luotu', { ascending: false })
+
+      if (!mounted) return
+
+      if (error) {
+        console.error('Virhe ilmoitusten haussa:', error.message)
+      } else {
+        setIlmoitukset((data as Ilmoitus[]) ?? [])
+      }
+
+      setLoading(false)
     }
 
-    const { error, data } = await supabase
-      .from('ilmoitukset')
-      .select('*')
-      .eq('user_id', currentUser.id)
-      .order('luotu', { ascending: false })
+    hae()
 
-    if (!mounted) return
-
-    if (error) {
-      console.error('Virhe ilmoitusten haussa:', error.message)
-    } else {
-      setIlmoitukset((data as Ilmoitus[]) ?? [])
+    // ✅ refetch kun palaat takaisin tai vaihdat välilehteä
+    const onFocus = () => hae()
+    const onVis = () => {
+      if (document.visibilityState === 'visible') hae()
     }
 
-    setLoading(false)
-  }
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVis)
 
-  hae()
-
-  const onFocus = () => hae()
-  window.addEventListener('focus', onFocus)
-
-  return () => {
-    mounted = false
-    window.removeEventListener('focus', onFocus)
-  }
-}, [router])
-
+    return () => {
+      mounted = false
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [router])
 
   const julkaiseUudelleen = async (ilmo: Ilmoitus) => {
     if (!confirm('Julkaistaanko ilmoitus uudelleen?')) return
@@ -82,18 +91,24 @@ export default function OmatIlmoituksetSivu() {
       return
     }
 
-    setIlmoitukset((prev) =>
-      prev.map((i) => (i.id === ilmo.id ? { ...i, luotu: uusiPaiva } : i))
-    )
+    setIlmoitukset((prev) => {
+      const updated = prev.map((i) =>
+        i.id === ilmo.id ? { ...i, luotu: uusiPaiva } : i
+      )
+
+      // ✅ lajittele uudelleen, niin käyttäjä näkee heti että toimi
+      return updated.sort((a, b) => {
+        const da = new Date(a.luotu ?? 0).getTime()
+        const db = new Date(b.luotu ?? 0).getTime()
+        return db - da
+      })
+    })
   }
 
   const poistaIlmoitus = async (ilmo: Ilmoitus) => {
     if (!confirm('Poistetaanko ilmoitus pysyvästi?')) return
 
-    const { error } = await supabase
-      .from('ilmoitukset')
-      .delete()
-      .eq('id', ilmo.id)
+    const { error } = await supabase.from('ilmoitukset').delete().eq('id', ilmo.id)
 
     if (error) {
       console.error('Virhe poistossa:', error.message)
@@ -129,31 +144,29 @@ export default function OmatIlmoituksetSivu() {
                 key={ilmo.id}
                 className="bg-white border rounded-lg shadow-sm overflow-hidden text-left w-full flex flex-col"
               >
-                {/* Linkki vain yläosaan -> napit toimii varmasti */}
+                {/* Klikattava yläosa */}
                 <div
-  role="button"
-  tabIndex={0}
-  onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
-  onKeyDown={(e) => e.key === 'Enter' && router.push(`/ilmoitukset/${ilmo.id}`)}
-  className="block w-full cursor-pointer"
->
-  <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
-    {ilmo.kuva_url ? (
-      <Image
-        src={ilmo.kuva_url}
-        alt={ilmo.otsikko}
-        width={400}
-        height={160}
-        className="h-full w-full object-cover"
-      />
-    ) : (
-      <span className="text-xs text-gray-400">Ei kuvaa</span>
-    )}
-  </div>
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
+                  onKeyDown={(e) => e.key === 'Enter' && router.push(`/ilmoitukset/${ilmo.id}`)}
+                  className="block w-full cursor-pointer"
+                >
+                  <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
+                    {ilmo.kuva_url ? (
+                      <Image
+                        src={ilmo.kuva_url}
+                        alt={ilmo.otsikko}
+                        width={400}
+                        height={160}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xs text-gray-400">Ei kuvaa</span>
+                    )}
+                  </div>
 
-  <div className="p-4">
-    {/* tämä sisältö pysyy ENNALLAAN */}
-
+                  <div className="p-4">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>
                       {vanha && (
@@ -178,16 +191,18 @@ export default function OmatIlmoituksetSivu() {
                       <Eye size={14} />
                       {ilmo.nayttoja || 0} katselukertaa
                     </div>
-                  </div>    
+                  </div>
                 </div>
-                
 
                 {/* Napit */}
                 <div className="px-4 pb-4 pt-2 space-y-2 mt-auto relative z-10">
                   {vanha && (
                     <button
                       type="button"
-                      onClick={() => julkaiseUudelleen(ilmo)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        julkaiseUudelleen(ilmo)
+                      }}
                       className="w-full px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
                     >
                       Julkaise uudelleen
@@ -196,7 +211,10 @@ export default function OmatIlmoituksetSivu() {
 
                   <button
                     type="button"
-                    onClick={() => router.push(`/muokkaa/${ilmo.id}`)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      router.push(`/muokkaa/${ilmo.id}`)
+                    }}
                     className="w-full px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
                   >
                     Muokkaa
@@ -204,7 +222,10 @@ export default function OmatIlmoituksetSivu() {
 
                   <button
                     type="button"
-                    onClick={() => poistaIlmoitus(ilmo)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      poistaIlmoitus(ilmo)
+                    }}
                     className="w-full px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
                   >
                     Poista
