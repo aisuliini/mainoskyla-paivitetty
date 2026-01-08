@@ -29,7 +29,7 @@ export default function ElainpalvelutClientPage() {
 
   const [jarjestys, setJarjestys] = useState<'uusin' | 'vanhin' | 'suosituin'>('uusin')
 
-  // ✅ "MISSÄ" filtteri kategoriasivulle (URL: ?sijainti=Turku)
+  // ✅ "MISSÄ" filtteri (URL: ?sijainti=Turku)
   const [paikkakunta, setPaikkakunta] = useState<string>(searchParams.get('sijainti') || '')
 
   // Synkkaa input URLin kanssa (takaisin/eteen -navigointi)
@@ -37,7 +37,7 @@ export default function ElainpalvelutClientPage() {
     setPaikkakunta(searchParams.get('sijainti') || '')
   }, [searchParams])
 
-  // Kun filtteri muuttuu, aloitetaan sivutus alusta
+  // Kun filtteri/järjestys muuttuu, aloitetaan sivutus alusta
   useEffect(() => {
     setPage(1)
   }, [paikkakunta, jarjestys])
@@ -49,7 +49,8 @@ export default function ElainpalvelutClientPage() {
     if (!v) next.delete('sijainti')
     else next.set('sijainti', v)
 
-    router.replace(`?${next.toString()}`)
+    const qs = next.toString()
+    router.replace(qs ? `?${qs}` : '?')
   }
 
   useEffect(() => {
@@ -62,18 +63,12 @@ export default function ElainpalvelutClientPage() {
         .from('ilmoitukset')
         .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, voimassa_alku')
         .eq('kategoria', 'Eläinpalvelut')
-        // ✅ sama voimassaolo-logiikka kuin aluehaussa
         .or(`voimassa_alku.is.null,voimassa_alku.lte.${nytISO}`)
-        // ✅ premium aina ensin
         .order('premium', { ascending: false })
 
-      // ✅ "MISSÄ" suodatin
       const v = paikkakunta.trim()
-      if (v) {
-        query = query.ilike('sijainti', `%${v}%`)
-      }
+      if (v) query = query.ilike('sijainti', `%${v}%`)
 
-      // ✅ järjestys
       if (jarjestys === 'uusin') query = query.order('luotu', { ascending: false })
       if (jarjestys === 'vanhin') query = query.order('luotu', { ascending: true })
       if (jarjestys === 'suosituin') query = query.order('nayttoja', { ascending: false })
@@ -90,12 +85,10 @@ export default function ElainpalvelutClientPage() {
     }
 
     haeIlmoitukset()
-  }, [page, jarjestys, paikkakunta]) // ✅ paikkakunta mukana
+  }, [page, jarjestys, paikkakunta])
 
   return (
-    <main className="max-w-screen-xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Eläinpalvelut</h1>
-
+    <>
       <div className="mb-6 flex flex-col sm:flex-row sm:items-end gap-4">
         {/* ✅ Paikkakuntafiltteri */}
         <div className="w-full sm:max-w-sm">
@@ -104,7 +97,6 @@ export default function ElainpalvelutClientPage() {
             value={paikkakunta}
             onChange={(e) => {
               setPaikkakunta(e.target.value)
-              // päivitä URL heti kirjoittaessa (halutessa voi tehdä nappiin)
               paivitaPaikkakuntaURL(e.target.value)
             }}
             placeholder="Esim. Turku"
@@ -201,6 +193,6 @@ export default function ElainpalvelutClientPage() {
           Seuraava
         </button>
       </div>
-    </main>
+    </>
   )
 }
