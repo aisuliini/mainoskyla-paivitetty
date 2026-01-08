@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import Image from 'next/image'
 import Katselukerrat from '@/components/Katselukerrat'
@@ -21,10 +21,36 @@ type Ilmoitus = {
 
 export default function ElainpalvelutClientPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
   const [page, setPage] = useState<number>(1)
   const [hasMore, setHasMore] = useState(false)
+
   const [jarjestys, setJarjestys] = useState<'uusin' | 'vanhin' | 'suosituin'>('uusin')
+
+  // ✅ "MISSÄ" filtteri kategoriasivulle (URL: ?sijainti=Turku)
+  const [paikkakunta, setPaikkakunta] = useState<string>(searchParams.get('sijainti') || '')
+
+  // Synkkaa input URLin kanssa (takaisin/eteen -navigointi)
+  useEffect(() => {
+    setPaikkakunta(searchParams.get('sijainti') || '')
+  }, [searchParams])
+
+  // Kun filtteri muuttuu, aloitetaan sivutus alusta
+  useEffect(() => {
+    setPage(1)
+  }, [paikkakunta, jarjestys])
+
+  const paivitaPaikkakuntaURL = (value: string) => {
+    const next = new URLSearchParams(searchParams.toString())
+    const v = value.trim()
+
+    if (!v) next.delete('sijainti')
+    else next.set('sijainti', v)
+
+    router.replace(`?${next.toString()}`)
+  }
 
   useEffect(() => {
     const haeIlmoitukset = async () => {
@@ -34,13 +60,20 @@ export default function ElainpalvelutClientPage() {
 
       let query = supabase
         .from('ilmoitukset')
-        .select('*')
+        .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, voimassa_alku')
         .eq('kategoria', 'Eläinpalvelut')
-        .or(
-          `and(voimassa_alku.is.null,voimassa_loppu.is.null),and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`
-        )
+        // ✅ sama voimassaolo-logiikka kuin aluehaussa
+        .or(`voimassa_alku.is.null,voimassa_alku.lte.${nytISO}`)
+        // ✅ premium aina ensin
         .order('premium', { ascending: false })
 
+      // ✅ "MISSÄ" suodatin
+      const v = paikkakunta.trim()
+      if (v) {
+        query = query.ilike('sijainti', `%${v}%`)
+      }
+
+      // ✅ järjestys
       if (jarjestys === 'uusin') query = query.order('luotu', { ascending: false })
       if (jarjestys === 'vanhin') query = query.order('luotu', { ascending: true })
       if (jarjestys === 'suosituin') query = query.order('nayttoja', { ascending: false })
@@ -57,23 +90,53 @@ export default function ElainpalvelutClientPage() {
     }
 
     haeIlmoitukset()
-  }, [page, jarjestys])
+  }, [page, jarjestys, paikkakunta]) // ✅ paikkakunta mukana
 
   return (
     <main className="max-w-screen-xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Eläinpalvelut</h1>
 
-      {/* TOPBAR */}
-      <div className="mb-6 flex flex-wrap items-center gap-4">
-        <select
-          value={jarjestys}
-          onChange={(e) => setJarjestys(e.target.value as 'uusin' | 'vanhin' | 'suosituin')}
-          className="border px-3 py-2 rounded"
-        >
-          <option value="uusin">Uusin</option>
-          <option value="vanhin">Vanhin</option>
-          <option value="suosituin">Suosituin</option>
-        </select>
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-end gap-4">
+        {/* ✅ Paikkakuntafiltteri */}
+        <div className="w-full sm:max-w-sm">
+          <label className="block text-sm font-medium mb-1">📍 Suodata paikkakunnalla</label>
+          <input
+            value={paikkakunta}
+            onChange={(e) => {
+              setPaikkakunta(e.target.value)
+              // päivitä URL heti kirjoittaessa (halutessa voi tehdä nappiin)
+              paivitaPaikkakuntaURL(e.target.value)
+            }}
+            placeholder="Esim. Turku"
+            className="border px-3 py-2 rounded w-full"
+          />
+          {paikkakunta.trim() && (
+            <button
+              type="button"
+              onClick={() => {
+                setPaikkakunta('')
+                paivitaPaikkakuntaURL('')
+              }}
+              className="mt-2 text-sm underline text-gray-600"
+            >
+              Tyhjennä suodatin
+            </button>
+          )}
+        </div>
+
+        {/* Järjestys */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Järjestys</label>
+          <select
+            value={jarjestys}
+            onChange={(e) => setJarjestys(e.target.value as 'uusin' | 'vanhin' | 'suosituin')}
+            className="border px-3 py-2 rounded"
+          >
+            <option value="uusin">Uusin</option>
+            <option value="vanhin">Vanhin</option>
+            <option value="suosituin">Suosituin</option>
+          </select>
+        </div>
       </div>
 
       {ilmoitukset.length === 0 ? (
@@ -83,9 +146,9 @@ export default function ElainpalvelutClientPage() {
           {ilmoitukset.map((ilmo) => (
             <div
               key={ilmo.id}
-              className={`rounded-lg overflow-hidden shadow-sm border ${
-                ilmo.premium === true ? 'bg-[#F3F8F6] border-[#6A837F]' : 'bg-white border-gray-200'
-              }`}
+              className={`rounded-lg overflow-hidden shadow-sm border
+                ${ilmo.premium === true ? 'bg-[#F3F8F6] border-[#6A837F]' : 'bg-white border-gray-200'}
+              `}
             >
               <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
                 {ilmo.premium === true && (
@@ -111,7 +174,6 @@ export default function ElainpalvelutClientPage() {
                 <Katselukerrat count={ilmo.nayttoja || 0} small />
 
                 <button
-                  type="button"
                   onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
                   className="mt-3 px-4 py-2 text-sm bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
                 >
@@ -125,7 +187,6 @@ export default function ElainpalvelutClientPage() {
 
       <div className="flex justify-center gap-4 mt-6">
         <button
-          type="button"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page === 1}
           className="px-4 py-2 border rounded disabled:opacity-50"
@@ -133,7 +194,6 @@ export default function ElainpalvelutClientPage() {
           Edellinen
         </button>
         <button
-          type="button"
           onClick={() => setPage((p) => p + 1)}
           disabled={!hasMore}
           className="px-4 py-2 border rounded disabled:opacity-50"
