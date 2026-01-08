@@ -61,7 +61,7 @@ export default function VuokratilatJaJuhlapaikatClientPage() {
       let query = supabase
         .from('ilmoitukset')
         .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, voimassa_alku')
-        .eq('kategoria', 'Vuokratilat ja juhlapaikat')
+        .eq('kategoria', 'Vuokratilat ja Juhlapaikat')
         // ✅ sama voimassaolo-logiikka kuin aluehaussa
         .or(`voimassa_alku.is.null,voimassa_alku.lte.${nytISO}`)
         // ✅ premium aina ensin

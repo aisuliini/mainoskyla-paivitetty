@@ -61,7 +61,7 @@ export default function KotiJaRemontointiClientPage() {
       let query = supabase
         .from('ilmoitukset')
         .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, voimassa_alku')
-        .eq('kategoria', 'Koti ja remontointi')
+        .eq('kategoria', 'Koti ja Remontointi')
         // ✅ sama voimassaolo-logiikka kuin aluehaussa
         .or(`voimassa_alku.is.null,voimassa_alku.lte.${nytISO}`)
         // ✅ premium aina ensin

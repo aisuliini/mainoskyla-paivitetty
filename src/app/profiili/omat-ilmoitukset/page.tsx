@@ -24,6 +24,11 @@ export default function OmatIlmoituksetSivu() {
   const router = useRouter()
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+useEffect(() => {
+  setMounted(true)
+}, [])
 
   // estää päällekkäiset refreshSession-kutsut
   const refreshingRef = useRef(false)
@@ -171,9 +176,11 @@ export default function OmatIlmoituksetSivu() {
   )
 
   const onVanhentunut = (ilmo: Ilmoitus) => {
-    if (!ilmo.voimassa_loppu) return false
-    return new Date(ilmo.voimassa_loppu).getTime() < Date.now()
-  }
+  if (!ilmo.voimassa_loppu) return false
+  if (!mounted) return false // ✅ estää SSR/CSR mismatch
+  return new Date(ilmo.voimassa_loppu).getTime() < Date.now()
+}
+
 
   return (
     <main className="max-w-screen-xl mx-auto p-6">
@@ -230,13 +237,14 @@ export default function OmatIlmoituksetSivu() {
                     <p className="text-sm text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
                     <p className="text-xs text-gray-500">{ilmo.sijainti ?? ''}</p>
 
-                    {ilmo.voimassa_alku && ilmo.voimassa_loppu && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Voimassa:{' '}
-                        <strong>{new Date(ilmo.voimassa_alku).toLocaleDateString('fi-FI')}</strong> –{' '}
-                        <strong>{new Date(ilmo.voimassa_loppu).toLocaleDateString('fi-FI')}</strong>
-                      </p>
-                    )}
+                    {mounted && ilmo.voimassa_alku && ilmo.voimassa_loppu && (
+                     <p className="text-xs text-gray-500 mt-1">
+                     Voimassa:{' '}
+                     <strong>{new Date(ilmo.voimassa_alku).toLocaleDateString('fi-FI')}</strong> –{' '}
+                     <strong>{new Date(ilmo.voimassa_loppu).toLocaleDateString('fi-FI')}</strong>
+                   </p>
+                  )}
+
 
                     <div className="flex items-center text-xs text-gray-500 mt-2 gap-1">
                       <Eye size={14} />

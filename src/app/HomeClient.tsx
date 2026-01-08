@@ -161,7 +161,7 @@ const hae = () => {
 const kategoriat = [
   {
     nimi: "Arjen palvelut",
-    href: "/kategoriat/Arjen-palvelut",
+    href: "/kategoriat/arjen-palvelut",
     ikoni: <Hammer className="h-6 w-6 text-[#1E3A41]" />,
     enabled: true,
   },
@@ -321,7 +321,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
               onClick={() => {
                 setHakusana(ehto)
                 setSuositukset([])
-                router.push(`/aluehaku?sijainti=${encodeURIComponent(ehto)}`)
+                router.push(`/aluehaku?q=${encodeURIComponent(ehto)}`)
               }}
             >
               {ehto}
@@ -462,10 +462,11 @@ className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandat
  <CategoryCarousel
   categories={visibleKategoriat.map((k) => ({
     name: k.nimi,
-    href: `/kategoriat/${urlSafeKategoria(k.nimi)}`,
+    href: k.href, // ✅ käytä suoraan oikeaa polkua
     icon: k.ikoni,
   }))}
 />
+
 </div>
 
 
@@ -475,7 +476,7 @@ className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandat
     {visibleKategoriat.map((k) => (
       <div key={k.nimi} className="flex flex-col items-center shrink-0">
         <button
-          onClick={() => router.push(`/kategoriat/${urlSafeKategoria(k.nimi)}`)}
+        onClick={() => router.push(k.href)}
 className="
   flex items-center justify-center
   w-14 h-14 rounded-full

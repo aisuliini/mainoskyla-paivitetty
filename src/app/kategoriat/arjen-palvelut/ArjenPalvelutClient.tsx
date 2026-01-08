@@ -61,7 +61,7 @@ export default function ArjenPalvelutClientPage() {
       let query = supabase
         .from('ilmoitukset')
         .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, voimassa_alku')
-        .eq('kategoria', 'Arjen palvelut')
+        .ilike('kategoria', 'Arjen palvelut')
         // ✅ sama voimassaolo-logiikka kuin aluehaussa
         .or(`voimassa_alku.is.null,voimassa_alku.lte.${nytISO}`)
         // ✅ premium aina ensin
