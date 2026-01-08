@@ -237,9 +237,6 @@ const kategoriat = [
 const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
 
-  const urlSafeKategoria = (kategoria: string) =>
-    encodeURIComponent(kategoria.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/\s+/g, '-'))
-
   return (
 <main className="min-h-screen font-sans text-charcoal bg-white">
 
