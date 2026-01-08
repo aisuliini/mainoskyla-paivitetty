@@ -2,15 +2,38 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabaseClient'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Search } from 'lucide-react'
 
-export default function Header() {
+function HeaderFallback() {
+  // Kevyt fallback ettei SSR/CSR rakenne heittele (auttaa myös hydrationiin)
+  return (
+    <header className="bg-white/80 backdrop-blur border-b px-4 sm:px-6 h-[72px] flex items-center justify-between sticky top-0 z-50">
+      <Link href="/" className="flex items-center h-full shrink-0">
+        <Image
+          src="/mainoskylalogo.png"
+          alt="Mainoskylä"
+          width={72}
+          height={72}
+          priority
+          className="h-[48px] w-auto md:h-[56px]"
+        />
+      </Link>
+
+      <div className="hidden md:block w-[320px] lg:w-[380px]" />
+
+      <div className="md:hidden h-10 w-10 rounded-full bg-white ring-1 ring-black/10" />
+    </header>
+  )
+}
+
+function HeaderInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const pathname = usePathname()
 
   const [open, setOpen] = useState(false)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
@@ -24,26 +47,28 @@ export default function Header() {
     router.refresh()
   }
 
+  const closeMenus = () => {
+    setHakusana('')
+    setOpen(false)
+    setMobileSearchOpen(false)
+  }
+
   const hae = () => {
     const q = hakusana.trim()
     if (!q) return
 
-    // ✅ 10/10 UX: jos ollaan aluehaussa ja käyttäjällä on jo valittu sijainti,
-    // säilytetään se uuteen hakuun.
-    const sijainti = searchParams.get('sijainti')?.trim()
+    // Säilytä sijainti vain jos ollaan aluehaussa
+    const sijainti =
+      pathname === '/aluehaku' ? searchParams.get('sijainti')?.trim() : null
 
     const url = sijainti
       ? `/aluehaku?q=${encodeURIComponent(q)}&sijainti=${encodeURIComponent(sijainti)}`
       : `/aluehaku?q=${encodeURIComponent(q)}`
 
     router.push(url)
-
-    setHakusana('')
-    setOpen(false)
-    setMobileSearchOpen(false)
+    closeMenus()
   }
 
-  // Estää sen iOS “sinisen search-tyylin” paremmin kuin type="search"
   const inputClass =
     'w-full rounded-full border border-charcoal/15 bg-white px-4 py-2 pr-10 text-sm ' +
     'text-[#1E3A41] placeholder:text-[#1E3A41]/50 shadow-sm ' +
@@ -126,7 +151,6 @@ export default function Header() {
 
       {/* Mobiili: search + burger */}
       <div className="md:hidden flex items-center gap-2">
-        {/* 🔍 Mobiilihaku (aina saatavilla kaikilla sivuilla) */}
         <button
           type="button"
           aria-label="Haku"
@@ -136,7 +160,6 @@ export default function Header() {
           <Search size={18} />
         </button>
 
-        {/* Burger */}
         <button
           onClick={() => setOpen(!open)}
           className="text-2xl"
@@ -222,5 +245,13 @@ export default function Header() {
         </div>
       )}
     </header>
+  )
+}
+
+export default function Header() {
+  return (
+    <Suspense fallback={<HeaderFallback />}>
+      <HeaderInner />
+    </Suspense>
   )
 }
