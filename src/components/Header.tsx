@@ -5,12 +5,11 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabaseClient'
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Search } from 'lucide-react'
 
 export default function Header() {
   const router = useRouter()
-  const pathname = usePathname()
   const searchParams = useSearchParams()
 
   const [open, setOpen] = useState(false)
