@@ -70,9 +70,9 @@ function HeaderInner() {
   }
 
   const inputClass =
-    'w-full rounded-full border border-charcoal/15 bg-white px-4 py-2 pr-10 text-sm ' +
-    'text-[#1E3A41] placeholder:text-[#1E3A41]/50 shadow-sm ' +
-    'appearance-none outline-none focus:outline-none focus:ring-0 focus:border-charcoal/30'
+  'w-full rounded-full border border-charcoal/15 bg-white px-4 py-2 pr-10 text-base ' +
+  'text-[#1E3A41] placeholder:text-[#1E3A41]/50 shadow-sm ' +
+  'appearance-none outline-none focus:outline-none focus:ring-0 focus:border-charcoal/30'
 
   return (
     <header className="bg-white/80 backdrop-blur border-b px-4 sm:px-6 h-[72px] flex items-center justify-between sticky top-0 z-50">
@@ -107,7 +107,7 @@ function HeaderInner() {
               hae()
             }
           }}
-          className="w-[320px] lg:w-[380px] px-4 py-2 pr-10 text-sm border rounded-full bg-white shadow-sm outline-none focus:outline-none focus:ring-0 focus:border-black/20"
+          className="w-[320px] lg:w-[380px] px-4 py-2 pr-10 text-base border rounded-full bg-white shadow-sm outline-none focus:outline-none focus:ring-0 focus:border-black/20"
         />
         <button
           type="button"
@@ -143,7 +143,11 @@ function HeaderInner() {
 
   <button
     type="button"
-    onClick={() => setOpen((s) => !s)}
+    onClick={() => {
+    setMobileSearchOpen(false)
+    setOpen((s) => !s)
+   }}
+
     aria-label="Valikko"
     className="h-11 w-11 rounded-full bg-white ring-1 ring-black/10 flex items-center justify-center active:bg-black/5"
   >
@@ -157,23 +161,30 @@ function HeaderInner() {
   <button
     type="button"
     aria-label="Haku"
-    onClick={() => setMobileSearchOpen((s) => !s)}
+    onClick={() => {
+    setOpen(false)
+    setMobileSearchOpen((s) => !s)
+   }}
     className="h-10 w-10 rounded-full bg-white ring-1 ring-black/10 flex items-center justify-center"
   >
     <Search size={18} />
   </button>
 
   <Link
-    href={user ? '/profiili' : '/kirjaudu'}
-    onClick={() => setOpen(false)}
-    className="h-10 px-4 rounded-full bg-[#F99584] text-[#1E3A41] font-semibold flex items-center justify-center"
-  >
+  href={user ? '/profiili' : '/kirjaudu'}
+  onClick={() => closeMenus()}
+  className="h-10 px-4 rounded-full bg-[#F99584] text-[#1E3A41] font-semibold flex items-center justify-center"
+>
+
     {user ? 'Profiili' : 'Kirjaudu'}
   </Link>
 
   <button
     type="button"
-    onClick={() => setOpen((s) => !s)}
+    onClick={() => {
+      setMobileSearchOpen(false)
+      setOpen((s) => !s)
+    }}
     aria-label="Valikko"
     className="h-10 w-10 rounded-full bg-white ring-1 ring-black/10 flex items-center justify-center active:bg-black/5"
   >
@@ -184,37 +195,46 @@ function HeaderInner() {
 
       {/* Mobiilihaku dropdown */}
       {mobileSearchOpen && (
-        <div className="absolute left-0 right-0 top-[72px] px-4 pb-3 bg-white/95 backdrop-blur border-b z-50 md:hidden">
-          <div className="relative max-w-screen-xl mx-auto">
-            <input
-              type="text"
-              inputMode="search"
-              enterKeyHint="search"
-              autoCorrect="off"
-              autoCapitalize="none"
-              spellCheck={false}
-              placeholder="Hae palvelua tai tekijää..."
-              value={hakusana}
-              onChange={(e) => setHakusana(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  hae()
-                }
-              }}
-              className={inputClass}
-            />
-            <button
-              type="button"
-              onClick={hae}
-              aria-label="Hae"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1E3A41]"
-            >
-              <Search size={18} />
-            </button>
-          </div>
-        </div>
-      )}
+  <>
+    <div
+      className="fixed inset-0 z-40"
+      onClick={() => setMobileSearchOpen(false)}
+    />
+
+    <div className="absolute left-0 right-0 top-[72px] px-4 pb-3 bg-white/95 backdrop-blur border-b z-50 md:hidden">
+      <div className="relative max-w-screen-xl mx-auto">
+        <input
+          type="text"
+          inputMode="search"
+          enterKeyHint="search"
+          autoCorrect="off"
+          autoCapitalize="none"
+          spellCheck={false}
+          placeholder="Hae palvelua tai tekijää..."
+          value={hakusana}
+          onChange={(e) => setHakusana(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              hae()
+            }
+          }}
+          className={inputClass}
+          autoFocus
+        />
+        <button
+          type="button"
+          onClick={hae}
+          aria-label="Hae"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1E3A41]"
+        >
+          <Search size={18} />
+        </button>
+      </div>
+    </div>
+  </>
+)}
+
 
       {/* Mobiilivalikko */}
 {open && (
