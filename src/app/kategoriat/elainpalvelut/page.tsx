@@ -25,7 +25,7 @@ export default function Page() {
       <h1 className="text-2xl font-bold mb-2">Eläinpalvelut</h1>
       <p className="text-sm text-gray-600 mb-6">
         Selaa paikallisia eläinpalveluita – trimmaus, hoito, koulutus ja muut palvelut omalta
-        alueeltasi. Käytä hakua ja järjestystä löytääksesi sopivan tekijän.
+        alueeltasi. Käytä hakua ja järjestystä löytääksesi sopiva tekijä.
       </p>
 
       <ElainpalvelutClientWrapper />

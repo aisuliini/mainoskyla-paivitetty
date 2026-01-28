@@ -120,54 +120,67 @@ function HeaderInner() {
       </div>
 
       {/* Desktop-nav */}
-      <div className="hidden md:flex items-center gap-2 text-sm">
-        <Link href="/lisaa" className="hover:underline">Ilmoita</Link>
-        <Link href="/tietoa" className="hover:underline">Tietoa</Link>
-        <Link href="/hinnasto" className="hover:underline">Hinnasto</Link>
-        <Link href="/ehdot" className="hover:underline">Ehdot</Link>
-        <Link href="/tietosuoja" className="hover:underline">Tietosuoja</Link>
-        <Link href="/turvallisuus" className="hover:underline">Turvallisuusohjeet</Link>
-        <Link href="/yhteystiedot" className="hover:underline">Yhteystiedot</Link>
+      <div className="hidden md:flex items-center gap-3 ml-4">
+  <Link
+    href="/lisaa"
+    className="bg-[#4F6763] text-white px-4 py-2 rounded-full font-semibold hover:bg-[#6A837F] transition"
+  >
+    Ilmoita
+  </Link>
 
-        {user ? (
-          <>
-            <Link href="/profiili" className="hover:underline">Profiili</Link>
-            <button
-              onClick={kirjauduUlos}
-              className="bg-gray-200 px-4 py-1 rounded hover:bg-gray-300"
-            >
-              Kirjaudu ulos
-            </button>
-          </>
-        ) : (
-          <Link
-            href="/kirjaudu"
-            className="bg-[#F99584] text-[#1E3A41] px-5 py-2 rounded-full font-semibold hover:bg-[#E86E5B] transition-colors shadow-sm"
-          >
-            Kirjaudu
-          </Link>
-        )}
-      </div>
+  {user ? (
+    <Link href="/profiili" className="hover:underline">
+      Profiili
+    </Link>
+  ) : (
+    <Link
+      href="/kirjaudu"
+      className="bg-[#F99584] text-[#1E3A41] px-5 py-2 rounded-full font-semibold hover:bg-[#E86E5B] transition-colors shadow-sm"
+    >
+      Kirjaudu
+    </Link>
+  )}
 
-      {/* Mobiili: search + burger */}
-      <div className="md:hidden flex items-center gap-2">
-        <button
-          type="button"
-          aria-label="Haku"
-          onClick={() => setMobileSearchOpen((s) => !s)}
-          className="h-10 w-10 rounded-full bg-white ring-1 ring-black/10 flex items-center justify-center"
-        >
-          <Search size={18} />
-        </button>
+  <button
+    type="button"
+    onClick={() => setOpen((s) => !s)}
+    aria-label="Valikko"
+    className="h-11 w-11 rounded-full bg-white ring-1 ring-black/10 flex items-center justify-center active:bg-black/5"
+  >
+    <span className="text-2xl leading-none">☰</span>
+  </button>
+</div>
 
-        <button
-          onClick={() => setOpen(!open)}
-          className="text-2xl"
-          aria-label="Valikko"
-        >
-          ☰
-        </button>
-      </div>
+
+      {/* Mobiili: search + kirjaudu + burger */}
+<div className="md:hidden flex items-center gap-2">
+  <button
+    type="button"
+    aria-label="Haku"
+    onClick={() => setMobileSearchOpen((s) => !s)}
+    className="h-10 w-10 rounded-full bg-white ring-1 ring-black/10 flex items-center justify-center"
+  >
+    <Search size={18} />
+  </button>
+
+  <Link
+    href={user ? '/profiili' : '/kirjaudu'}
+    onClick={() => setOpen(false)}
+    className="h-10 px-4 rounded-full bg-[#F99584] text-[#1E3A41] font-semibold flex items-center justify-center"
+  >
+    {user ? 'Profiili' : 'Kirjaudu'}
+  </Link>
+
+  <button
+    type="button"
+    onClick={() => setOpen((s) => !s)}
+    aria-label="Valikko"
+    className="h-10 w-10 rounded-full bg-white ring-1 ring-black/10 flex items-center justify-center active:bg-black/5"
+  >
+    <span className="text-2xl leading-none">☰</span>
+  </button>
+</div>
+
 
       {/* Mobiilihaku dropdown */}
       {mobileSearchOpen && (
@@ -204,49 +217,91 @@ function HeaderInner() {
       )}
 
       {/* Mobiilivalikko */}
-      {open && (
-        <div className="absolute top-[72px] right-4 bg-white border rounded shadow p-4 text-sm z-50 md:hidden">
-          <Link href="/lisaa" className="block mb-2" onClick={() => setOpen(false)}>Ilmoita</Link>
-          <Link href="/tietoa" className="block mb-2" onClick={() => setOpen(false)}>Tietoa</Link>
-          <Link href="/hinnasto" className="block mb-2" onClick={() => setOpen(false)}>Hinnasto</Link>
-          <Link href="/ehdot" className="block mb-2" onClick={() => setOpen(false)}>Ehdot</Link>
-          <Link href="/tietosuoja" className="block mb-2" onClick={() => setOpen(false)}>Tietosuoja</Link>
-          <Link href="/turvallisuus" className="block mb-2" onClick={() => setOpen(false)}>Turvallisuusohjeet</Link>
-          <Link href="/yhteystiedot" className="block mb-2" onClick={() => setOpen(false)}>Yhteystiedot</Link>
+{open && (
+    <div className="absolute top-[72px] right-3 left-3 md:left-auto md:right-6 md:w-[360px] bg-white border rounded-2xl shadow-lg p-2 text-base z-50">
+    <div className="flex flex-col">
 
-          {user ? (
-            <>
-              <Link href="/profiili" className="block mb-2" onClick={() => setOpen(false)}>Profiili</Link>
-              <button
-                onClick={kirjauduUlos}
-                className="bg-[#1E3A41] text-white px-4 py-1 rounded hover:bg-[#27494e] transition-colors"
-              >
-                Kirjaudu ulos
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/kirjaudu"
-                onClick={() => setOpen(false)}
-                className="block mb-2 bg-[#F99584] text-[#1E3A41] px-4 py-1 rounded hover:bg-[#E86E5B] transition-colors"
-              >
-                Kirjaudu
-              </Link>
-              <Link
-                href="/rekisteroidy"
-                onClick={() => setOpen(false)}
-                className="block bg-gray-100 text-gray-800 px-4 py-1 rounded hover:bg-gray-200"
-              >
-                Rekisteröidy
-              </Link>
-            </>
-          )}
-        </div>
-      )}
+      <NavItem href="/lisaa" onClick={() => setOpen(false)}>
+        ➕ Ilmoita
+      </NavItem>
+
+      <div className="my-2 border-t" />
+
+      <p className="px-3 pt-2 pb-1 text-xs text-gray-500 uppercase">
+        Tietoa
+      </p>
+      <NavItem href="/tietoa" onClick={() => setOpen(false)}>
+        Tietoa
+      </NavItem>
+      <NavItem href="/yhteystiedot" onClick={() => setOpen(false)}>
+        Yhteystiedot
+      </NavItem>
+
+      <p className="px-3 pt-3 pb-1 text-xs text-gray-500 uppercase">
+        Turvallisuus & tietosuoja
+      </p>
+      <NavItem href="/turvallisuus" onClick={() => setOpen(false)}>
+        Turvallisuusohjeet
+      </NavItem>
+      <NavItem href="/tietosuoja" onClick={() => setOpen(false)}>
+        Tietosuoja
+      </NavItem>
+
+      <p className="px-3 pt-3 pb-1 text-xs text-gray-500 uppercase">
+        Muut
+      </p>
+      <NavItem href="/ehdot" onClick={() => setOpen(false)}>
+        Käyttöehdot
+      </NavItem>
+      <NavItem href="/hinnasto" onClick={() => setOpen(false)}>
+        Hinnasto
+      </NavItem>
+
+      <div className="my-2 border-t" />
+
+      {user ? (
+        <>
+          <NavItem href="/profiili" onClick={() => setOpen(false)}>
+            Profiili
+          </NavItem>
+          <button
+            onClick={kirjauduUlos}
+            className="w-full text-left px-4 py-3 rounded-xl text-red-600 hover:bg-red-50"
+          >
+            Kirjaudu ulos
+          </button>
+        </>
+      ) : null}
+
+
+    </div>
+  </div>
+)}
+
     </header>
   )
 }
+
+function NavItem({
+  href,
+  children,
+  onClick,
+}: {
+  href: string
+  children: React.ReactNode
+  onClick: () => void
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="block px-4 py-3 rounded-xl hover:bg-black/5"
+    >
+      {children}
+    </Link>
+  )
+}
+
 
 export default function Header() {
   return (

@@ -31,7 +31,9 @@ export default function Turvallisuus() {
 
       <h2 className="mt-6 font-semibold text-lg">🔒 Kirjautuminen</h2>
       <p className="text-sm mt-2">
-        Kirjautuminen tapahtuu sähköpostiosoitteella ja salasanalla. Kun kirjaudut sisään, saat vahvistuslinkin sähköpostiisi (Supabasen toimittamana), jolla varmistetaan kirjautuminen.
+      Kirjautuminen tapahtuu sähköpostiosoitteella ja salasanalla. Rekisteröitymisen yhteydessä saat sähköpostiisi vahvistuslinkin, jolla vahvistat sähköpostiosoitteesi. Vahvistuksen jälkeen pääset kirjautumaan Mainoskylään normaalisti.
+
+       Mainoskylä ei pyydä pankkitietoja, luottokorttitietoja tai muita maksutietoja kirjautumisen tai rekisteröitymisen yhteydessä. Jos saat viestin, jossa pyydetään maksutietoja Mainoskylään liittyen, kyseessä ei ole Mainoskylän virallinen viesti.Viralliset vahvistus- ja kirjautumisviestit ohjaavat aina Mainoskylän omille sivuille (mainoskyla.fi).
       </p>
       <p className="text-sm mt-2">
         Tarkista myös roskaposti, jos linkki ei saavu. Linkki on voimassa vain lyhyen ajan.

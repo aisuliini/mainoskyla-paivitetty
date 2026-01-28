@@ -30,8 +30,9 @@ export default function Kayttoehdot() {
 
       <h2 className="mt-6 font-semibold">4. Tietoturva ja kirjautuminen</h2>
       <p>
-        Kirjautuminen tapahtuu sähköpostiin lähetettävällä Magic Link -linkillä. 
-        Sivustolla ei käytetä salasanoja.
+        Kirjautuminen tapahtuu sähköpostiosoitteella ja salasanalla. Rekisteröitymisen yhteydessä saat sähköpostiisi vahvistuslinkin, jolla vahvistat sähköpostiosoitteesi. Vahvistuksen jälkeen pääset kirjautumaan Mainoskylään normaalisti.
+
+Mainoskylä ei pyydä pankkitietoja, luottokorttitietoja tai muita maksutietoja kirjautumisen tai rekisteröitymisen yhteydessä. Jos saat viestin, jossa pyydetään maksutietoja Mainoskylään liittyen, kyseessä ei ole Mainoskylän virallinen viesti.Viralliset vahvistus- ja kirjautumisviestit ohjaavat aina Mainoskylän omille sivuille (mainoskyla.fi).
       </p>
 
       <h2 className="mt-6 font-semibold">5. Yhteystiedot</h2>
