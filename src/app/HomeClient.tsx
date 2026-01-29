@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -63,21 +63,34 @@ export default function Home() {
   const router = useRouter()
   const [hakusana, setHakusana] = useState('')
   const [premiumIlmoitukset, setPremiumIlmoitukset] = useState<PremiumIlmoitus[]>([])
-  const [suositukset, setSuositukset] = useState<string[]>([])
+  const [showDesktopSuggest, setShowDesktopSuggest] = useState(false)
+
+const query = hakusana.trim().toLowerCase()
+
+// Palvelut/tekijät (ESIMERKKIHAKUJA)
+const palveluEhdotukset = useMemo(() => {
+  if (!query) return [...ESIMERKKIHAKUJA].slice(0, 8)
+  return ESIMERKKIHAKUJA
+    .filter((x) => x.toLowerCase().includes(query))
+    .slice(0, 8)
+}, [query])
+
+// Paikkakunnat (json)
+const paikkaEhdotukset = useMemo(() => {
+  if (!query) return [] // tyhjällä ei tarvitse näyttää paikkakuntia
+  return (paikkakunnat as string[])
+    .filter((p) => p.toLowerCase().includes(query))
+    .slice(0, 8)
+}, [query])
+
+
+
   const [nytSuosittua, setNytSuosittua] = useState<SuosittuIlmoitus[]>([])
   const nytSuosittuaRef = useRef<HTMLDivElement | null>(null)
   const [uusimmat, setUusimmat] = useState<SuosittuIlmoitus[]>([])
   const uusimmatRef = useRef<HTMLDivElement | null>(null)
 
-  const [placeholderIndex, setPlaceholderIndex] = useState(0)
   
-  useEffect(() => {
-  const id = setInterval(() => {
-    setPlaceholderIndex((i) => (i + 1) % ESIMERKKIHAKUJA.length)
-  }, 2500)
-
-  return () => clearInterval(id)
-}, [])
 
 
 
@@ -189,26 +202,15 @@ useEffect(() => {
 
 
 
-  useEffect(() => {
-    if (hakusana.length > 1) {
-      const filtered = (paikkakunnat as string[]).filter((p) =>
-  p.toLowerCase().includes(hakusana.toLowerCase())
-)
-setSuositukset(filtered.slice(0, 6))
-
-    } else {
-      setSuositukset([])
-    }
-  }, [hakusana])
-
-
 const hae = () => {
-  const query = hakusana.trim()
-  setSuositukset([])
+  const q = hakusana.trim()
+  if (!q) return
 
-  if (!query) return
-  router.push(`/aluehaku?q=${encodeURIComponent(query)}`)
+  // jos dropdown auki ja löytyy ehdotuksia, ota ensimmäinen osuma
+  const first = (paikkaEhdotukset[0] || palveluEhdotukset[0] || q).trim()
+  router.push(`/aluehaku?q=${encodeURIComponent(first)}`)
 }
+
 
 
 
@@ -333,57 +335,115 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 {/* 🔎 Haku (ilman korttia) */}
 <div className="w-full max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto mt-4 sm:mt-6 text-left">
   <div className="w-full">
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        hae()
+    {/* ✅ MOBIILI: avaa erillinen haku */}
+<div className="sm:hidden">
+  <button
+    type="button"
+    onClick={() => router.push('/haku')}
+    className="
+      w-full rounded-full border border-charcoal/15 bg-white
+      pl-5 pr-12 py-4 text-left
+      text-charcoal/70
+      relative
+      "
+    aria-label="Avaa haku"
+  >
+    Hae palvelua tai tekijää...
+    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-charcoal/60">
+      <Search size={20} />
+    </span>
+  </button>
+</div>
+
+{/* ✅ DESKTOP: haku etusivulla + suositukset */}
+<div className="hidden sm:block">
+  <form
+    onSubmit={(e) => {
+      e.preventDefault()
+      hae()
+    }}
+    className="relative"
+  >
+    <input
+      type="search"
+      placeholder="Hae palvelua tai tekijää..."
+      value={hakusana}
+      onChange={(e) => {
+        setHakusana(e.target.value)
+        setShowDesktopSuggest(true)
       }}
-      className="relative"
-    >
-      <input
-        type="search"
-        placeholder={`Hae esim. ${ESIMERKKIHAKUJA[placeholderIndex]}...`}
-        value={hakusana}
-        onChange={(e) => setHakusana(e.target.value)}
-        className="
+      onFocus={() => setShowDesktopSuggest(true)}
+      onBlur={() => {
+        // pieni viive että ehtii klikata listasta
+        setTimeout(() => setShowDesktopSuggest(false), 120)
+      }}
+      className="
         w-full rounded-full border border-charcoal/15 bg-white
         pl-5 pr-12 py-4 text-charcoal placeholder:text-charcoal/50
-      outline-none focus:outline-none focus:ring-0 focus:border-charcoal/30
-"      
-        inputMode="search"
-        enterKeyHint="search"
-        autoCorrect="off"
-        autoCapitalize="none"
-        spellCheck={false}
-      />
+        outline-none focus:outline-none focus:ring-0 focus:border-charcoal/30
+      "
+      inputMode="search"
+      enterKeyHint="search"
+      autoCorrect="off"
+      autoCapitalize="none"
+      spellCheck={false}
+    />
 
-      <button
-        type="submit"
-        className="absolute right-4 top-1/2 -translate-y-1/2 text-charcoal/70 hover:text-persikka transition"
-        aria-label="Hae"
-      >
-        <Search size={20} />
-      </button>
+    <button
+      type="submit"
+      className="absolute right-4 top-1/2 -translate-y-1/2 text-charcoal/70 hover:text-persikka transition"
+      aria-label="Hae"
+    >
+      <Search size={20} />
+    </button>
 
-      {suositukset.length > 0 && (
-        <ul className="absolute bg-white/95 backdrop-blur border border-black/10 rounded-2xl shadow-md w-full mt-2 z-20 max-h-56 overflow-y-auto">
-          {suositukset.map((ehto, idx) => (
-            <li
-              key={idx}
-              className="px-4 py-2 hover:bg-[#f0f0f0] cursor-pointer text-left"
-              onMouseDown={(e) => e.preventDefault()} // estää inputin blur-ongelmia mobiilissa
+    {showDesktopSuggest && (palveluEhdotukset.length > 0 || paikkaEhdotukset.length > 0) && (
+  <div className="absolute left-0 right-0 mt-2 z-20">
+    <div className="bg-white/95 backdrop-blur border border-black/10 rounded-2xl shadow-md overflow-hidden">
+      <ul className="max-h-72 overflow-y-auto">
+        {/* Paikkakunnat ensin */}
+        {paikkaEhdotukset.slice(0, 8).map((p) => (
+          <li key={`paikka-${p}`}>
+            <button
+              type="button"
+              className="w-full text-left px-4 py-3 hover:bg-black/5"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
-                setHakusana(ehto)
-                setSuositukset([])
-                router.push(`/aluehaku?q=${encodeURIComponent(ehto)}`)
+                setHakusana(p)
+                setShowDesktopSuggest(false)
+                router.push(`/aluehaku?q=${encodeURIComponent(p)}`)
               }}
             >
-              {ehto}
-            </li>
-          ))}
-        </ul>
-      )}
-    </form>
+              {p}
+            </button>
+          </li>
+        ))}
+
+        {/* Palvelut/tekijät sen jälkeen */}
+        {palveluEhdotukset.slice(0, 8).map((x) => (
+          <li key={`palvelu-${x}`}>
+            <button
+              type="button"
+              className="w-full text-left px-4 py-3 hover:bg-black/5"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                setHakusana(x)
+                setShowDesktopSuggest(false)
+                router.push(`/aluehaku?q=${encodeURIComponent(x)}`)
+              }}
+            >
+              {x}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+)}
+  </form>
+</div>
+
+
   </div>
 </div>
 
