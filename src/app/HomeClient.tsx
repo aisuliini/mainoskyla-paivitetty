@@ -47,6 +47,17 @@ type SuosittuIlmoitus = {
   kategoria?: string | null
 }
 
+const ESIMERKKIHAKUJA = [
+  'kotiapu',
+  'siivous',
+  'remontti',
+  'hieronta',
+  'koirahoitaja',
+  'valokuvaaja',
+  'juhlatila',
+  'pihanhoito',
+] as const
+
 
 export default function Home() {
   const router = useRouter()
@@ -57,16 +68,19 @@ export default function Home() {
   const nytSuosittuaRef = useRef<HTMLDivElement | null>(null)
   const [uusimmat, setUusimmat] = useState<SuosittuIlmoitus[]>([])
   const uusimmatRef = useRef<HTMLDivElement | null>(null)
-  const esimerkkihakuja = [
-  'kotiapu',
-  'siivous',
-  'remontti',
-  'hieronta',
-  'koirahoitaja',
-  'valokuvaaja',
-  'juhlatila',
-  'pihanhoito',
-]
+
+  const [placeholderIndex, setPlaceholderIndex] = useState(0)
+  
+  useEffect(() => {
+  const id = setInterval(() => {
+    setPlaceholderIndex((i) => (i + 1) % ESIMERKKIHAKUJA.length)
+  }, 2500)
+
+  return () => clearInterval(id)
+}, [])
+
+
+
 
 
 const scrollUusimmat = (dir: 'left' | 'right') => {
@@ -328,7 +342,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
     >
       <input
         type="search"
-        placeholder="Hae palvelua, tekijää tai paikkaa"
+        placeholder={`Hae esim. ${ESIMERKKIHAKUJA[placeholderIndex]}...`}
         value={hakusana}
         onChange={(e) => setHakusana(e.target.value)}
         className="
@@ -370,32 +384,6 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
         </ul>
       )}
     </form>
-    {/* Klikattavat esimerkkihaku-napit */}
-<div className="mt-2 flex flex-wrap gap-2">
-  {esimerkkihakuja.map((s) => (
-    <button
-      key={s}
-      type="button"
-      onClick={() => {
-        setHakusana(s)
-        setSuositukset([])
-        router.push(`/aluehaku?q=${encodeURIComponent(s)}`)
-      }}
-      className="
-        text-xs
-        rounded-full
-        bg-[#EDF5F2]
-        px-3 py-1
-        ring-1 ring-black/5
-        hover:ring-black/10
-        transition
-      "
-    >
-      {s}
-    </button>
-  ))}
-</div>
-
   </div>
 </div>
 
