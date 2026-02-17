@@ -145,15 +145,13 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 }
 
 
-const ilmoituksenAlku =
-  tyyppi === 'premium'
-    ? alku
-    : new Date()
+const ilmoituksenAlku = tyyppi === 'premium' ? alku : new Date()
 
 const loppuDate =
-  ilmoituksenAlku
+  tyyppi === 'premium' && ilmoituksenAlku
     ? new Date(ilmoituksenAlku.getTime() + (parseInt(kesto || '0') || 0) * 86400000)
     : null
+
 
   
 
@@ -348,10 +346,11 @@ if (kuvat.length > 0) {
     ? (tapahtumaLoppu ?? tapahtumaAlku)
     : null
 
-const voimassaLoppuFinal =
-  kategoria === 'Tapahtumat' && tapahtumaLoppuDate
-    ? tapahtumaLoppuDate
-    : loppuDate
+  const voimassaLoppuFinal =
+  kategoria === 'Tapahtumat'
+    ? (tapahtumaLoppuDate ?? tapahtumaAlku)
+    : (tyyppi === 'perus' ? null : loppuDate)
+
 
     
 
@@ -365,11 +364,11 @@ kuvat: kuvaUrls.length > 0 ? JSON.stringify(kuvaUrls) : null,
 
   maksuluokka: tyyppi,
   kategoria,
-  premium: tyyppi === 'premium' && !!alku && alku <= nykyhetki,
+  premium: tyyppi === 'premium' && !!alku,
   premium_alku: tyyppi === 'premium' ? alku?.toISOString() : null,
   premium_loppu: tyyppi === 'premium' ? loppuDate?.toISOString() : null,
   voimassa_alku: (tyyppi === 'premium' ? (alku?.toISOString() ?? nykyhetki.toISOString()) : nykyhetki.toISOString()),
-  voimassa_loppu: voimassaLoppuFinal?.toISOString(),
+  voimassa_loppu: voimassaLoppuFinal ? voimassaLoppuFinal.toISOString() : null,
   premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
   nayttoja: 0,
   luotu: nykyhetki.toISOString(),
@@ -758,29 +757,21 @@ if (replaceIndex !== null) {
 <div className="space-y-4">
   <label className="block font-medium">Valitse ilmoitustyyppi:</label>
   <select
-    value={tyyppi}
-    onChange={(e) => setTyyppi(e.target.value)}
-    className="w-full border px-4 py-2 rounded"
-  >
-    <option value="perus">Kategoriailmoitus</option>
-    <option value="premium">Etusivun näkyvyys</option>
-  </select>
+  value={tyyppi}
+  onChange={(e) => setTyyppi(e.target.value === 'premium' ? 'premium' : 'perus')}
+  className="w-full border px-4 py-2 rounded"
+>
+  <option value="perus">Perusilmoitus (ilmainen)</option>
+  <option value="premium">Etusivu-ilmoitus (ilmainen)</option>
+</select>
+
 
   {tyyppi === 'perus' && (
-    <>
-
-    <label className="block">Näkyvyysaika (päiviä):</label>
-    <select
-      value={kesto}
-      onChange={(e) => setKesto(e.target.value)}
-      className="w-full border px-4 py-2 rounded"
-    >
-      <option value="30">30 päivää</option>
-      <option value="60">60 päivää</option>
-      <option value="90">90 päivää</option>
-    </select>
-  </>
+  <p className="text-sm text-gray-600">
+    Perusilmoitus on ilmainen ja näkyy toistaiseksi (kunnes poistat sen).
+  </p>
 )}
+
 
 
           {tyyppi === 'premium' && (
@@ -813,14 +804,6 @@ if (replaceIndex !== null) {
              )}
            </>
          )}
-
-          {/* <p className="text-right font-semibold text-sm">Hinta: {hinta}</p> */}
-          {tyyppi === 'perus' && loppuDate && (
-            <p>
-            Ilmoituksesi näkyy ajalla:
-    <strong> {new Date().toLocaleDateString('fi-FI')} – {loppuDate.toLocaleDateString('fi-FI')}</strong>
-  </p>
-)}
 
 
 

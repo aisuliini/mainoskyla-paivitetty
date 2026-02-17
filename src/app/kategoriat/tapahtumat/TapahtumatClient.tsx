@@ -32,7 +32,9 @@ export default function TapahtumatClientPage() {
 
   useEffect(() => {
   const hae = async () => {
-    const nytISO = new Date().toISOString()
+  const todayStart = new Date()
+  todayStart.setHours(0,0,0,0)
+  const todayISO = todayStart.toISOString()
 
   const alkuISO = alkuPaiva ? new Date(alkuPaiva + 'T00:00:00').toISOString() : ''
   const loppuISO = loppuPaiva ? new Date(loppuPaiva + 'T23:59:59').toISOString() : ''
@@ -40,24 +42,30 @@ export default function TapahtumatClientPage() {
 
 let query = supabase
   .from('ilmoitukset')
-  .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, voimassa_alku, voimassa_loppu, tapahtuma_alku, tapahtuma_loppu')
+  .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, luotu, premium, tapahtuma_alku, tapahtuma_loppu')
   .eq('kategoria', 'Tapahtumat')
-  .or(`voimassa_alku.is.null,voimassa_alku.lte.${nytISO}`)
-  .or(`voimassa_loppu.is.null,voimassa_loppu.gte.${nytISO}`)
+  .not('tapahtuma_alku', 'is', null)
+  .not('tapahtuma_loppu', 'is', null)
   .order('premium', { ascending: false })
 
 
 
 
 
+
     // Järjestys
-    if (jarjestys === 'tulevat') {
-      query = query.gte('tapahtuma_loppu', nytISO).order('tapahtuma_alku', { ascending: true })
-    } else if (jarjestys === 'uusin') {
-      query = query.order('luotu', { ascending: false })
-    } else if (jarjestys === 'vanhin') {
-      query = query.order('luotu', { ascending: true })
-    }
+    const hasDateFilter = !!alkuPaiva || !!loppuPaiva
+
+if (jarjestys === 'tulevat' && !hasDateFilter) {
+  query = query.gte('tapahtuma_loppu', todayISO).order('tapahtuma_alku', { ascending: true })
+} else if (jarjestys === 'uusin') {
+  query = query.order('luotu', { ascending: false })
+} else if (jarjestys === 'vanhin') {
+  query = query.order('luotu', { ascending: true })
+} else {
+  query = query.order('tapahtuma_alku', { ascending: true })
+}
+
 
     // Päivämäärähaku: näytä tapahtumat, jotka osuvat hakuajanjaksoon
     if (alkuPaiva && loppuPaiva) {
@@ -65,10 +73,17 @@ let query = supabase
     .lte('tapahtuma_alku', loppuISO)
     .gte('tapahtuma_loppu', alkuISO)
 } else if (alkuPaiva) {
-  query = query.gte('tapahtuma_loppu', alkuISO)
+  // yksi päivä = osuu päivään
+  const dayStartISO = new Date(alkuPaiva + 'T00:00:00').toISOString()
+  const dayEndISO = new Date(alkuPaiva + 'T23:59:59').toISOString()
+  query = query.lte('tapahtuma_alku', dayEndISO).gte('tapahtuma_loppu', dayStartISO)
 } else if (loppuPaiva) {
-  query = query.lte('tapahtuma_alku', loppuISO)
+  // jos vain loppu annettu, tulkitaan sekin yksittäisenä päivänä
+  const dayStartISO = new Date(loppuPaiva + 'T00:00:00').toISOString()
+  const dayEndISO = new Date(loppuPaiva + 'T23:59:59').toISOString()
+  query = query.lte('tapahtuma_alku', dayEndISO).gte('tapahtuma_loppu', dayStartISO)
 }
+
 
 
 

@@ -85,18 +85,20 @@ export default function MuokkaaIlmoitusta() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
+  const [voimassaAlku, setVoimassaAlku] = useState<Date | null>(null)
 
-  // Loppupäivä (näyttöön)
   const ilmoituksenAlku = useMemo(() => {
-    // premiumissä alku = valittu alku, perus = nyt (kuten LisääIlmoitus)
-    return tyyppi === 'premium' ? alku : new Date()
-  }, [tyyppi, alku])
+  return tyyppi === 'premium' ? alku : voimassaAlku
+}, [tyyppi, alku, voimassaAlku])
+
 
   const loppuDate = useMemo(() => {
-    if (!ilmoituksenAlku) return null
-    const days = parseInt(kesto || '0', 10) || 0
-    return new Date(ilmoituksenAlku.getTime() + days * 86400000)
-  }, [ilmoituksenAlku, kesto])
+  if (tyyppi !== 'premium' || !ilmoituksenAlku) return null
+  const days = parseInt(kesto || '0', 10) || 0
+const inclusiveDays = Math.max(0, days - 1) // 30 pv = alku + 29
+return new Date(ilmoituksenAlku.getTime() + inclusiveDays * 86400000)
+}, [tyyppi, ilmoituksenAlku, kesto])
+
 
   // ---------- helpers ----------
   const isSafeUrl = (raw: string) => {
@@ -227,21 +229,21 @@ export default function MuokkaaIlmoitusta() {
       setSahkoposti(row.sahkoposti ?? '')
       setLinkki(row.linkki ?? '')
 
+      if (row.voimassa_alku) setVoimassaAlku(new Date(row.voimassa_alku))
+      else setVoimassaAlku(null)
+
       // Premium päivät
       if (row.premium_alku) setAlku(new Date(row.premium_alku))
 
-      // Kesto: jos löytyy premium_loppu tai voimassa_loppu, lasketaan
-      const alkuISO = row.maksuluokka === 'premium' ? row.premium_alku : row.voimassa_alku
-      const loppuISO = row.maksuluokka === 'premium' ? row.premium_loppu : row.voimassa_loppu
-      if (alkuISO && loppuISO) {
-        const a = new Date(alkuISO)
-        const l = new Date(loppuISO)
-        const kestoPaivia = Math.round((l.getTime() - a.getTime()) / 86400000)
-        setKesto(String(Math.max(1, kestoPaivia)))
-      } else {
-        // default
-        setKesto('30')
-      }
+      // Kesto: premiumille lasketaan alkupäivästä loppuun, muuten pidetään oletus 30 (ei haittaa vaikka perus ei käytä sitä)
+    if (row.maksuluokka === 'premium' && row.premium_alku && row.premium_loppu) {
+    const a = new Date(row.premium_alku)
+    const l = new Date(row.premium_loppu)
+    const kestoPaivia = Math.round((l.getTime() - a.getTime()) / 86400000)
+  setKesto(String(Math.max(1, kestoPaivia)))
+} else {
+  setKesto('30')
+}
 
       // Tapahtumat
       if (row.tapahtuma_alku) setTapahtumaAlku(new Date(row.tapahtuma_alku))
@@ -425,16 +427,17 @@ export default function MuokkaaIlmoitusta() {
 
       const premiumLoppu =
         tyyppi === 'premium' && alku
-          ? new Date(alku.getTime() + (parseInt(kesto || '0', 10) || 0) * 86400000)
+          ? new Date(alku.getTime() + Math.max(0, (parseInt(kesto || '0', 10) || 0) - 1) * 86400000)
           : null
 
       const tapahtumaLoppuFinal =
         kategoria === 'Tapahtumat' ? (tapahtumaLoppu ?? tapahtumaAlku) : null
 
       const voimassaLoppuFinal =
-        kategoria === 'Tapahtumat' && tapahtumaLoppuFinal
-          ? tapahtumaLoppuFinal
-          : loppuDate
+      kategoria === 'Tapahtumat'
+     ? (tapahtumaLoppuFinal ?? tapahtumaAlku)
+     : (tyyppi === 'perus' ? null : loppuDate)
+
 
       // 4) Update
       const payload = {
@@ -447,7 +450,7 @@ export default function MuokkaaIlmoitusta() {
         kuva_url: finalUrls[0] || null,
         kuvat: finalUrls.length > 0 ? JSON.stringify(finalUrls) : null,
 
-        premium: tyyppi === 'premium' && !!alku && alku <= nykyhetki,
+        premium: tyyppi === 'premium' && !!alku,
         premium_alku: tyyppi === 'premium' ? alku?.toISOString() : null,
         premium_loppu: tyyppi === 'premium' ? premiumLoppu?.toISOString() : null,
         premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
@@ -457,9 +460,10 @@ export default function MuokkaaIlmoitusta() {
 
         // perus = nyt (kuten LisääIlmoitus), premium = alku
         voimassa_alku:
-          tyyppi === 'premium'
-            ? (alku?.toISOString() ?? nykyhetki.toISOString())
-            : nykyhetki.toISOString(),
+  tyyppi === 'premium'
+    ? (alku?.toISOString() ?? nykyhetki.toISOString())
+    : (voimassaAlku?.toISOString() ?? nykyhetki.toISOString()),
+
         voimassa_loppu: voimassaLoppuFinal ? voimassaLoppuFinal.toISOString() : null,
 
         puhelin: puhelin || null,
@@ -790,23 +794,19 @@ export default function MuokkaaIlmoitusta() {
             <div className="space-y-4">
               <label className="block font-medium">Valitse ilmoitustyyppi:</label>
               <select
-                value={tyyppi}
-                onChange={(e) => setTyyppi(e.target.value === 'premium' ? 'premium' : 'perus')}
-                className="w-full border px-4 py-2 rounded"
-              >
-                <option value="perus">Kategoriailmoitus</option>
-                <option value="premium">Etusivun näkyvyys</option>
-              </select>
+  value={tyyppi}
+  onChange={(e) => setTyyppi(e.target.value === 'premium' ? 'premium' : 'perus')}
+  className="w-full border px-4 py-2 rounded"
+>
+  <option value="perus">Perusilmoitus (ilmainen)</option>
+  <option value="premium">Etusivu-ilmoitus (ilmainen)</option>
+</select>
+
 
               {tyyppi === 'perus' && (
-                <>
-                  <label className="block">Näkyvyysaika (päiviä):</label>
-                  <select value={kesto} onChange={(e) => setKesto(e.target.value)} className="w-full border px-4 py-2 rounded">
-                    <option value="30">30 päivää</option>
-                    <option value="60">60 päivää</option>
-                    <option value="90">90 päivää</option>
-                  </select>
-                </>
+                <p className="text-sm text-gray-600">
+                  Perusilmoitus on ilmainen ja näkyy toistaiseksi (kunnes poistat sen).
+                </p>
               )}
 
               {tyyppi === 'premium' && (
@@ -835,12 +835,6 @@ export default function MuokkaaIlmoitusta() {
                 </>
               )}
 
-              {tyyppi === 'perus' && loppuDate && (
-                <p>
-                  Ilmoituksesi näkyy ajalla:
-                  <strong> {new Date().toLocaleDateString('fi-FI')} – {loppuDate.toLocaleDateString('fi-FI')}</strong>
-                </p>
-              )}
 
               {tyyppi === 'premium' && alku && loppuDate && (
                 <p className="text-sm text-gray-600">

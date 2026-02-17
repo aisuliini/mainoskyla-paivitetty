@@ -141,7 +141,7 @@ const scrollNytSuosittua = (dir: 'left' | 'right') => {
           taydelliset.push({
             id: `tyhja-${taydelliset.length}`,
             otsikko: 'Vapaa etusivupaikka',
-            kuvaus: '',
+            kuvaus: 'Ole ensimmäisten joukossa – saat näkyvyyden heti.',
             sijainti: '',
             kuva_url: '',
             nayttoja: 0
@@ -307,23 +307,24 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
         <div className="max-w-screen-xl mx-auto">
 <div className="flex flex-col items-center gap-4 text-center">
 <div className="w-full text-center flex flex-col items-center">
-<h1 className="
-  text-2xl sm:text-4xl md:text-5xl
-  font-medium
-  text-[#1E3A41]
-  mb-1
-  tracking-tight
-  leading-tight
-  max-w-3xl
-">
-  Löydä tai mainosta paikallisesti
+<h1
+  className="
+    text-2xl sm:text-4xl md:text-5xl
+    font-medium
+    text-[#1E3A41]
+    mb-1
+    tracking-tight
+    leading-tight
+    max-w-3xl
+  "
+>
+  Löydä paikalliset palvelut – tai lisää omasi ilmaiseksi
 </h1>
 
-
-  <p className="hidden sm:block mt-2 text-sm sm:text-base text-charcoal/70 leading-relaxed max-w-2xl text-center mx-auto">
-  Mainoskylä yhdistää ihmiset ja paikalliset yritykset •
-  Paikallinen mainospaikka yrittäjille ja tekijöille
+<p className="hidden sm:block mt-2 text-sm sm:text-base text-charcoal/70 leading-relaxed max-w-2xl text-center mx-auto">
+  Ilmainen ilmoitus • valmis 2 minuutissa • näkyvyys paikallisille heti
 </p>
+
 
 
 
@@ -355,7 +356,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
   </button>
 </div>
 
-{/* ✅ DESKTOP: haku etusivulla + suositukset */}
+{/* ✅ DESKTOP: haku etusivulla + CTA + paremmat ehdotukset */}
 <div className="hidden sm:block">
   <form
     onSubmit={(e) => {
@@ -397,51 +398,102 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
       <Search size={20} />
     </button>
 
+    {/* ✅ Ehdotukset */}
     {showDesktopSuggest && (palveluEhdotukset.length > 0 || paikkaEhdotukset.length > 0) && (
-  <div className="absolute left-0 right-0 mt-2 z-20">
-    <div className="bg-white/95 backdrop-blur border border-black/10 rounded-2xl shadow-md overflow-hidden">
-      <ul className="max-h-72 overflow-y-auto">
-        {/* Paikkakunnat ensin */}
-        {paikkaEhdotukset.slice(0, 8).map((p) => (
-          <li key={`paikka-${p}`}>
-            <button
-              type="button"
-              className="w-full text-left px-4 py-3 hover:bg-black/5"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => {
-                setHakusana(p)
-                setShowDesktopSuggest(false)
-                router.push(`/aluehaku?q=${encodeURIComponent(p)}`)
-              }}
-            >
-              {p}
-            </button>
-          </li>
-        ))}
+      <div className="absolute left-0 right-0 mt-2 z-20">
+        <div className="bg-white/95 backdrop-blur border border-black/10 rounded-2xl shadow-md overflow-hidden">
+          <ul className="max-h-80 overflow-y-auto py-1">
 
-        {/* Palvelut/tekijät sen jälkeen */}
-        {palveluEhdotukset.slice(0, 8).map((x) => (
-          <li key={`palvelu-${x}`}>
-            <button
-              type="button"
-              className="w-full text-left px-4 py-3 hover:bg-black/5"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => {
-                setHakusana(x)
-                setShowDesktopSuggest(false)
-                router.push(`/aluehaku?q=${encodeURIComponent(x)}`)
-              }}
-            >
-              {x}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </div>
-)}
+            {/* Paikkakunnat */}
+            {paikkaEhdotukset.length > 0 && (
+              <li className="px-4 pt-3 pb-2 text-[11px] uppercase tracking-wide text-charcoal/50">
+                Paikkakunnat
+              </li>
+            )}
+
+            {paikkaEhdotukset.slice(0, 8).map((p) => (
+              <li key={`paikka-${p}`}>
+                <button
+                  type="button"
+                  className="w-full text-left px-4 py-3 hover:bg-black/5 flex items-center justify-between"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setHakusana(p)
+                    setShowDesktopSuggest(false)
+                    router.push(`/aluehaku?q=${encodeURIComponent(p)}`)
+                  }}
+                >
+                  <span>{p}</span>
+                  <span className="text-[11px] text-charcoal/40">alue</span>
+                </button>
+              </li>
+            ))}
+
+            {/* Palvelut/tekijät */}
+            {palveluEhdotukset.length > 0 && (
+              <li className="px-4 pt-3 pb-2 text-[11px] uppercase tracking-wide text-charcoal/50">
+                Palvelut ja tekijät
+              </li>
+            )}
+
+            {palveluEhdotukset.slice(0, 8).map((x) => (
+              <li key={`palvelu-${x}`}>
+                <button
+                  type="button"
+                  className="w-full text-left px-4 py-3 hover:bg-black/5 flex items-center justify-between"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setHakusana(x)
+                    setShowDesktopSuggest(false)
+                    router.push(`/aluehaku?q=${encodeURIComponent(x)}`)
+                  }}
+                >
+                  <span>{x}</span>
+                  <span className="text-[11px] text-charcoal/40">haku</span>
+                </button>
+              </li>
+            ))}
+
+            {/* Näytä kaikki */}
+            <li className="border-t border-black/10 mt-1">
+              <button
+                type="button"
+                className="w-full text-left px-4 py-3 hover:bg-black/5 font-semibold text-[#1E3A41]"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  setShowDesktopSuggest(false)
+                  hae()
+                }}
+              >
+                Näytä kaikki tulokset →
+              </button>
+            </li>
+
+          </ul>
+        </div>
+      </div>
+    )}
   </form>
+
+  {/* ✅ CTA */}
+<div className="mt-4 flex items-center justify-center">
+  <button
+    type="button"
+    onClick={() => router.push('/lisaa')}
+    className="
+      rounded-full px-7 py-3 text-sm font-semibold
+      bg-[#EDF5F2] text-[#1E3A41]
+      hover:bg-[#DCEEE8] transition
+      ring-1 ring-[#4F8F7A]/35
+    "
+  >
+    Lisää ilmoitus (ilmainen)
+  </button>
+  
 </div>
+
+</div>
+
 
 
   </div>
@@ -451,9 +503,13 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
 
 
+<div className="mt-4 text-xs sm:text-sm text-charcoal/60">
+  💚 Pienille tekijöille reilu näkyvyys – ei algoritmimörköä, vaan löydettävyys paikallisesti.
+</div>
 
 {/*  Nyt suosittua */}
 {nytSuosittua.length > 0 && (
+
   <div className="w-full mt-2 sm:mt-5">
     <div className="flex items-center justify-between px-1">
       <div className="text-left">
@@ -493,20 +549,18 @@ className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandat
 >
 
         {nytSuosittua.map((ilmo) => (
-          <button
+          <Link
             key={ilmo.id}
-            type="button"
-            onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
+            href={`/ilmoitukset/${ilmo.id}`}
             className="
-  snap-start
-  flex-none
-  w-[220px] sm:w-[260px] lg:w-[300px]
-  bg-white ring-1 ring-black/5
-  rounded-2xl overflow-hidden
-  shadow-sm hover:shadow-md transition
-  text-left
-"
-
+              snap-start
+              flex-none
+              w-[220px] sm:w-[260px] lg:w-[300px]
+              bg-white ring-1 ring-black/5
+              rounded-2xl overflow-hidden
+              shadow-sm hover:shadow-md transition
+              text-left
+            "
           >
             <div className="relative w-full h-28 sm:h-36 bg-[#F6F7F7]">
               <Image
@@ -540,7 +594,7 @@ className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandat
                 )}
               </div>
             </div>
-          </button>
+          </Link>
         ))}
       </div>
     </div>
@@ -756,6 +810,7 @@ className="
 
         
           {ilmo.id.startsWith('tyhja-') && (
+            
             <button
   onClick={(e) => {
     e.stopPropagation()
@@ -842,9 +897,7 @@ className="
             <a href="https://facebook.com/mainoskyla" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
               <FaFacebookF className="hover:text-blue-600" />
             </a>
-            <a href="https://tiktok.com/@mainoskyla" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
-              <FaTiktok className="hover:text-black" />
-            </a>
+            
             <a href="https://instagram.com/mainoskyla" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
               <FaInstagram className="hover:text-pink-500" />
             </a>
