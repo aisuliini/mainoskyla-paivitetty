@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Katselukerrat from '@/components/Katselukerrat';
 import { supabase } from '@/lib/supabaseClient'
-import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
+import { FaFacebookF, FaInstagram, } from 'react-icons/fa'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import CategoryCarousel from '@/components/CategoryCarousel'
 import { Search, Eye } from "lucide-react";
