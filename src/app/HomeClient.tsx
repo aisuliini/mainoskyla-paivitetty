@@ -362,12 +362,13 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
     type="button"
     onClick={() => router.push('/lisaa')}
     className="
-      rounded-full px-7 py-3 text-sm font-semibold
+      rounded-full
+      px-8 py-3
+      text-sm font-semibold
       bg-[#EDF5F2] text-[#1E3A41]
-      hover:bg-[#DCEEE8] transition
+      hover:bg-[#DCEEE8]
+      transition
       ring-1 ring-[#4F8F7A]/35
-      w-full
-      max-w-[420px]
     "
   >
     Lisää ilmoitus (ilmainen)
