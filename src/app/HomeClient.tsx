@@ -356,6 +356,25 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
   </button>
 </div>
 
+{/* ✅ MOBIILI CTA */}
+<div className="sm:hidden mt-3 flex justify-center">
+  <button
+    type="button"
+    onClick={() => router.push('/lisaa')}
+    className="
+      rounded-full px-7 py-3 text-sm font-semibold
+      bg-[#EDF5F2] text-[#1E3A41]
+      hover:bg-[#DCEEE8] transition
+      ring-1 ring-[#4F8F7A]/35
+      w-full
+      max-w-[420px]
+    "
+  >
+    Lisää ilmoitus (ilmainen)
+  </button>
+</div>
+
+
 {/* ✅ DESKTOP: haku etusivulla + CTA + paremmat ehdotukset */}
 <div className="hidden sm:block">
   <form
