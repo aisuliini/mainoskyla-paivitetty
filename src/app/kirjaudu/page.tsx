@@ -8,11 +8,18 @@ import { supabase } from '@/lib/supabaseClient'
 export default function KirjauduSivu() {
   const router = useRouter()
 
-  const [sahkoposti, setSahkoposti] = useState<string>('')
-  const [salasana, setSalasana] = useState<string>('')
-  const [viesti, setViesti] = useState<string>('')
-  const [loading, setLoading] = useState<boolean>(true) // sivun auth-check
-  const [submitting, setSubmitting] = useState<boolean>(false) // lomakkeen submit
+  // Salasana login
+  const [sahkoposti, setSahkoposti] = useState('')
+  const [salasana, setSalasana] = useState('')
+
+  // Magic link
+  const [magicEmail, setMagicEmail] = useState('')
+  const [sent, setSent] = useState(false)
+
+  // UI state
+  const [viesti, setViesti] = useState('')
+  const [loading, setLoading] = useState(true) // sivun auth-check
+  const [submitting, setSubmitting] = useState(false) // napit/lomakkeet
 
   useEffect(() => {
     let mounted = true
@@ -20,13 +27,12 @@ export default function KirjauduSivu() {
     const redirectIfLoggedIn = async () => {
       const { data, error } = await supabase.auth.getSession()
 
-      // Jos auth-storage on rikki, siivoa mutta älä kaada näkymää
+      // Älä signOut automaattisesti — vain logita
       if (error) {
-        await supabase.auth.signOut()
+        console.warn('getSession error', error)
       }
 
       const user = data?.session?.user
-
       if (user) {
         router.replace('/profiili')
         router.refresh()
@@ -38,7 +44,6 @@ export default function KirjauduSivu() {
 
     redirectIfLoggedIn()
 
-    // Kuuntele kirjautumisen muutokset (ammattilaistaso: ei jää ikinä "samaan näkymään")
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         router.replace('/profiili')
@@ -52,9 +57,14 @@ export default function KirjauduSivu() {
     }
   }, [router])
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
+
   const kirjauduSalasanalla = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setViesti('')
+    setSent(false)
     setSubmitting(true)
 
     const { error } = await supabase.auth.signInWithPassword({
@@ -65,36 +75,179 @@ export default function KirjauduSivu() {
     setSubmitting(false)
 
     if (error) {
-      // Älä automaattisesti signOut tässä: muuten voit joskus “pudottaa” validin session
-      setViesti('⚠️ Kirjautuminen epäonnistui: ' + error.message)
+      setViesti('⚠️ Kirjautuminen epäonnistui. Tarkista sähköposti ja salasana.')
       return
     }
 
-    // Extra-varmistus: vaikka onAuthStateChange yleensä hoitaa, tämä tekee käytöksestä välittömän
     router.replace('/profiili')
     router.refresh()
   }
 
+  const lahetaMagicLink = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setViesti('')
+    setSent(false)
+    setSubmitting(true)
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: magicEmail.trim(),
+      options: {
+        emailRedirectTo: `${siteUrl}/auth/callback`,
+      },
+    })
+
+    setSubmitting(false)
+
+    if (error) {
+      setViesti('⚠️ Linkin lähetys epäonnistui. Yritä uudelleen hetken päästä.')
+      return
+    }
+
+    setSent(true)
+  }
+
+    const kirjauduGooglella = async () => {
+  setViesti('')
+  setSent(false)
+  setSubmitting(true)
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${siteUrl}/auth/callback`,
+      queryParams: { prompt: 'select_account' },
+    },
+  })
+
+
+  if (error) {
+    setViesti('⚠️ Google-kirjautuminen epäonnistui. Yritä uudelleen.')
+    setSubmitting(false)
+  }
+}
+
   if (loading) {
     return (
       <main className="max-w-md mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-2">Kirjaudu</h1>
-        <p>Ladataan...</p>
+        <h1 className="text-2xl font-bold mb-2 text-[#1E3A41]">Kirjaudu</h1>
+        <p className="text-sm text-charcoal/70">Ladataan…</p>
       </main>
     )
   }
 
   return (
     <main className="max-w-md mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Kirjaudu</h1>
+      <h1 className="text-2xl font-bold mb-1 text-[#1E3A41]">Kirjaudu</h1>
+      <p className="text-sm text-charcoal/70 mb-6">
+        Kirjautumalla voit hallita ja muokata omia ilmoituksiasi.
+      </p>
 
-      <form onSubmit={kirjauduSalasanalla} className="space-y-4">
+      {/* GOOGLE */}
+      <button
+        type="button"
+        onClick={kirjauduGooglella}
+        disabled={submitting}
+        className="
+          w-full rounded-full px-6 py-3 font-semibold
+          bg-white text-[#1E3A41]
+          ring-1 ring-black/10
+          hover:ring-black/20
+          disabled:opacity-60 transition
+        "
+      >
+        Jatka Googlella
+      </button>
+
+        <button
+  type="button"
+  
+onClick={async () => {
+  setViesti('')
+  setSent(false)
+  setSubmitting(true)
+
+  await supabase.auth.signOut()
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${siteUrl}/auth/callback`,
+      queryParams: { prompt: 'select_account' },
+    },
+  })
+
+  if (error) {
+    setViesti('⚠️ Google-kirjautuminen epäonnistui. Yritä uudelleen.')
+    setSubmitting(false)
+  }
+}}
+
+  disabled={submitting}
+  className="
+    w-full mt-3 rounded-full px-6 py-3 font-semibold
+    bg-white text-[#1E3A41]
+    ring-1 ring-black/10
+    hover:ring-black/20
+    disabled:opacity-60 transition
+  "
+>
+  Kirjaudu toisella Google-tilillä
+</button>
+
+      <div className="my-5 flex items-center gap-3">
+        <div className="h-px flex-1 bg-black/10" />
+        <span className="text-xs text-charcoal/50">tai</span>
+        <div className="h-px flex-1 bg-black/10" />
+      </div>
+
+      {/* MAGIC LINK */}
+      <form onSubmit={lahetaMagicLink} className="space-y-3">
+        <input
+          type="email"
+          placeholder="Sähköposti (kirjautumislinkki)"
+          value={magicEmail}
+          onChange={(e) => setMagicEmail(e.target.value)}
+          className="w-full p-3 rounded-xl border border-charcoal/15"
+          required
+          autoComplete="email"
+          inputMode="email"
+        />
+
+        <button
+          type="submit"
+          disabled={submitting}
+          className="
+            w-full rounded-full px-6 py-3 font-semibold
+            bg-[#EDF5F2] text-[#1E3A41]
+            hover:bg-[#DCEEE8] transition
+            ring-1 ring-[#4F8F7A]/35
+            disabled:opacity-60
+          "
+        >
+          {submitting ? 'Lähetetään…' : 'Lähetä kirjautumislinkki'}
+        </button>
+
+        {sent && (
+          <p className="text-sm text-green-700">
+            ✅ Linkki lähetetty! Tarkista sähköposti. Linkki ohjaa Mainoskylään.
+          </p>
+        )}
+      </form>
+
+      <div className="my-5 flex items-center gap-3">
+        <div className="h-px flex-1 bg-black/10" />
+        <span className="text-xs text-charcoal/50">tai salasanalla</span>
+        <div className="h-px flex-1 bg-black/10" />
+      </div>
+
+      {/* SALASANA */}
+      <form onSubmit={kirjauduSalasanalla} className="space-y-3">
         <input
           type="email"
           placeholder="Sähköpostiosoitteesi"
           value={sahkoposti}
           onChange={(e) => setSahkoposti(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full p-3 rounded-xl border border-charcoal/15"
           required
           autoComplete="email"
           inputMode="email"
@@ -105,7 +258,7 @@ export default function KirjauduSivu() {
           placeholder="Salasana"
           value={salasana}
           onChange={(e) => setSalasana(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full p-3 rounded-xl border border-charcoal/15"
           required
           autoComplete="current-password"
         />
@@ -113,22 +266,31 @@ export default function KirjauduSivu() {
         <button
           type="submit"
           disabled={submitting}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-60 w-full"
+          className="
+            w-full rounded-full px-6 py-3 font-semibold
+            bg-[#1E3A41] text-white
+            hover:opacity-95 transition
+            disabled:opacity-60
+          "
         >
-          {submitting ? 'Kirjaudutaan...' : 'Kirjaudu'}
+          {submitting ? 'Kirjaudutaan…' : 'Kirjaudu'}
         </button>
       </form>
 
       {viesti && <p className="mt-4 text-sm text-red-700">{viesti}</p>}
 
+      <p className="text-xs text-charcoal/60 mt-6">
+        🔒 Emme koskaan pyydä pankkitunnuksia. Kirjautumislinkki ohjaa aina Mainoskylän osoitteeseen.
+      </p>
+
       <p className="text-sm mt-4">
-        <Link href="/unohditko-salasanan" className="text-blue-600 hover:underline">
+        <Link href="/unohditko-salasanan" className="underline text-[#1E3A41]">
           Unohtuiko salasana?
         </Link>
       </p>
 
       <p className="text-sm mt-2">
-        <Link href="/rekisteroidy" className="text-blue-600 hover:underline">
+        <Link href="/rekisteroidy" className="underline text-[#1E3A41]">
           Eikö sinulla ole tiliä? Rekisteröidy tästä.
         </Link>
       </p>
