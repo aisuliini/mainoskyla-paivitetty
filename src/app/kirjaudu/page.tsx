@@ -22,40 +22,57 @@ export default function KirjauduSivu() {
   const [submitting, setSubmitting] = useState(false) // napit/lomakkeet
 
   useEffect(() => {
-    let mounted = true
+  let mounted = true
 
-    const redirectIfLoggedIn = async () => {
-      const { data, error } = await supabase.auth.getSession()
+  const checkSession = async () => {
+    const { data, error } = await supabase.auth.getSession()
+    if (error) console.warn('getSession error', error)
+    if (!mounted) return
 
-      // Älä signOut automaattisesti — vain logita
-      if (error) {
-        console.warn('getSession error', error)
-      }
-
-      const user = data?.session?.user
-      if (user) {
-        router.replace('/profiili')
-        router.refresh()
-        return
-      }
-
-      if (mounted) setLoading(false)
+    if (data.session?.user) {
+      router.replace('/profiili')
+      router.refresh()
+      return
     }
 
-    redirectIfLoggedIn()
+    // jos ei sessionia (esim. käyttäjä perui Googlen), avaa napit takaisin
+    setSubmitting(false)
+    setLoading(false)
+  }
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        router.replace('/profiili')
-        router.refresh()
-      }
-    })
+  // 1) eka tarkistus kun sivu aukeaa
+  void checkSession()
 
-    return () => {
-      mounted = false
-      sub.subscription.unsubscribe()
+  // 2) kun käyttäjä palaa takaisin (Safari back cache / OAuth cancel)
+  const onReturn = () => {
+    void checkSession()
+  }
+
+  const onVisibility = () => {
+    if (document.visibilityState === 'visible') void checkSession()
+  }
+
+  window.addEventListener('pageshow', onReturn) // tärkein Safariin
+  window.addEventListener('focus', onReturn)
+  document.addEventListener('visibilitychange', onVisibility)
+
+  // 3) normaali auth-listener
+  const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    if (session?.user) {
+      router.replace('/profiili')
+      router.refresh()
     }
-  }, [router])
+  })
+
+  return () => {
+    mounted = false
+    sub.subscription.unsubscribe()
+    window.removeEventListener('pageshow', onReturn)
+    window.removeEventListener('focus', onReturn)
+    document.removeEventListener('visibilitychange', onVisibility)
+  }
+}, [router])
+    
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ??
@@ -107,6 +124,8 @@ export default function KirjauduSivu() {
   }
 
     const kirjauduGooglella = async () => {
+  if (submitting) return // ✅ estä tuplaklikit
+
   setViesti('')
   setSent(false)
   setSubmitting(true)
@@ -118,7 +137,6 @@ export default function KirjauduSivu() {
       queryParams: { prompt: 'select_account' },
     },
   })
-
 
   if (error) {
     setViesti('⚠️ Google-kirjautuminen epäonnistui. Yritä uudelleen.')
