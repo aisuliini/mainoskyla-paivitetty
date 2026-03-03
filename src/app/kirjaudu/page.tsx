@@ -158,41 +158,7 @@ export default function KirjauduSivu() {
         Jatka Googlella
       </button>
 
-        <button
-  type="button"
-  
-onClick={async () => {
-  setViesti('')
-  setSent(false)
-  setSubmitting(true)
-
-  await supabase.auth.signOut()
-
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${siteUrl}/auth/callback`,
-      queryParams: { prompt: 'select_account' },
-    },
-  })
-
-  if (error) {
-    setViesti('⚠️ Google-kirjautuminen epäonnistui. Yritä uudelleen.')
-    setSubmitting(false)
-  }
-}}
-
-  disabled={submitting}
-  className="
-    w-full mt-3 rounded-full px-6 py-3 font-semibold
-    bg-white text-[#1E3A41]
-    ring-1 ring-black/10
-    hover:ring-black/20
-    disabled:opacity-60 transition
-  "
->
-  Kirjaudu toisella Google-tilillä
-</button>
+      
 
       <div className="my-5 flex items-center gap-3">
         <div className="h-px flex-1 bg-black/10" />
