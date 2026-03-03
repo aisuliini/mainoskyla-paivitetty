@@ -21,7 +21,7 @@ export default function IdleLogout() {
 
       timerRef.current = window.setTimeout(async () => {
         const { data: latest } = await supabase.auth.getSession()
-        if (!latest.session?.user) return // jos ehti jo kirjautua ulos
+        if (!latest.session?.user) return
 
         await supabase.auth.signOut()
         router.replace('/kirjaudu?reason=idle')
