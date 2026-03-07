@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -13,6 +14,14 @@ type Ilmoitus = {
   kategoria?: string | null
   luotu?: string | null
   nayttoja?: number | null
+}
+
+type CityBanner = {
+  banner_url: string | null
+  city: string | null
+  status: string | null
+  starts_at: string
+  ends_at: string
 }
 
 export default function IlmoituksetClient({
@@ -48,7 +57,7 @@ export default function IlmoituksetClient({
           .eq('status', 'active')
           .lte('starts_at', nowIso)
           .gte('ends_at', nowIso)
-          .ilike('city', cityNorm) // case-insensitive match
+          .ilike('city', cityNorm)
 
         if (cancelled) return
 
@@ -58,9 +67,10 @@ export default function IlmoituksetClient({
           return
         }
 
-        // jos useampi osuu, valitaan uusin alkupäivä
+        const banners: CityBanner[] = data ?? []
+
         const best =
-          (data ?? []).sort((a: any, b: any) =>
+          banners.sort((a, b) =>
             new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime()
           )[0] ?? null
 
@@ -87,12 +97,13 @@ export default function IlmoituksetClient({
         {city ? `${city} ilmoitukset` : 'Kaikki ilmoitukset'}
       </h1>
 
-      {/* Kaupunkibanneri */}
       {!loadingBanner && bannerUrl && (
         <div className="mb-8 relative overflow-hidden rounded-2xl shadow-sm border bg-white">
-          <img
+          <Image
             src={bannerUrl}
             alt={`${city ?? ''} banneri`}
+            width={1600}
+            height={400}
             className="w-full h-[200px] object-cover transition-transform duration-300 hover:scale-[1.02]"
           />
           <span className="absolute top-3 left-3 bg-black/70 text-white text-xs px-2 py-1 rounded">
@@ -101,7 +112,6 @@ export default function IlmoituksetClient({
         </div>
       )}
 
-      {/* Ilmoitukset */}
       {initialIlmoitukset.map((ilmoitus) => (
         <div key={ilmoitus.id} className="mb-4">
           <h2 className="font-semibold">{ilmoitus.otsikko}</h2>

@@ -120,7 +120,7 @@ return () => {
   supabase.removeChannel(channel)
 }
     
-  }, [])
+  }, [router])
 
 
   const toggleVisible = async (id: string, current: boolean | null | undefined) => {

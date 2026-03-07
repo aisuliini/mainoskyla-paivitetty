@@ -9,13 +9,13 @@ import { DayPicker } from 'react-day-picker'
 import { fi } from 'date-fns/locale'
 import 'react-day-picker/dist/style.css'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
-
+import type { User } from '@supabase/supabase-js'
 
 
 export default function LisaaBanneri() {
   const router = useRouter()
 
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [city, setCity] = useState('')
   const [days, setDays] = useState<'30' | '90'>('30')
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -24,8 +24,7 @@ export default function LisaaBanneri() {
   const [startDate, setStartDate] = useState<Date | null>(new Date())
   const [citySearch, setCitySearch] = useState('')
   const [showCityList, setShowCityList] = useState(false)
-  const [reservedRanges, setReservedRanges] = useState<any[]>([])
-
+  const [reservedRanges, setReservedRanges] = useState<{ from: Date; to: Date }[]>([])
   const filteredCities = paikkakunnat
   .filter((c) =>
     c.toLowerCase().includes(citySearch.toLowerCase())
