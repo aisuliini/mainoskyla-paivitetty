@@ -52,7 +52,7 @@ export default function KuvanLataaja({
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [isCropping, setIsCropping] = useState(false)
+  
 
   // Clean up preview blob URL
   useEffect(() => {
@@ -70,7 +70,6 @@ export default function KuvanLataaja({
     setCroppedAreaPixels(null)
     setCrop({ x: 0, y: 0 })
     setZoom(1)
-    setIsCropping(false)
     setPreviewUrl((old) => {
       if (old) URL.revokeObjectURL(old)
       return null
@@ -108,7 +107,6 @@ export default function KuvanLataaja({
     reader.readAsDataURL(file)
     reader.onload = () => {
       setImageSrc(reader.result as string)
-      setIsCropping(true)
       // reset crop defaults
       setCrop({ x: 0, y: 0 })
       setZoom(1)
@@ -127,7 +125,6 @@ export default function KuvanLataaja({
     }
 
     setError(null)
-    setIsCropping(true)
 
     try {
       const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels)
@@ -147,11 +144,9 @@ export default function KuvanLataaja({
 
       // close cropper view
       setImageSrc(null)
-      setIsCropping(false)
     } catch (e) {
       console.error(e)
       setError('Kuvan rajaus epäonnistui.')
-      setIsCropping(false)
     }
   }
 
@@ -161,7 +156,6 @@ export default function KuvanLataaja({
     setCroppedAreaPixels(null)
     setCrop({ x: 0, y: 0 })
     setZoom(1)
-    setIsCropping(false)
     // allow reselect same file
     if (inputRef.current) inputRef.current.value = ''
   }
