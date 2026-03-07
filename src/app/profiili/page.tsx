@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
-import { List, PlusCircle, Settings, LogOut } from 'lucide-react'
+import { List, PlusCircle, Megaphone, Settings, LogOut } from 'lucide-react'
 
 type ProfiiliRow = {
   nimi: string | null
@@ -12,6 +12,11 @@ type ProfiiliRow = {
 
 export default function ProfiiliSivu() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const created = searchParams.get('created') // "1" jos ilmoitus lisätty
+  const city = searchParams.get('city') || ''
+
   const [loading, setLoading] = useState<boolean>(true)
   const [email, setEmail] = useState<string | null>(null)
   const [nimi, setNimi] = useState<string | null>(null)
@@ -32,14 +37,12 @@ export default function ProfiiliSivu() {
       if (!mounted) return
       setEmail(user.email ?? null)
 
-      // Profiilin nimi (jos profiilit-taulu on olemassa)
       const { data: profiiliData } = await supabase
-      .from('profiilit')
-      .select('nimi')
-      .eq('id', user.id)
-      .maybeSingle()
-      .returns<ProfiiliRow>()
-
+        .from('profiilit')
+        .select('nimi')
+        .eq('id', user.id)
+        .maybeSingle()
+        .returns<ProfiiliRow>()
 
       if (!mounted) return
       setNimi(profiiliData?.nimi ?? null)
@@ -70,6 +73,32 @@ export default function ProfiiliSivu() {
         <p>Ladataan...</p>
       ) : (
         <>
+          {created === '1' && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-5 shadow-sm mb-6">
+              <p className="text-lg font-semibold text-green-900">✅ Ilmoitus lisätty!</p>
+
+              <p className="text-sm text-green-900/80 mt-1">
+                Haluatko lisää näkyvyyttä{city ? ` kaupungissa ${city}` : ''} kaupunkibannerilla?
+              </p>
+
+              <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                <Link
+                  href={`/lisaa-banneri${city ? `?city=${encodeURIComponent(city)}` : ''}`}
+                  className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold text-white bg-[#4F6763] hover:opacity-95"
+                >
+                  Varaa kaupunkibanneri
+                </Link>
+
+                <Link
+                  href="/profiili"
+                  className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold text-[#4F6763] bg-white border border-[#4F6763]/40 hover:bg-[#4F6763]/5"
+                >
+                  Ei nyt
+                </Link>
+              </div>
+            </div>
+          )}
+
           {/* Profiilikortti */}
           <div className="bg-white border rounded-xl p-5 shadow-sm mb-6">
             {otsikkoNimi ? (
@@ -78,7 +107,6 @@ export default function ProfiiliSivu() {
               <p className="text-lg font-semibold">Profiili</p>
             )}
 
-            {/* Näytä sähköposti vain jos nimi löytyy erikseen */}
             {nimi && email && <p className="text-sm text-gray-600">{email}</p>}
           </div>
 
@@ -111,6 +139,20 @@ export default function ProfiiliSivu() {
               </div>
               <span className="text-gray-400">›</span>
             </Link>
+
+            <Link
+  href="/profiili/bannerit"
+  className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 border-t"
+>
+  <div className="flex items-center gap-3">
+    <Megaphone />
+    <div>
+      <p className="font-medium">Bannerimainonta</p>
+      <p className="text-sm text-gray-600">Hallitse kaupunkibannereita</p>
+    </div>
+  </div>
+  <span className="text-gray-400">›</span>
+</Link>
 
             <Link
               href="/profiili/asetukset"

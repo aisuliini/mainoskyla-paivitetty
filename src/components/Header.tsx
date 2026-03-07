@@ -125,7 +125,7 @@ function HeaderInner() {
     href="/lisaa"
     className="bg-[#4F6763] text-white px-4 py-2 rounded-full font-semibold hover:bg-[#6A837F] transition"
   >
-    Ilmoita
+    ➕ Lisää ilmoitus
   </Link>
 
   {user ? (
@@ -158,6 +158,13 @@ function HeaderInner() {
 
       {/* Mobiili: search + kirjaudu + burger */}
 <div className="md:hidden flex items-center gap-2">
+  <Link
+  href="/lisaa"
+  onClick={() => closeMenus()}
+  className="h-10 px-4 rounded-full bg-[#4F6763] text-white font-semibold flex items-center justify-center"
+>
+  + Ilmoitus
+</Link>
   <button
     type="button"
     aria-label="Haku"
@@ -241,9 +248,13 @@ function HeaderInner() {
     <div className="absolute top-[72px] right-3 left-3 md:left-auto md:right-6 md:w-[360px] bg-white border rounded-2xl shadow-lg p-2 text-base z-50">
     <div className="flex flex-col">
 
-      <NavItem href="/lisaa" onClick={() => setOpen(false)}>
-        ➕ Ilmoita
-      </NavItem>
+      <Link
+  href="/lisaa"
+  onClick={() => setOpen(false)}
+  className="block px-4 py-3 rounded-xl text-[#4F6763] font-semibold text-[17px] hover:bg-black/5"
+>
+  ➕ Lisää ilmoitus
+</Link>
 
       <div className="my-2 border-t" />
 

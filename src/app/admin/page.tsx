@@ -28,6 +28,8 @@ export default function AdminPage() {
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
   const [profiilit, setProfiilit] = useState<Profiili[]>([])
 
+  const [toast, setToast] = useState<string | null>(null)
+
     useEffect(() => {
     const run = async () => {
       setLoading(true)
@@ -84,7 +86,40 @@ export default function AdminPage() {
 
     run()
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const channel = supabase
+  .channel('admin-ilmoitukset')
+  .on(
+    'postgres_changes',
+    { event: 'INSERT', schema: 'public', table: 'ilmoitukset' },
+    (payload) => {
+      const row = payload.new as Ilmoitus
+
+      // näytä pieni ilmoitus
+      setToast(`Uusi ilmoitus: ${row.otsikko}`)
+
+      // lisää listan kärkeen (ettei tarvitse refresh)
+      setIlmoitukset((prev) => [
+  {
+    id: row.id,
+    otsikko: row.otsikko ?? 'Uusi ilmoitus',
+    sijainti: row.sijainti ?? null,
+    luotu: row.luotu ?? new Date().toISOString(),
+    visible: row.visible ?? true,
+    premium: row.premium ?? false
+  },
+  ...prev
+])
+
+      // piilota toast hetken päästä
+      setTimeout(() => setToast(null), 4000)
+    }
+  )
+  .subscribe()
+
+return () => {
+  supabase.removeChannel(channel)
+}
+    
   }, [])
 
 
@@ -120,11 +155,18 @@ export default function AdminPage() {
     setIlmoitukset(prev => prev.filter(i => i.id !== id))
   }
 
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
+      {toast && (
+  <div className="mb-4 border rounded p-3 bg-green-50 text-green-800 shadow">
+    🔔 {toast}
+  </div>
+)}
       <div className="flex items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold">Admin-paneeli</h1>
-
+<h1 className="text-2xl font-bold">
+  Admin-paneeli {ilmoitukset.length > 0 && `(${ilmoitukset.length})`}
+</h1>
         <button
           onClick={() => router.push('/')}
           className="text-sm border rounded px-3 py-2"

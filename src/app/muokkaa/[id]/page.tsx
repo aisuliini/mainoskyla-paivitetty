@@ -85,19 +85,25 @@ export default function MuokkaaIlmoitusta() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
-  const [voimassaAlku, setVoimassaAlku] = useState<Date | null>(null)
 
-  const ilmoituksenAlku = useMemo(() => {
-  return tyyppi === 'premium' ? alku : voimassaAlku
-}, [tyyppi, alku, voimassaAlku])
+  function toLocalDateString(date: Date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
+function fromDateOnly(value: string) {
+  const [year, month, day] = value.split('-').map(Number)
+  return new Date(year, month - 1, day, 12, 0, 0)
+}
 
   const loppuDate = useMemo(() => {
-  if (tyyppi !== 'premium' || !ilmoituksenAlku) return null
+  if (tyyppi !== 'premium' || !alku) return null
   const days = parseInt(kesto || '0', 10) || 0
-const inclusiveDays = Math.max(0, days - 1) // 30 pv = alku + 29
-return new Date(ilmoituksenAlku.getTime() + inclusiveDays * 86400000)
-}, [tyyppi, ilmoituksenAlku, kesto])
+  const inclusiveDays = Math.max(0, days - 1) // 30 pv = alku + 29
+  return new Date(alku.getTime() + inclusiveDays * 86400000)
+}, [tyyppi, alku, kesto])
 
 
   // ---------- helpers ----------
@@ -229,18 +235,14 @@ return new Date(ilmoituksenAlku.getTime() + inclusiveDays * 86400000)
       setSahkoposti(row.sahkoposti ?? '')
       setLinkki(row.linkki ?? '')
 
-      if (row.voimassa_alku) setVoimassaAlku(new Date(row.voimassa_alku))
-      else setVoimassaAlku(null)
-
       // Premium päivät
-      if (row.premium_alku) setAlku(new Date(row.premium_alku))
-
+      if (row.premium_alku) setAlku(fromDateOnly(row.premium_alku))
       // Kesto: premiumille lasketaan alkupäivästä loppuun, muuten pidetään oletus 30 (ei haittaa vaikka perus ei käytä sitä)
     if (row.maksuluokka === 'premium' && row.premium_alku && row.premium_loppu) {
     const a = new Date(row.premium_alku)
     const l = new Date(row.premium_loppu)
-    const kestoPaivia = Math.round((l.getTime() - a.getTime()) / 86400000)
-  setKesto(String(Math.max(1, kestoPaivia)))
+    const kestoPaivia = Math.round((l.getTime() - a.getTime()) / 86400000) + 1
+setKesto(String(Math.max(1, kestoPaivia)))
 } else {
   setKesto('30')
 }
@@ -310,9 +312,9 @@ return new Date(ilmoituksenAlku.getTime() + inclusiveDays * 86400000)
         const a = new Date(row.premium_alku)
         const l = new Date(row.premium_loppu)
         for (let d = a; d <= l; d = addDays(d, 1)) {
-          const key = d.toISOString().split('T')[0]
-          paivaLaskuri[key] = (paivaLaskuri[key] || 0) + 1
-        }
+  const key = toLocalDateString(d)
+  paivaLaskuri[key] = (paivaLaskuri[key] || 0) + 1
+}
       })
 
       const punaiset = Object.entries(paivaLaskuri)
@@ -371,45 +373,20 @@ return new Date(ilmoituksenAlku.getTime() + inclusiveDays * 86400000)
     try {
       // 1) Premium: tarkista kalenteri (6/päivä), jos premium & alku & loppu
       if (tyyppi === 'premium' && alku && loppuDate) {
-        const nytISO = new Date().toISOString()
-        const { data: aktiiviset, error: calErr } = await supabase
-          .from('ilmoitukset')
-          .select('id, premium_alku, premium_loppu')
-          .eq('premium', true)
-          .eq('premium_tyyppi', 'etusivu')
-          .gte('premium_loppu', nytISO)
-          .not('premium_alku', 'is', null)
-          .not('premium_loppu', 'is', null)
+  const { data, error } = await supabase.rpc('check_premium_capacity', {
+    p_start: toLocalDateString(alku),
+    p_end: toLocalDateString(loppuDate),
+    p_exclude_id: ilmoitusId,
+  })
 
-        if (calErr) throw new Error(calErr.message)
+  if (error) {
+    throw new Error(error.message)
+  }
 
-        const paivaLaskuri: Record<string, number> = {}
-        ;(aktiiviset ?? []).forEach((r) => {
-          const row = r as { id: string; premium_alku: string; premium_loppu: string }
-          if (row.id === ilmoitusId) return // ✅ ei lasketa itseä
-
-          const a = new Date(row.premium_alku)
-          const l = new Date(row.premium_loppu)
-          for (let d = a; d <= l; d = addDays(d, 1)) {
-            const key = d.toISOString().split('T')[0]
-            paivaLaskuri[key] = (paivaLaskuri[key] || 0) + 1
-          }
-        })
-
-        const valitut: Date[] = []
-        for (let d = new Date(alku); d <= loppuDate; d = addDays(d, 1)) {
-          valitut.push(new Date(d))
-        }
-
-        const ylitykset = valitut.filter((p) => {
-          const key = p.toISOString().split('T')[0]
-          return (paivaLaskuri[key] || 0) >= 6
-        })
-
-        if (ylitykset.length > 0) {
-          throw new Error('Valituilla päivillä ei ole enää vapaata premium-näkyvyyspaikkaa.')
-        }
-      }
+  if (!data) {
+    throw new Error('Valituilla päivillä ei ole enää vapaata premium-näkyvyyspaikkaa.')
+  }
+}
 
       // 2) Kuvat: uploadataan vain "new", pidetään existing urlit
       const finalUrls: string[] = []
@@ -425,18 +402,13 @@ return new Date(ilmoituksenAlku.getTime() + inclusiveDays * 86400000)
       // 3) Päivät
       const nykyhetki = new Date()
 
-      const premiumLoppu =
-        tyyppi === 'premium' && alku
-          ? new Date(alku.getTime() + Math.max(0, (parseInt(kesto || '0', 10) || 0) - 1) * 86400000)
-          : null
-
       const tapahtumaLoppuFinal =
         kategoria === 'Tapahtumat' ? (tapahtumaLoppu ?? tapahtumaAlku) : null
 
       const voimassaLoppuFinal =
-      kategoria === 'Tapahtumat'
-     ? (tapahtumaLoppuFinal ?? tapahtumaAlku)
-     : (tyyppi === 'perus' ? null : loppuDate)
+  kategoria === 'Tapahtumat'
+    ? (tapahtumaLoppuFinal ?? tapahtumaAlku)
+    : null
 
 
       // 4) Update
@@ -451,19 +423,17 @@ return new Date(ilmoituksenAlku.getTime() + inclusiveDays * 86400000)
         kuvat: finalUrls.length > 0 ? JSON.stringify(finalUrls) : null,
 
         premium: tyyppi === 'premium' && !!alku,
-        premium_alku: tyyppi === 'premium' ? alku?.toISOString() : null,
-        premium_loppu: tyyppi === 'premium' ? premiumLoppu?.toISOString() : null,
+        premium_alku: tyyppi === 'premium' && alku ? toLocalDateString(alku) : null,
+premium_loppu: tyyppi === 'premium' && loppuDate ? toLocalDateString(loppuDate) : null,
         premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
 
         tapahtuma_alku: kategoria === 'Tapahtumat' ? tapahtumaAlku?.toISOString() : null,
         tapahtuma_loppu: kategoria === 'Tapahtumat' ? tapahtumaLoppuFinal?.toISOString() : null,
 
-        // perus = nyt (kuten LisääIlmoitus), premium = alku
-        voimassa_alku:
-  tyyppi === 'premium'
-    ? (alku?.toISOString() ?? nykyhetki.toISOString())
-    : (voimassaAlku?.toISOString() ?? nykyhetki.toISOString()),
-
+        
+       voimassa_alku: kategoria === 'Tapahtumat'
+  ? nykyhetki.toISOString()
+  : null,
         voimassa_loppu: voimassaLoppuFinal ? voimassaLoppuFinal.toISOString() : null,
 
         puhelin: puhelin || null,
@@ -709,6 +679,19 @@ return new Date(ilmoituksenAlku.getTime() + inclusiveDays * 86400000)
               <p className="text-xs text-gray-500">
                 Voit lisätä enintään 4 kuvaa. Ensimmäinen kuva näkyy listauksessa.
               </p>
+
+              {replaceIndex !== null && (
+  <div className="rounded-lg border border-[#4F6763]/30 bg-[#4F6763]/10 p-3 text-sm text-[#1E3A41]">
+    Vaihdat kuvaa <strong>{replaceIndex + 1}</strong>. Valitse uusi kuva yllä olevasta lataajasta.
+    <button
+      type="button"
+      onClick={() => setReplaceIndex(null)}
+      className="ml-3 underline"
+    >
+      Peruuta
+    </button>
+  </div>
+)}
 
               <KuvanLataaja
                 onImageCropped={async (rajattuBlob) => {

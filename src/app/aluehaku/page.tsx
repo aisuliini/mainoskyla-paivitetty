@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import Image from 'next/image'
+import CityBanner from '@/components/CityBanner'
 
 type Ilmoitus = {
   id: string
@@ -18,25 +19,18 @@ function AluehakuSisalto() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
-  // ✅ PRO-malli:
-  // - q = "mitä etsit?" (tulee Headerin hausta)
-  // - sijainti = "missä?" (tällä sivulla suodatetaan)
-  //
-  // HUOM: jos sulla oli vanha malli jossa käytit ?sijainti= hakusanana,
-  // se toimii edelleen jos q puuttuu ja sijainti-parametria käytetään hakusanana.
+  
   const qParam = (searchParams.get('q') || '').trim()
   const sijaintiParam = (searchParams.get('sijainti') || '').trim()
 
-  // Backward compatibility vanhaan (sun nykyinen koodi käytti sijainti-paramia hakusanana)
+  
   const hakusana = qParam || (qParam === '' && sijaintiParam ? sijaintiParam : '')
 
-  // Paikkakuntafiltteri (vain jos q on käytössä – muuten sitä ei ole järkeä pakottaa)
   const [paikkakunta, setPaikkakunta] = useState<string>(qParam ? sijaintiParam : '')
 
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
   const [loading, setLoading] = useState(false)
 
-  // Pidä input synkassa URLin kanssa (esim. back/forward)
   useEffect(() => {
     setPaikkakunta(qParam ? sijaintiParam : '')
   }, [qParam, sijaintiParam])
@@ -68,15 +62,12 @@ function AluehakuSisalto() {
            and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`.replace(/\s+/g, '')
         )
 
-      // ✅ "MITÄ" haku (otsikko/kuvaus/sijainti) – kun q on käytössä, haetaan sillä
-      // (Jos tullaan vanhalla paramilla, hakusana voi olla sijaintiParam, mutta toimii silti.)
       query = query.or(
         `otsikko.ilike.%${hakusana}%,
          kuvaus.ilike.%${hakusana}%,
          sijainti.ilike.%${hakusana}%`.replace(/\s+/g, '')
       )
 
-      // ✅ "MISSÄ" suodatin (vain kun q-param on käytössä eli ollaan PRO-mallissa)
       if (qParam && sijaintiParam) {
         query = query.ilike('sijainti', `%${sijaintiParam}%`)
       }
@@ -122,8 +113,10 @@ function AluehakuSisalto() {
         <>
           <h1 className="text-2xl font-bold mb-4">{otsikkoTeksti}</h1>
 
-          {/* ✅ TÄRKEIN MUUTOS: ei toista "Mitä etsit?" -kenttää täällä.
-              Täällä on vain "MISSÄ" eli paikkakuntafiltteri (PRO-malli). */}
+          <div className="mb-6">
+            <CityBanner city={sijaintiParam || hakusana} />
+          </div>
+
           {qParam ? (
             <div className="mb-5 flex flex-col sm:flex-row gap-3 sm:items-end">
               <div className="w-full sm:max-w-sm">

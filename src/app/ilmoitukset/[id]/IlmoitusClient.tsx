@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import KuvaCarousel from '@/components/KuvaCarousel'
 import { FaInstagram, FaGlobe } from 'react-icons/fa'
+import ShareButtons from '@/components/ShareButtons'
+
 
 type Ilmoitus = {
   id: string
@@ -59,7 +61,7 @@ export default function IlmoitusClient() {
     setLoading(true)
     setErrorMsg(null)
 
-    // Laske vain jos edellisestä katselusta > 30 min (ei tuplaa back-napilla)
+    // Laskee vain jos edellisestä katselusta > 30 min (ei tuplaa back-napilla)
     const key = `viewed_${id}`
     const last = sessionStorage.getItem(key)
     const now = Date.now()
@@ -147,6 +149,11 @@ export default function IlmoitusClient() {
 
   if (!ilmoitus) return null
 
+  const shareUrl =
+  typeof window !== 'undefined'
+    ? window.location.origin + '/ilmoitus/' + ilmoitus.id
+    : ''
+
   return (
     <main className="max-w-2xl mx-auto p-6 bg-white rounded shadow my-12">
       <div className="mb-4">
@@ -159,9 +166,19 @@ export default function IlmoitusClient() {
         />
       </div>
 
+      
+
       <h1 className="text-2xl font-bold break-words">{ilmoitus.otsikko}</h1>
 
+    
+
       <div className="mt-3 flex items-center gap-2">
+  <ShareButtons
+    title={ilmoitus.otsikko}
+    text="Löytyi Mainoskylästä!"
+    url={shareUrl}
+  />
+
         {profiili?.www && (
           <a
             href={profiili.www.startsWith('http') ? profiili.www : `https://${profiili.www}`}

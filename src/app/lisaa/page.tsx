@@ -11,7 +11,7 @@ import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import imageCompression from 'browser-image-compression'
 import Image from 'next/image'
 import KuvanLataaja from '@/components/KuvanLataaja'
-
+import ShareButtons from '@/components/ShareButtons'
 
 
 
@@ -27,7 +27,7 @@ const [kuvat, setKuvat] = useState<File[]>([])  // AJA KAIKKI VALIDOINNIT + PALA
 
   const [tyyppi, setTyyppi] = useState('perus')
 const [alku, setAlku] = useState<Date | null>(null)
-  const [kesto, setKesto] = useState('7')
+  const [kesto, setKesto] = useState('30')
   const [kategoria, setKategoria] = useState('')
   const [varatutPaivat, setVaratutPaivat] = useState<Date[]>([])
   const [sijaintiehdotukset, setSijaintiehdotukset] = useState<string[]>([])
@@ -44,7 +44,15 @@ const [sahkoposti, setSahkoposti] = useState('')
 const [linkki, setLinkki] = useState('') // verkkosivu / some
 const [cta, setCta] = useState<'puhelin' | 'email' | 'linkki' | 'ei'>('puhelin')
 
-// AJA KAIKKI VALIDOINNIT + PALAUTA VIRHEET (ei jää "stale errors" -ongelmaa)
+const [publishedId, setPublishedId] = useState<string | null>(null)
+
+function toLocalDateString(date: Date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 const validateAll = () => {
   const e: Record<string, string> = {}
 
@@ -122,13 +130,14 @@ const submitNow = async () => {
   setErrors({})
 
 
+  setPublishedId(null)
+  setSubmitError(null)
+  setSubmitSuccess(null)
 
   setIsSubmitting(true)
   try {
     await handleUpload()
     setSubmitSuccess('Ilmoitus julkaistu!')
-    await new Promise((r) => setTimeout(r, 700))
-    router.push('/profiili')
   } catch (err: unknown) {
     console.error('Julkaisu epäonnistui:', err)
     const message = err instanceof Error ? err.message : 'Julkaisu epäonnistui. Yritä uudelleen.'
@@ -149,7 +158,10 @@ const ilmoituksenAlku = tyyppi === 'premium' ? alku : new Date()
 
 const loppuDate =
   tyyppi === 'premium' && ilmoituksenAlku
-    ? new Date(ilmoituksenAlku.getTime() + (parseInt(kesto || '0') || 0) * 86400000)
+    ? new Date(
+        ilmoituksenAlku.getTime() +
+          Math.max(0, (parseInt(kesto || '0') || 0) - 1) * 86400000
+      )
     : null
 
 
@@ -211,7 +223,7 @@ useEffect(() => {
 
   useEffect(() => {
   const haePremiumKalenteri = async () => {
-    const nytISO = new Date().toISOString()
+    const nytISO = toLocalDateString(new Date())
     const { data } = await supabase
   .from('ilmoitukset')
   .select('*')
@@ -232,9 +244,9 @@ data?.forEach((ilmo: PremiumIlmoitus) => {
   const alku = new Date(ilmo.premium_alku)
   const loppu = new Date(ilmo.premium_loppu)
   for (let d = alku; d <= loppu; d = addDays(d, 1)) {
-    const key = d.toISOString().split('T')[0]
-    paivaLaskuri[key] = (paivaLaskuri[key] || 0) + 1
-  }
+  const key = toLocalDateString(d)
+  paivaLaskuri[key] = (paivaLaskuri[key] || 0) + 1
+}
 })
 
 
@@ -307,39 +319,20 @@ if (kuvat.length > 0) {
 
 
   if (tyyppi === 'premium' && alku && loppuDate) {
-    const { data: aktiiviset } = await supabase
-      .from('ilmoitukset')
-      .select('premium_alku, premium_loppu')
-      .eq('premium', true)
-      .eq('premium_tyyppi', 'etusivu')
-      .not('premium_alku', 'is', null)
-      .not('premium_loppu', 'is', null)
+  const { data, error } = await supabase.rpc('check_premium_capacity', {
+    p_start: toLocalDateString(alku),
+    p_end: toLocalDateString(loppuDate),
+    p_exclude_id: null,
+  })
 
-    const paivaLaskuri: { [päivä: string]: number } = {}
-    aktiiviset?.forEach((ilmo) => {
-      const alkuPvm = new Date(ilmo.premium_alku)
-      const loppuPvm = new Date(ilmo.premium_loppu)
-      for (let d = new Date(alkuPvm); d <= loppuPvm; d = addDays(d, 1)) {
-        const key = d.toISOString().split('T')[0]
-        paivaLaskuri[key] = (paivaLaskuri[key] || 0) + 1
-      }
-    })
-
-    const valitutPaivat: Date[] = []
-    for (let d = new Date(alku); d <= loppuDate; d = addDays(d, 1)) {
-      valitutPaivat.push(new Date(d))
-    }
-
-    const ylitykset = valitutPaivat.filter((p) => {
-      const key = p.toISOString().split('T')[0]
-      const maara = paivaLaskuri[key] || 0
-      return maara >= 6
-    }) //Premium-paikkoja on 6 kpl per päivä
-
-    if (ylitykset.length > 0) {
-      throw new Error('Valituilla päivillä ei ole enää vapaata premium-näkyvyyspaikkaa.')
-    }
+  if (error) {
+    throw new Error(error.message)
   }
+
+  if (!data) {
+    throw new Error('Valituilla päivillä ei ole enää vapaata premium-näkyvyyspaikkaa.')
+  }
+}
 
   const tapahtumaLoppuDate =
   kategoria === 'Tapahtumat'
@@ -349,7 +342,7 @@ if (kuvat.length > 0) {
   const voimassaLoppuFinal =
   kategoria === 'Tapahtumat'
     ? (tapahtumaLoppuDate ?? tapahtumaAlku)
-    : (tyyppi === 'perus' ? null : loppuDate)
+    : null
 
 
     
@@ -365,9 +358,11 @@ kuvat: kuvaUrls.length > 0 ? JSON.stringify(kuvaUrls) : null,
   maksuluokka: tyyppi,
   kategoria,
   premium: tyyppi === 'premium' && !!alku,
-  premium_alku: tyyppi === 'premium' ? alku?.toISOString() : null,
-  premium_loppu: tyyppi === 'premium' ? loppuDate?.toISOString() : null,
-  voimassa_alku: (tyyppi === 'premium' ? (alku?.toISOString() ?? nykyhetki.toISOString()) : nykyhetki.toISOString()),
+  premium_alku: tyyppi === 'premium' && alku ? toLocalDateString(alku) : null,
+  premium_loppu: tyyppi === 'premium' && loppuDate ? toLocalDateString(loppuDate) : null,
+  voimassa_alku: kategoria === 'Tapahtumat'
+  ? nykyhetki.toISOString()
+  : null,
   voimassa_loppu: voimassaLoppuFinal ? voimassaLoppuFinal.toISOString() : null,
   premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
   nayttoja: 0,
@@ -400,6 +395,11 @@ if (error) {
 }
 
 console.log('Insert OK:', data)
+
+if (data?.id) {
+  setPublishedId(data.id)
+}
+
 return
 
 
@@ -421,6 +421,7 @@ return
     ) : (
       <>
         <h1 className="text-2xl font-bold mb-4">Lisää uusi ilmoitus</h1>
+        
         {submitSuccess && (
   <div className="mb-3 border border-green-200 bg-green-50 text-green-800 rounded p-3 text-sm">
     {submitSuccess}
@@ -674,6 +675,18 @@ return
   Voit lisätä enintään 4 kuvaa. Ensimmäinen kuva näkyy listauksessa.
 </p>
 
+{replaceIndex !== null && (
+  <div className="rounded-lg border border-[#4F6763]/30 bg-[#4F6763]/10 p-3 text-sm text-[#1E3A41]">
+    Vaihdat kuvaa <strong>{replaceIndex + 1}</strong>. Valitse uusi kuva yllä olevasta lataajasta.
+    <button
+      type="button"
+      onClick={() => setReplaceIndex(null)}
+      className="ml-3 underline"
+    >
+      Peruuta
+    </button>
+  </div>
+)}
 
           <KuvanLataaja
   onImageCropped={async (rajattuBlob) => {
@@ -823,10 +836,42 @@ if (replaceIndex !== null) {
   </button>
 </div>
 
+{publishedId && (
+  <div className="mt-4 border rounded-xl p-4 bg-green-50">
+    <p className="font-semibold mb-2">Ilmoitus julkaistu 🎉</p>
+    <p className="text-sm text-gray-600 mb-3">
+      Jaa ilmoitus helposti WhatsAppiin, Instagramiin tai kopioi linkki.
+    </p>
+
+    <ShareButtons
+      title={otsikko}
+      text={`${otsikko} – löytyi Mainoskylästä`}
+      url={`${window.location.origin}/ilmoitus/${publishedId}`}
+    />
+
+    <div className="mt-3 flex gap-2">
+      <button
+        type="button"
+        onClick={() => router.push(`/ilmoitus/${publishedId}`)}
+        className="rounded-xl px-4 py-2 text-sm font-semibold text-white bg-[#4F6763] hover:opacity-95"
+      >
+        Avaa ilmoitus
+      </button>
+
+      <button
+        type="button"
+        onClick={() => router.push('/profiili?created=1&city=' + encodeURIComponent(sijainti.trim()))}
+        className="rounded-xl px-4 py-2 text-sm font-semibold border hover:bg-gray-50"
+      >
+        Siirry profiiliin
+      </button>
+    </div>
+  </div>
+)}
+
         </form>
             </>
     )}
   </main>
   )
 }
-
