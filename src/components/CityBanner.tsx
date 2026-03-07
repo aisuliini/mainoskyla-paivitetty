@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import Image from 'next/image'
+
 
 export default function CityBanner({ city }: { city?: string }) {
   const cityNorm = useMemo(() => (city ?? '').trim().toLowerCase(), [city])
@@ -54,11 +56,13 @@ export default function CityBanner({ city }: { city?: string }) {
 
   return (
     <div className="mb-6 relative overflow-hidden rounded-2xl shadow-sm border bg-white">
-      <img
-        src={bannerUrl}
-        alt={`${city ?? ''} banneri`}
-        className="w-full h-[200px] object-cover"
-      />
+      <Image
+  src={bannerUrl}
+  alt={`${city ?? ''} banneri`}
+  width={1600}
+  height={400}
+  className="w-full h-[200px] object-cover transition-transform duration-300 hover:scale-[1.02]"
+/>
       <span className="absolute top-3 left-3 bg-black/70 text-white text-xs px-2 py-1 rounded">
         Mainos
       </span>

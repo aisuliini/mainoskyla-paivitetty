@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { Megaphone, Trash2, PlusCircle } from 'lucide-react'
+import Image from 'next/image'
 
 type BannerRow = {
   id: string
@@ -198,11 +199,13 @@ export default function BanneritSivu() {
 
                   {banneri.banner_url && (
                     <div className="mt-4">
-                      <img
-                        src={banneri.banner_url}
-                        alt={`Banneri kaupungissa ${banneri.city}`}
-                        className="w-full rounded-xl border object-cover"
-                      />
+<Image
+  src={banneri.banner_url}
+  alt={banneri.city ?? 'Banneri'}
+  width={1200}
+  height={400}
+  className="w-full h-40 object-cover rounded-xl"
+/>
                     </div>
                   )}
                 </div>

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
 import getCroppedImg from '../utils/cropImage'
+import Image from 'next/image'
 
 type Props = {
   onImageCropped: (croppedBlob: Blob) => void
@@ -194,11 +195,13 @@ export default function KuvanLataaja({
 
           {previewUrl ? (
             <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
-              <img
-                src={previewUrl}
-                alt="Esikatselu"
-                className="w-full h-[160px] object-cover"
-              />
+              <Image
+  src={previewUrl}
+  alt="Esikatselu"
+  width={800}
+  height={300}
+  className="w-full h-[160px] object-cover"
+/>
               <div className="p-3 flex items-center justify-between gap-3">
                 <p className="text-sm text-gray-600 truncate">
                   {originalName ?? 'Valittu kuva'}
