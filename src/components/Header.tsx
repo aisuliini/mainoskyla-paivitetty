@@ -11,17 +11,17 @@ import { Search } from 'lucide-react'
 function HeaderFallback() {
   // Kevyt fallback ettei SSR/CSR rakenne heittele (auttaa myös hydrationiin)
   return (
-    <header className="bg-white/80 backdrop-blur border-b px-4 sm:px-6 h-[72px] flex items-center justify-between sticky top-0 z-50">
-      <Link href="/" className="flex items-center h-full shrink-0">
-        <Image
-          src="/mainoskylalogo.png"
-          alt="Mainoskylä"
-          width={72}
-          height={72}
-          priority
-          className="h-[48px] w-auto md:h-[56px]"
-        />
-      </Link>
+    <header className="bg-white/80 backdrop-blur border-b px-3 sm:px-6 h-[72px] w-full min-w-0 flex items-center justify-between sticky top-0 z-50 overflow-x-clip">
+      <Link href="/" className="flex min-w-0 items-center h-full shrink">
+  <Image
+    src="/mainoskylalogo.png"
+    alt="Mainoskylä"
+    width={72}
+    height={72}
+    priority
+    className="h-[42px] w-auto sm:h-[48px] md:h-[56px]"
+  />
+</Link>
 
       <div className="hidden md:block w-[320px] lg:w-[380px]" />
 
@@ -157,34 +157,26 @@ function HeaderInner() {
 
 
       {/* Mobiili: search + kirjaudu + burger */}
-<div className="md:hidden flex items-center gap-2">
+<div className="md:hidden flex items-center gap-2 shrink-0">
   <Link
-  href="/lisaa"
-  onClick={() => closeMenus()}
-  className="h-10 px-4 rounded-full bg-[#4F6763] text-white font-semibold flex items-center justify-center"
->
-  + Ilmoitus
-</Link>
+    href="/lisaa"
+    onClick={() => closeMenus()}
+    className="h-10 px-3 rounded-full bg-[#4F6763] text-white font-semibold text-sm whitespace-nowrap flex items-center justify-center shrink-0"
+  >
+    + Ilmoitus
+  </Link>
+
   <button
     type="button"
     aria-label="Haku"
     onClick={() => {
-    setOpen(false)
-    setMobileSearchOpen((s) => !s)
-   }}
-    className="h-10 w-10 rounded-full bg-white ring-1 ring-black/10 flex items-center justify-center"
+      setOpen(false)
+      setMobileSearchOpen((s) => !s)
+    }}
+    className="h-10 w-10 rounded-full bg-white ring-1 ring-black/10 flex items-center justify-center shrink-0"
   >
     <Search size={18} />
   </button>
-
-  <Link
-  href={user ? '/profiili' : '/kirjaudu'}
-  onClick={() => closeMenus()}
-  className="h-10 px-4 rounded-full bg-[#F99584] text-[#1E3A41] font-semibold flex items-center justify-center"
->
-
-    {user ? 'Profiili' : 'Kirjaudu'}
-  </Link>
 
   <button
     type="button"
@@ -193,7 +185,7 @@ function HeaderInner() {
       setOpen((s) => !s)
     }}
     aria-label="Valikko"
-    className="h-10 w-10 rounded-full bg-white ring-1 ring-black/10 flex items-center justify-center active:bg-black/5"
+    className="h-10 w-10 rounded-full bg-white ring-1 ring-black/10 flex items-center justify-center active:bg-black/5 shrink-0"
   >
     <span className="text-2xl leading-none">☰</span>
   </button>
@@ -291,18 +283,22 @@ function HeaderInner() {
       <div className="my-2 border-t" />
 
       {user ? (
-        <>
-          <NavItem href="/profiili" onClick={() => setOpen(false)}>
-            Profiili
-          </NavItem>
-          <button
-            onClick={kirjauduUlos}
-            className="w-full text-left px-4 py-3 rounded-xl text-red-600 hover:bg-red-50"
-          >
-            Kirjaudu ulos
-          </button>
-        </>
-      ) : null}
+  <>
+    <NavItem href="/profiili" onClick={() => setOpen(false)}>
+      Profiili
+    </NavItem>
+    <button
+      onClick={kirjauduUlos}
+      className="w-full text-left px-4 py-3 rounded-xl text-red-600 hover:bg-red-50"
+    >
+      Kirjaudu ulos
+    </button>
+  </>
+) : (
+  <NavItem href="/kirjaudu" onClick={() => setOpen(false)}>
+    Kirjaudu
+  </NavItem>
+)}
 
 
     </div>
