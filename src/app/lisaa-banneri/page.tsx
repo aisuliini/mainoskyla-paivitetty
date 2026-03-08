@@ -73,7 +73,7 @@ useEffect(() => {
 
   fetchReserved()
 
-}, [city, startDate])
+}, [city])
 
 
   const handleReserve = async () => {
@@ -87,23 +87,34 @@ useEffect(() => {
     setLoading(true)
     setError(null)
 
-    // 1️⃣ Upload kuva
-    const fileName = `banner_${Date.now()}.jpg`
-    const { error: uploadError } = await supabase
-      .storage
-      .from('bannerit')
-      .upload(fileName, imageFile, { contentType: 'image/jpeg' })
+    const filePath = `${user.id}/banner_${Date.now()}.jpg`
 
-    if (uploadError) {
-      setError(uploadError.message)
-      setLoading(false)
-      return
-    }
+const { error: uploadError } = await supabase
+  .storage
+  .from('bannerit')
+  .upload(filePath, imageFile, {
+    contentType: 'image/jpeg',
+    upsert: false,
+  })
 
-    const { data: publicUrl } = supabase
-      .storage
-      .from('bannerit')
-      .getPublicUrl(fileName)
+if (uploadError) {
+  setError(uploadError.message)
+  setLoading(false)
+  return
+}
+
+const { data: publicUrlData } = supabase
+  .storage
+  .from('bannerit')
+  .getPublicUrl(filePath)
+
+const bannerUrl = publicUrlData?.publicUrl ?? null
+
+if (!bannerUrl) {
+  setError('Bannerikuvan julkisen osoitteen muodostaminen epäonnistui.')
+  setLoading(false)
+  return
+}
 
     // 2️⃣ Päivämäärät (käytä valittua alkupäivää)
 if (!startDate) {
@@ -142,13 +153,12 @@ if (overlaps && overlaps.length > 0) {
   return
 }
 
-// 3️⃣ Tallenna
-const { error: insertError } = await supabase
+  const { error: insertError } = await supabase
   .from('city_banners')
   .insert({
     user_id: user.id,
-    city,
-    banner_url: publicUrl.publicUrl,
+    city: city.trim(),
+    banner_url: bannerUrl,
     starts_at: startsAt.toISOString(),
     ends_at: endsAt.toISOString(),
     status,

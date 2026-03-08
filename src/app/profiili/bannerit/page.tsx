@@ -198,16 +198,17 @@ export default function BanneritSivu() {
                   </div>
 
                   {banneri.banner_url && (
-                    <div className="mt-4">
-<Image
-  src={banneri.banner_url}
-  alt={banneri.city ?? 'Banneri'}
-  width={1200}
-  height={400}
-  className="w-full h-40 object-cover rounded-xl"
-/>
-                    </div>
-                  )}
+  <div className="mt-4 overflow-hidden rounded-xl border">
+    <Image
+      src={banneri.banner_url}
+      alt={`${banneri.city} banneri`}
+      width={1200}
+      height={240}
+      unoptimized
+      className="h-[80px] sm:h-[96px] w-full object-cover"
+    />
+  </div>
+)}
                 </div>
               ))}
             </div>

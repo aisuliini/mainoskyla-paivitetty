@@ -4,9 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import Image from 'next/image'
 
-
 export default function CityBanner({ city }: { city?: string }) {
-  const cityNorm = useMemo(() => (city ?? '').trim().toLowerCase(), [city])
+  const cityNorm = useMemo(() => (city ?? '').trim(), [city])
   const [bannerUrl, setBannerUrl] = useState<string | null>(null)
 
   useEffect(() => {
@@ -20,10 +19,11 @@ export default function CityBanner({ city }: { city?: string }) {
 
       try {
         const nowIso = new Date().toISOString()
+
         const { data, error } = await supabase
           .from('city_banners')
-          .select('banner_url, starts_at')
-          .eq('status', 'active')
+          .select('banner_url, starts_at, ends_at')
+          .in('status', ['active', 'scheduled'])
           .lte('starts_at', nowIso)
           .gte('ends_at', nowIso)
           .ilike('city', cityNorm)
@@ -32,11 +32,13 @@ export default function CityBanner({ city }: { city?: string }) {
           .maybeSingle()
 
         if (cancelled) return
+
         if (error) {
           console.error('CityBanner error:', error)
           setBannerUrl(null)
           return
         }
+
         setBannerUrl(data?.banner_url ?? null)
       } catch (e) {
         if (!cancelled) {
@@ -47,6 +49,7 @@ export default function CityBanner({ city }: { city?: string }) {
     }
 
     run()
+
     return () => {
       cancelled = true
     }
@@ -55,17 +58,20 @@ export default function CityBanner({ city }: { city?: string }) {
   if (!bannerUrl) return null
 
   return (
-    <div className="mb-6 relative overflow-hidden rounded-2xl shadow-sm border bg-white">
+  <div className="mb-6">
+    <div className="relative mx-auto w-full max-w-[640px] overflow-hidden rounded-2xl border bg-white shadow-sm">
       <Image
-  src={bannerUrl}
-  alt={`${city ?? ''} banneri`}
-  width={1600}
-  height={400}
-  className="w-full h-[200px] object-cover transition-transform duration-300 hover:scale-[1.02]"
-/>
-      <span className="absolute top-3 left-3 bg-black/70 text-white text-xs px-2 py-1 rounded">
+        src={bannerUrl}
+        alt={`${city ?? ''} banneri`}
+        width={1200}
+        height={400}
+        className="w-full h-[140px] sm:h-[180px] object-cover"
+        unoptimized
+      />
+      <span className="absolute top-3 left-3 rounded bg-black/70 px-2 py-1 text-xs text-white">
         Mainos
       </span>
     </div>
-  )
+  </div>
+)
 }
