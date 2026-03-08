@@ -140,8 +140,8 @@ const scrollNytSuosittua = (dir: 'left' | 'right') => {
         while (taydelliset.length < 6) { // Premium paikkoja yhteensä 
           taydelliset.push({
             id: `tyhja-${taydelliset.length}`,
-            otsikko: 'Vapaa etusivupaikka',
-            kuvaus: 'Ole ensimmäisten joukossa – saat näkyvyyden heti.',
+            otsikko: 'Varaa etusivupaikka',
+            kuvaus: 'Nosta palvelusi näkyvästi esiin Mainoskylän etusivulla.',
             sijainti: '',
             kuva_url: '',
             nayttoja: 0
@@ -206,9 +206,7 @@ const hae = () => {
   const q = hakusana.trim()
   if (!q) return
 
-  // jos dropdown auki ja löytyy ehdotuksia, ota ensimmäinen osuma
-  const first = (paikkaEhdotukset[0] || palveluEhdotukset[0] || q).trim()
-  router.push(`/aluehaku?q=${encodeURIComponent(first)}`)
+  router.push(`/aluehaku?q=${encodeURIComponent(q)}`)
 }
 
 
@@ -533,9 +531,13 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
   <div className="w-full mt-2 sm:mt-5">
     <div className="flex items-center justify-between px-1">
       <div className="text-left">
-        <h2 className="text-base font-semibold text-[#1E3A41]">
-           Nyt suosittua Mainoskylässä
-        </h2>
+        <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-[#1E3A41]">
+  Suosittua juuri nyt
+</h2>
+
+<p className="text-xs sm:text-sm text-charcoal/60 mt-1">
+  Kurkatuimmat palvelut ja kiinnostavat löydöt Mainoskylässä.
+</p>
         
       </div>
 
@@ -570,28 +572,35 @@ className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandat
 
         {nytSuosittua.map((ilmo) => (
           <Link
-            key={ilmo.id}
-            href={`/ilmoitukset/${ilmo.id}`}
-            className="
-              snap-start
-              flex-none
-              w-[220px] sm:w-[260px] lg:w-[300px]
-              bg-white ring-1 ring-black/5
-              rounded-2xl overflow-hidden
-              shadow-sm hover:shadow-md transition
-              text-left
-            "
-          >
-            <div className="relative w-full h-28 sm:h-36 bg-[#F6F7F7]">
+  key={ilmo.id}
+  href={`/ilmoitukset/${ilmo.id}`}
+  className="
+    group
+    snap-start
+    flex-none
+    w-[220px] sm:w-[260px] lg:w-[300px]
+    bg-white ring-1 ring-black/5
+    rounded-[22px] overflow-hidden
+    shadow-sm hover:shadow-lg
+    hover:-translate-y-1
+    transition-all duration-300
+    text-left
+  "
+>
+            <div className="relative w-full aspect-[4/3] bg-[#F6F7F7] overflow-hidden">
               <Image
               src={ilmo.kuva_url || '/placeholder.jpg'}
               alt={ilmo.otsikko}
               fill
-              className="object-cover object-center"
-             sizes="240px"
+              className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+             sizes="(max-width: 640px) 220px, (max-width: 1024px) 260px, 300px"
               />
 
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/20 to-transparent" />
+
             </div>
+
+            
 
             <div className="p-3">
               <div className="font-semibold text-sm text-[#1E3A41] truncate">
@@ -675,7 +684,7 @@ className="
 
     {/* Uusimmat ilmoitukset (kategorioiden jälkeen, ennen etusivun ilmoituksia) */}
 {uusimmat.length > 0 && (
-  <section className="bg-white px-4 sm:px-6 py-6">
+  <section className="bg-white px-4 sm:px-6 py-8">
     <div className="max-w-screen-xl mx-auto">
       <div className="flex items-center justify-between px-1">
         <div className="text-left">
@@ -715,25 +724,29 @@ className="
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {uusimmat.map((ilmo) => (
-            <button
-              key={ilmo.id}
-              type="button"
-              onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
-              className="
-                snap-start flex-none
-                w-[220px] sm:w-[260px] lg:w-[300px]
-                bg-white ring-1 ring-black/5 rounded-2xl overflow-hidden
-                shadow-sm hover:shadow-md transition text-left
-              "
-            >
-              <div className="relative w-full h-28 sm:h-36 bg-[#F6F7F7]">
+  <Link
+    key={ilmo.id}
+    href={`/ilmoitukset/${ilmo.id}`}
+    className="
+      group
+      snap-start flex-none
+      w-[220px] sm:w-[260px] lg:w-[300px]
+      bg-white ring-1 ring-black/5 rounded-[22px] overflow-hidden
+      shadow-sm hover:shadow-lg hover:-translate-y-1
+      transition-all duration-300 text-left
+    "
+  >
+              <div className="relative w-full aspect-[4/3] bg-[#F6F7F7] overflow-hidden">
                 <Image
-                  src={ilmo.kuva_url || '/placeholder.jpg'}
-                  alt={ilmo.otsikko}
-                  fill
-                  className="object-cover object-center"
-                  sizes="240px"
-                />
+  src={ilmo.kuva_url || '/placeholder.jpg'}
+  alt={ilmo.otsikko}
+  fill
+  className="object-cover object-[center_35%] transition-transform duration-500 group-hover:scale-[1.03]"
+  sizes="(max-width: 640px) 220px, (max-width: 1024px) 260px, 300px"
+/>
+<div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/25 via-black/10 to-transparent" />
+
+
               </div>
 
               <div className="p-3">
@@ -757,7 +770,7 @@ className="
                   )}
                 </div>
               </div>
-            </button>
+            </Link>
           ))}
         </div>
       </div>
@@ -766,9 +779,9 @@ className="
 )}
 
 
-<section className="bg-[#F6F7F7] px-4 sm:px-6 py-6">
+<section className="bg-[#F7FAF8] px-4 sm:px-6 py-8">
   <div className="max-w-screen-xl mx-auto">
-<h2 className="text-base sm:text-lg font-semibold text-[#1E3A41] mb-3">
+<h2 className="text-lg sm:text-xl font-semibold tracking-tight text-[#1E3A41] mb-2">
   Etusivulla näkyvät ilmoitukset
 </h2>
 
@@ -777,7 +790,7 @@ className="
 </p>
 
 
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
 
       {premiumIlmoitukset.map((ilmo) => (
   <div
@@ -794,66 +807,89 @@ className="
         router.push(`/ilmoitukset/${ilmo.id}`)
       }
     }}
-    className="
-      cursor-pointer
-      group bg-white ring-1 ring-black/5
-
-      rounded-xl p-3
-      shadow-sm
-      transition-all duration-300 ease-out
-      hover:-translate-y-1 hover:shadow-xl
-    "
+    className={`
+  group bg-white ring-1 ring-black/5
+  rounded-[22px] overflow-hidden
+  shadow-sm
+  transition-all duration-300 ease-out
+  ${ilmo.id.startsWith('tyhja-') ? 'cursor-default' : 'cursor-pointer hover:-translate-y-1 hover:shadow-lg'}
+`}
   >
 
           {ilmo.kuva_url ? (
-            <div className="relative w-full h-36 rounded-lg overflow-hidden mb-1 bg-white">
+            <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#F6F7F7]">
               {!ilmo.id.startsWith('tyhja-') && (
   <span className="absolute top-2 left-2 z-10 text-[10px] bg-[#EDF5F2] text-[#1E3A41] px-2 py-1 rounded-full">
     Etusivu
   </span>
 )}
               <Image
-                src={ilmo.kuva_url || '/placeholder.jpg'}
-                alt={ilmo.otsikko}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, 20vw"
-              />
+  src={ilmo.kuva_url || '/placeholder.jpg'}
+  alt={ilmo.otsikko}
+  fill
+  className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.03]"
+  sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+/>
+<div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/20 via-black/5 to-transparent" />
 
             </div>
           ) : (
-            <div className="h-32 bg-white rounded mb-2" />
-          )}
-          <h3 className="font-semibold text-sm text-gray-900 truncate">{ilmo.otsikko}</h3>
-          <p className="text-xs text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
-          <Katselukerrat count={ilmo.nayttoja || 0} small />
+  <div className="relative w-full aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#F5FAF7] to-[#EEF4F1]">
+    <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+      <div className="text-[11px] font-semibold uppercase tracking-wide text-[#4F6763]/70">
+        Etusivupaikka vapaana
+      </div>
+      <div className="mt-2 text-sm sm:text-base font-semibold text-[#1E3A41]">
+        Varaa näkyvä paikka tähän
+      </div>
+      <div className="mt-2 text-xs text-charcoal/60 max-w-[220px]">
+        Näy etusivulla ja tuo palvelusi esiin heti kävijöille.
+      </div>
+    </div>
+  </div>
+)}
+          <div className="px-3 pb-3 pt-1.5">
+  <h3 className="text-[15px] sm:text-base font-semibold leading-snug text-[#1E3A41] line-clamp-2 min-h-[40px]">
+    {ilmo.otsikko}
+  </h3>
 
-        
-          {ilmo.id.startsWith('tyhja-') && (
-            
-            <button
-  onClick={(e) => {
-    e.stopPropagation()
-    router.push('/lisaa')
-  }}
-className="
-  mt-2 w-full px-3 py-2 text-xs font-semibold
-  rounded-full
-  bg-[#EDF5F2]
-  text-[#1E3A41]
-  ring-1 ring-[#4F8F7A]/35
-  hover:bg-[#DCEEE8]
-  hover:ring-[#4F8F7A]/55
-  transition
-"
->
+  {ilmo.sijainti && (
+    <div className="mt-1 text-xs font-medium text-charcoal/65 truncate">
+      {ilmo.sijainti}
+    </div>
+  )}
 
-  Lisää oma ilmoitus
-</button>
+  {ilmo.kuvaus && (
+    <p className="mt-1.5 text-[13px] leading-5 text-charcoal/75 line-clamp-2 min-h-[38px]">
+      {ilmo.kuvaus}
+    </p>
+  )}
 
-
-
-          )}
+  {ilmo.id.startsWith('tyhja-') ? (
+    <button
+      onClick={(e) => {
+        e.stopPropagation()
+        router.push('/lisaa')
+      }}
+      className="
+        mt-3 w-full px-3 py-2.5 text-xs font-semibold
+        rounded-full
+        bg-[#EDF5F2]
+        text-[#1E3A41]
+        ring-1 ring-[#4F8F7A]/35
+        hover:bg-[#DCEEE8]
+        hover:ring-[#4F8F7A]/55
+        transition
+      "
+    >
+      Lisää oma ilmoitus
+    </button>
+  ) : (
+    <div className="mt-2.5">
+      <Katselukerrat count={ilmo.nayttoja || 0} small />
+    </div>
+  )}
+</div>
         </div>
       ))}
     </div>
@@ -861,35 +897,23 @@ className="
 </section>
 
 
+<section className="px-4 sm:px-6 py-12">
+  <div className="max-w-screen-lg mx-auto rounded-[28px] bg-gradient-to-br from-[#F5FAF7] to-[#FFF5F2] px-6 py-10 sm:px-10 sm:py-12 text-center ring-1 ring-black/5">
+    <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#1E3A41]">
+      Haluatko näkyvyyttä omalle palvelullesi?
+    </h3>
 
+    <p className="mt-3 text-sm sm:text-base text-charcoal/70 max-w-2xl mx-auto">
+      Lisää ilmoitus Mainoskylään ja tee palvelustasi helpompi löytää paikallisesti. Aloittaminen on täysin ilmaista.
+    </p>
 
-<section className="bg-cream px-6 py-12 text-charcoal">
-
-
-  <div className="max-w-screen-xl mx-auto flex flex-col md:flex-row items-center gap-8">
-    <div className="md:w-1/2 text-center md:text-left">
-      <h3 className="text-2xl md:text-3xl font-extrabold mb-4">
-        Lisää oma ilmoituksesi helposti!
-      </h3>
-      <p className="text-base md:text-lg text-[#333] mb-6">
-        Kerro palveluistasi tai tuotteistasi Mainoskylässä ja tavoita paikalliset asiakkaat. Ilmoituksen tekeminen on nyt täysin ilmaista!
-      </p>
+    <div className="mt-6 flex items-center justify-center">
       <button
-  onClick={() => router.push('/lisaa')}
-  className="bg-persikka text-white px-6 py-3 rounded-full hover:bg-persikka-dark transition"
->
-  Lisää ilmoitus
-</button>
-
-    </div>
-    <div className="md:w-1/2">
-      <Image
-        src="/mainoskylalogo.png"
-        alt="Mainoskylä Logo"
-        width={300}
-        height={300}
-        className="mx-auto"
-      />
+        onClick={() => router.push('/lisaa')}
+        className="bg-[#F29C8F] text-white px-7 py-3.5 rounded-full hover:bg-[#e78e81] transition shadow-sm hover:shadow-md font-semibold"
+      >
+        Lisää ilmoitus ilmaiseksi
+      </button>
     </div>
   </div>
 </section>

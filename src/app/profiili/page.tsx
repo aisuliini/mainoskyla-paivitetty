@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
@@ -10,7 +10,7 @@ type ProfiiliRow = {
   nimi: string | null
 }
 
-export default function ProfiiliSivu() {
+function ProfiiliContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -186,5 +186,13 @@ export default function ProfiiliSivu() {
         </>
       )}
     </main>
+  )
+}
+
+export default function ProfiiliSivu() {
+  return (
+    <Suspense fallback={<main className="max-w-screen-md mx-auto p-6">Ladataan...</main>}>
+      <ProfiiliContent />
+    </Suspense>
   )
 }
