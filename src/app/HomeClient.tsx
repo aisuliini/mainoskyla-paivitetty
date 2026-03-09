@@ -12,7 +12,6 @@ import CategoryCarousel from '@/components/CategoryCarousel'
 import { Search, Eye } from "lucide-react";
 
 
-const heroBg = '/images/hero-mainoskyla.jpg'
 
 import {
   Hammer,
@@ -26,6 +25,8 @@ import {
   Calendar,
   Package
 } from "lucide-react";
+
+const heroBg = '/images/hero-mainoskyla.jpg'
 
 
 type PremiumIlmoitus = {
@@ -259,59 +260,44 @@ const kategoriat = [
     ikoni: <HomeIcon className="h-6 w-6 text-[#1E3A41]" />,
     enabled: true,
   },
-
-  // Piiloon alkuun:
-  {
-    nimi: "Kurssit ja Koulutukset",
-    href: "/kategoriat/kurssit-ja-koulutukset",
-    ikoni: <Book className="h-6 w-6 text-[#1E3A41]" />,
-    enabled: false,
-  },
   {
     nimi: "Tapahtumat",
     href: "/kategoriat/tapahtumat",
     ikoni: <Calendar className="h-6 w-6 text-[#1E3A41]" />,
     enabled: true,
   },
-  {
-    nimi: "Pientuottajat",
-    href: "/kategoriat/pientuottajat",
-    ikoni: <Package className="h-6 w-6 text-[#1E3A41]" />,
-    enabled: false,
-  },
 ].map((kategoria) => ({
   ...kategoria,
   bg: `
-  bg-[#E8EFEC]
-  hover:bg-[#DCE7E2]
-  text-[#1E3A41]
-  ring-1 ring-black/5
-  transition-all
-  duration-200
-`,
-
-}));
+    bg-[#E8EFEC]
+    hover:bg-[#DCE7E2]
+    text-[#1E3A41]
+    ring-1 ring-black/5
+    transition-all
+    duration-200
+  `,
+}))
 
 const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
 
-  return (
-<main className="min-h-screen font-sans text-charcoal bg-white">
+    return (
+    <main className="min-h-screen font-sans text-charcoal bg-white">
 
 
 
   
-<section className="relative overflow-hidden min-h-[420px] px-4 sm:px-6 pt-6 sm:pt-10 pb-8 sm:pb-10">
+<section className="relative overflow-hidden px-4 sm:px-6 pt-10 sm:pt-16 pb-12 sm:pb-14">
   <div className="absolute inset-0">
     <Image
       src={heroBg}
       alt=""
       fill
       priority
-      className="object-cover scale-105 opacity-[0.14]"
+      className="object-cover blur-[1px] scale-105 opacity-[0.30]"
       sizes="100vw"
     />
-    <section className="relative overflow-hidden px-4 sm:px-6 pt-10 sm:pt-16 pb-10 sm:pb-14"></section>
+    <div className="absolute inset-0 bg-white/32" />
   </div>
   
         <div className="relative z-10 max-w-screen-xl mx-auto">
@@ -339,6 +325,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
 
 </div>
+
 
 
 
@@ -532,10 +519,17 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
 
 
-
-<div className="mt-4 text-xs sm:text-sm text-charcoal/60">
-  💚 Pienille tekijöille reilu näkyvyys – ei algoritmimörköä, vaan löydettävyys paikallisesti.
 </div>
+
+<div className="mt-4 text-xs sm:text-sm text-charcoal/60 text-center mx-auto max-w-md sm:max-w-2xl px-4">
+  💚 Paikallisille tekijöille reilu näkyvyys – ei algoritmimörköä, vaan löydettävyys paikallisesti.
+</div>
+
+        </div>
+      </section>
+
+      <section className="bg-white px-4 sm:px-6 py-6 sm:py-8">
+  <div className="max-w-screen-xl mx-auto">
 
 {/*  Nyt suosittua */}
 {nytSuosittua.length > 0 && (
@@ -647,7 +641,7 @@ className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandat
 
                 {/* Pallokategoria nappulat */}
 {/* Mobiili: kategoriat Tori-tyyliin (2 riviä + sivutus vasemmalle) */}
-<div className="sm:hidden mt-3">
+<div className="sm:hidden mt-6 px-1 py-2">
  <CategoryCarousel
   categories={visibleKategoriat.map((k) => ({
     name: k.nimi,
@@ -660,7 +654,7 @@ className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandat
 
 
 {/* Desktop: kaikki samalla rivillä */}
-<div className="hidden sm:flex justify-center mt-8">
+<div className="hidden sm:flex justify-center mt-8 px-2 py-2">
   <div className="flex gap-5 justify-center px-6">
     {visibleKategoriat.map((k) => (
       <div key={k.nimi} className="flex flex-col items-center shrink-0">
@@ -685,14 +679,8 @@ className="
     ))}
   </div>
 </div>
-
-
-
-
-
-            </div>
-          </div>
-   </section>  
+ </div>
+</section>
 
     {/* Uusimmat ilmoitukset (kategorioiden jälkeen, ennen etusivun ilmoituksia) */}
 {uusimmat.length > 0 && (
@@ -791,7 +779,7 @@ className="
 )}
 
 
-<section className="bg-[#F7FAF8] px-4 sm:px-6 py-8">
+<section className="bg-gradient-to-b from-[#F4F8F6] to-[#FAFCFB] px-4 sm:px-6 py-10">
   <div className="max-w-screen-xl mx-auto">
 <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-[#1E3A41] mb-2">
   Etusivulla näkyvät ilmoitukset
@@ -846,7 +834,7 @@ className="
 
             </div>
           ) : (
-  <div className="relative w-full aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#F5FAF7] to-[#EEF4F1]">
+  <div className="relative w-full aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#EEF6F2] via-[#F7FBF8] to-[#FFF6F2]">
     <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
       <div className="text-[11px] font-semibold uppercase tracking-wide text-[#4F6763]/70">
         Etusivupaikka vapaana
@@ -937,8 +925,7 @@ className="
 </section>
 
 
-      <footer className="bg-beige text-sm text-[#1E3A41]
- text-center py-8 mt-12">
+      <footer className="bg-beige text-sm text-[#1E3A41] text-center py-8 mt-12">
 
         <div className="space-y-4">
           <nav className="flex flex-wrap justify-center gap-4 font-medium">

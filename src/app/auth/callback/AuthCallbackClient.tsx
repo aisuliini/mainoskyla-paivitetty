@@ -10,16 +10,23 @@ export default function AuthCallbackClient() {
   const code = sp.get('code')
 
   useEffect(() => {
+    let cancelled = false
+
     const run = async () => {
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
+
         if (error) {
-          router.replace('/kirjaudu?error=oauth_exchange')
+          if (!cancelled) {
+            router.replace('/kirjaudu?error=oauth_exchange')
+          }
           return
         }
       }
 
       const { data } = await supabase.auth.getSession()
+
+      if (cancelled) return
 
       if (data.session?.user) {
         router.replace('/profiili')
@@ -30,6 +37,10 @@ export default function AuthCallbackClient() {
     }
 
     run()
+
+    return () => {
+      cancelled = true
+    }
   }, [router, code])
 
   return (
