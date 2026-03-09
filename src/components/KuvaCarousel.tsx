@@ -30,6 +30,7 @@ export default function KuvaCarousel({
 
   const [i, setI] = useState(0)
   const [paused, setPaused] = useState(false)
+  const [failedUrls, setFailedUrls] = useState<Record<string, boolean>>({})
 
   const startX = useRef<number | null>(null)
   const deltaX = useRef<number>(0)
@@ -57,6 +58,9 @@ export default function KuvaCarousel({
   }, [urlsKey, urls.length, autoMs, paused])
 
   if (urls.length === 0) return null
+
+  const currentUrl = urls[i]
+  const useUnoptimized = !!failedUrls[currentUrl]
 
   const prev = () => setI((p) => (p - 1 + urls.length) % urls.length)
   const next = () => setI((p) => (p + 1) % urls.length)
@@ -97,16 +101,24 @@ export default function KuvaCarousel({
       onPointerCancel={onPointerUp}
     >
       <div className="w-full">
-  <Image
-    src={urls[i]}
-    alt={alt}
-    width={1600}
-    height={900}
-    className="block h-auto w-full object-cover"
-    sizes="(max-width: 768px) 100vw, 900px"
-    priority={i === 0}
-  />
-</div>
+        <Image
+          key={`${currentUrl}-${useUnoptimized ? 'raw' : 'optimized'}`}
+          src={currentUrl}
+          alt={alt}
+          width={1600}
+          height={900}
+          className="block h-auto w-full object-cover"
+          sizes="(max-width: 768px) 100vw, 900px"
+          priority={i === 0}
+          unoptimized={useUnoptimized}
+          onError={() => {
+            setFailedUrls((prev) => {
+              if (prev[currentUrl]) return prev
+              return { ...prev, [currentUrl]: true }
+            })
+          }}
+        />
+      </div>
 
       {urls.length > 1 && (
         <>

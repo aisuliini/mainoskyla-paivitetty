@@ -5,9 +5,10 @@ import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
 import getCroppedImg from '../utils/cropImage'
 import Image from 'next/image'
+const [isProcessing, setIsProcessing] = useState(false)
 
 type Props = {
-  onImageCropped: (croppedBlob: Blob) => void
+  onImageCropped: (croppedBlob: Blob) => void | Promise<void>
   aspectRatio?: number
   maxFileSizeMB?: number
   maxZoom?: number
@@ -119,36 +120,39 @@ export default function KuvanLataaja({
   }
 
   const handleDone = async () => {
-    if (!imageSrc || !croppedAreaPixels) {
-      setError('Rajaa kuva ensin.')
+  if (!imageSrc || !croppedAreaPixels) {
+    setError('Rajaa kuva ensin.')
+    return
+  }
+
+  setError(null)
+  setIsProcessing(true)
+
+  try {
+    const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels)
+    if (!croppedBlob) {
+      setError('Kuvan rajaus epäonnistui.')
       return
     }
 
-    setError(null)
+    const url = URL.createObjectURL(croppedBlob)
+    setPreviewUrl((old) => {
+      if (old) URL.revokeObjectURL(old)
+      return url
+    })
 
-    try {
-      const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels)
-      if (!croppedBlob) {
-        setError('Kuvan rajaus epäonnistui.')
-        return
-      }
+    await onImageCropped(croppedBlob)
 
-      // preview
-      const url = URL.createObjectURL(croppedBlob)
-      setPreviewUrl((old) => {
-        if (old) URL.revokeObjectURL(old)
-        return url
-      })
+    setImageSrc(null)
 
-      onImageCropped(croppedBlob)
-
-      // close cropper view
-      setImageSrc(null)
-    } catch (e) {
-      console.error(e)
-      setError('Kuvan rajaus epäonnistui.')
-    }
+    if (inputRef.current) inputRef.current.value = ''
+  } catch (e) {
+    console.error(e)
+    setError('Kuvan käsittely epäonnistui.')
+  } finally {
+    setIsProcessing(false)
   }
+}
 
   const handleCancelCropping = () => {
     // keep existing preview, just close cropper
@@ -242,9 +246,9 @@ export default function KuvanLataaja({
           </div>
 
           <div className="flex gap-2">
-            <PrimaryButton onClick={handleDone} disabled={!croppedAreaPixels}>
-              Rajaa ja käytä kuva
-            </PrimaryButton>
+            <PrimaryButton onClick={handleDone} disabled={!croppedAreaPixels || isProcessing}>
+  {isProcessing ? 'Käsitellään kuvaa…' : 'Rajaa ja käytä kuva'}
+</PrimaryButton>
             <SecondaryButton onClick={handleCancelCropping}>
               Peruuta
             </SecondaryButton>
