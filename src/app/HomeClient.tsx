@@ -21,9 +21,7 @@ import {
   PartyPopper,
   Heart,
   Home as HomeIcon,
-  Book,
   Calendar,
-  Package
 } from "lucide-react";
 
 const heroBg = '/images/hero-mainoskyla.jpg'
