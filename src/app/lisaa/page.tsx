@@ -845,13 +845,13 @@ if (replaceIndex !== null) {
     <ShareButtons
       title={otsikko}
       text={`${otsikko} – löytyi Mainoskylästä`}
-      url={`${window.location.origin}/ilmoitus/${publishedId}`}
+      url={`${window.location.origin}/ilmoitukset/${publishedId}`}
     />
 
     <div className="mt-3 flex gap-2">
       <button
         type="button"
-        onClick={() => router.push(`/ilmoitus/${publishedId}`)}
+        onClick={() => router.push(`/ilmoitukset/${publishedId}`)}
         className="rounded-xl px-4 py-2 text-sm font-semibold text-white bg-[#4F6763] hover:opacity-95"
       >
         Avaa ilmoitus

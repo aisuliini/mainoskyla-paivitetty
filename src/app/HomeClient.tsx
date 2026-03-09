@@ -292,10 +292,10 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
       alt=""
       fill
       priority
-      className="object-cover blur-[1px] scale-105 opacity-[0.30]"
+      className="object-cover blur-[0.5px] scale-105 opacity-[0.42]"
       sizes="100vw"
     />
-    <div className="absolute inset-0 bg-white/32" />
+    <div className="absolute inset-0 bg-white/22" />
   </div>
   
         <div className="relative z-10 max-w-screen-xl mx-auto">
@@ -777,7 +777,7 @@ className="
 )}
 
 
-<section className="bg-gradient-to-b from-[#F4F8F6] to-[#FAFCFB] px-4 sm:px-6 py-10">
+<section className="bg-[#F6FAF8] px-4 sm:px-6 py-10 sm:py-12">
   <div className="max-w-screen-xl mx-auto">
 <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-[#1E3A41] mb-2">
   Etusivulla näkyvät ilmoitukset
@@ -895,8 +895,8 @@ className="
 </section>
 
 
-<section className="px-4 sm:px-6 py-12">
-  <div className="max-w-screen-lg mx-auto rounded-[28px] bg-gradient-to-br from-[#F5FAF7] to-[#FFF5F2] px-6 py-10 sm:px-10 sm:py-12 text-center ring-1 ring-black/5">
+<section className="bg-white px-4 sm:px-6 py-14 sm:py-16">
+  <div className="max-w-screen-lg mx-auto rounded-[28px] bg-gradient-to-br from-[#F5FAF7] via-[#FAFCFB] to-[#FFF5F2] px-6 py-10 sm:px-10 sm:py-12 text-center ring-1 ring-black/5 shadow-[0_10px_30px_rgba(30,58,65,0.04)]">
     <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#1E3A41]">
       Haluatko näkyvyyttä omalle palvelullesi?
     </h3>
@@ -923,34 +923,63 @@ className="
 </section>
 
 
-      <footer className="bg-beige text-sm text-[#1E3A41] text-center py-8 mt-12">
+      <footer className="bg-[#F3F5F4] text-[#1E3A41] mt-0">
+  <div className="max-w-screen-xl mx-auto px-6 py-10 sm:py-12">
+    <div className="flex flex-col items-center text-center">
+      <nav className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm sm:text-[15px] font-medium">
+        <Link href="/tietoa" className="text-[#1E3A41] hover:opacity-70 transition">
+          Tietoa meistä
+        </Link>
+        <Link href="/hinnasto" className="text-[#1E3A41] hover:opacity-70 transition">
+          Hinnasto
+        </Link>
+        <Link href="/ehdot" className="text-[#1E3A41] hover:opacity-70 transition">
+          Käyttöehdot
+        </Link>
+        <Link href="/tietosuoja" className="text-[#1E3A41] hover:opacity-70 transition">
+          Tietosuoja
+        </Link>
+        <Link href="/turvallisuus" className="text-[#1E3A41] hover:opacity-70 transition">
+          Turvallisuusohjeet
+        </Link>
+        <Link href="/yhteystiedot" className="text-[#1E3A41] hover:opacity-70 transition">
+          Yhteystiedot
+        </Link>
+      </nav>
 
-        <div className="space-y-4">
-          <nav className="flex flex-wrap justify-center gap-4 font-medium">
-            <Link href="/tietoa" className="hover:underline">Tietoa meistä</Link>
-            <Link href="/hinnasto" className="hover:underline">Hinnasto</Link>
-            <Link href="/ehdot" className="hover:underline">Käyttöehdot</Link>
-            <Link href="/tietosuoja" className="hover:underline">Tietosuoja</Link>
-            <Link href="/turvallisuus" className="text-blue-600 underline">Turvallisuusohjeet</Link>
-            <Link href="/yhteystiedot" className="hover:underline">Yhteystiedot</Link>
-          </nav>
-          <div className="flex justify-center gap-6 text-xl">
-            <a href="https://facebook.com/mainoskyla" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-              <FaFacebookF className="hover:text-blue-600" />
-            </a>
-            
-            <a href="https://instagram.com/mainoskyla" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-              <FaInstagram className="hover:text-pink-500" />
-            </a>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-gray-600">
-              Ilmoitukset ovat maksuttomia ja alusta on vielä kehitysvaiheessa.
-            </p>
-            <p>&copy; {new Date().getFullYear()} Mainoskylä</p>
-          </div>
-        </div>
-      </footer>
+      <div className="mt-6 flex justify-center gap-5 text-[22px]">
+        <a
+          href="https://facebook.com/mainoskyla"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Facebook"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/95 ring-1 ring-black/5 hover:bg-white hover:-translate-y-0.5 hover:shadow-sm transition"
+        >
+          <FaFacebookF />
+        </a>
+
+        <a
+          href="https://instagram.com/mainoskyla"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Instagram"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/95 ring-1 ring-black/5 hover:bg-white hover:-translate-y-0.5 hover:shadow-sm transition"
+        >
+          <FaInstagram />
+        </a>
+      </div>
+
+      <div className="mt-6 space-y-2 text-center">
+        <p className="text-xs sm:text-sm text-charcoal/60">
+          Ilmoitukset ovat maksuttomia ja alusta on vielä kehitysvaiheessa.
+        </p>
+        <p className="text-sm text-[#1E3A41]/80">
+          &copy; {new Date().getFullYear()} Mainoskylä
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
     </main>
   )
 }
