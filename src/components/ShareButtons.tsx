@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 type Props = {
   title: string
@@ -12,6 +12,7 @@ type Props = {
 export default function ShareButtons({ title, text, url, className }: Props) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const shareUrl = useMemo(() => {
     if (url) return url
@@ -20,29 +21,33 @@ export default function ShareButtons({ title, text, url, className }: Props) {
   }, [url])
 
   const canNativeShare =
-    typeof window !== 'undefined' && typeof navigator !== 'undefined' && !!navigator.share
+    typeof window !== 'undefined' &&
+    typeof navigator !== 'undefined' &&
+    typeof navigator.share === 'function'
 
   const encodedUrl = encodeURIComponent(shareUrl)
   const encodedText = encodeURIComponent(text ?? title)
 
-  const onShareClick = async () => {
-    // 1) Mobiili: natiivi jakovalikko (paras)
-    if (canNativeShare) {
-      try {
-        await navigator.share({
-          title,
-          text: text ?? title,
-          url: shareUrl,
-        })
-      } catch {
-        // peruutus -> ei mitään
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (!menuRef.current) return
+      if (!menuRef.current.contains(e.target as Node)) {
+        setOpen(false)
       }
-      return
     }
 
-    // 2) Desktop fallback: oma pikavalikko
-    setOpen((v) => !v)
-  }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+
+    document.addEventListener('mousedown', onDocClick)
+    document.addEventListener('keydown', onKeyDown)
+
+    return () => {
+      document.removeEventListener('mousedown', onDocClick)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [])
 
   const copyLink = async () => {
     try {
@@ -55,20 +60,36 @@ export default function ShareButtons({ title, text, url, className }: Props) {
       document.execCommand('copy')
       document.body.removeChild(ta)
     }
+
     setCopied(true)
     setTimeout(() => setCopied(false), 1200)
     setOpen(false)
+  }
+
+  const nativeShare = async () => {
+    if (!canNativeShare) return
+
+    try {
+      await navigator.share({
+        title,
+        text: text ?? title,
+        url: shareUrl,
+      })
+    } catch {
+      // käyttäjä perui tai kohde-appi ei vienyt loppuun
+    } finally {
+      setOpen(false)
+    }
   }
 
   const whatsappHref = `https://wa.me/?text=${encodedText}%20${encodedUrl}`
   const facebookHref = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`
 
   return (
-    <div className={`relative inline-block ${className ?? ''}`}>
-      {/* YKSI nappi */}
+    <div ref={menuRef} className={`relative inline-block ${className ?? ''}`}>
       <button
         type="button"
-        onClick={onShareClick}
+        onClick={() => setOpen((v) => !v)}
         className="rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-gray-50"
         aria-haspopup="menu"
         aria-expanded={open}
@@ -76,16 +97,24 @@ export default function ShareButtons({ title, text, url, className }: Props) {
         Jaa
       </button>
 
-      {/* Fallback-menu vain jos EI natiivia sharea */}
-      {!canNativeShare && open && (
+      {open && (
         <div className="absolute left-0 mt-2 w-56 rounded-xl border bg-white p-2 shadow-lg z-50">
+          <button
+            type="button"
+            onClick={copyLink}
+            className="w-full text-left rounded-lg px-3 py-2 text-sm font-semibold hover:bg-gray-50"
+          >
+            {copied ? 'Linkki kopioitu ✓' : 'Kopioi linkki'}
+          </button>
+
           <a
             href={whatsappHref}
             target="_blank"
             rel="noreferrer"
             className="block rounded-lg px-3 py-2 text-sm hover:bg-gray-50"
+            onClick={() => setOpen(false)}
           >
-            WhatsApp
+            Jaa WhatsAppiin
           </a>
 
           <a
@@ -93,17 +122,20 @@ export default function ShareButtons({ title, text, url, className }: Props) {
             target="_blank"
             rel="noreferrer"
             className="block rounded-lg px-3 py-2 text-sm hover:bg-gray-50"
+            onClick={() => setOpen(false)}
           >
-            Facebook
+            Jaa Facebookiin
           </a>
 
-          <button
-            type="button"
-            onClick={copyLink}
-            className="w-full text-left rounded-lg px-3 py-2 text-sm hover:bg-gray-50"
-          >
-            {copied ? 'Linkki kopioitu ✓' : 'Kopioi linkki'}
-          </button>
+          {canNativeShare && (
+            <button
+              type="button"
+              onClick={nativeShare}
+              className="w-full text-left rounded-lg px-3 py-2 text-sm hover:bg-gray-50"
+            >
+              Jaa puhelimen valikolla
+            </button>
+          )}
 
           <button
             type="button"
