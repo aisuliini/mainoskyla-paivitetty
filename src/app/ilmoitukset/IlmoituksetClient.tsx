@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
+import Image from   'next/image'
+import SafeCardImage from '@/components/SafeCardImage'
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -113,14 +114,29 @@ export default function IlmoituksetClient({
       )}
 
       {initialIlmoitukset.map((ilmoitus) => (
-        <div key={ilmoitus.id} className="mb-4">
-          <h2 className="font-semibold">{ilmoitus.otsikko}</h2>
+  <div
+    key={ilmoitus.id}
+    className="mb-4 overflow-hidden rounded-2xl border bg-white shadow-sm"
+  >
+    <div className="relative h-56 w-full">
+      <SafeCardImage
+        src={ilmoitus.kuva_url}
+        alt={ilmoitus.otsikko}
+        fill
+        className="object-cover"
+        sizes="(max-width: 768px) 100vw, 800px"
+      />
+    </div>
 
-          <Link className="underline" href={`/ilmoitukset/${ilmoitus.id}`}>
-            Katso ilmoitus
-          </Link>
-        </div>
-      ))}
+    <div className="p-4">
+      <h2 className="font-semibold">{ilmoitus.otsikko}</h2>
+
+      <Link className="underline" href={`/ilmoitukset/${ilmoitus.id}`}>
+        Katso ilmoitus
+      </Link>
+    </div>
+  </div>
+))}
     </section>
   )
 }
