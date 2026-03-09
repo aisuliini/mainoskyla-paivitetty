@@ -5,7 +5,7 @@ import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
 import getCroppedImg from '../utils/cropImage'
 import Image from 'next/image'
-const [isProcessing, setIsProcessing] = useState(false)
+
 
 type Props = {
   onImageCropped: (croppedBlob: Blob) => void | Promise<void>
@@ -42,6 +42,7 @@ export default function KuvanLataaja({
   maxZoom = 3,
   label = 'Valitse kuva',
 }: Props) {
+  const [isProcessing, setIsProcessing] = useState(false)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
   const [imageSrc, setImageSrc] = useState<string | null>(null)
