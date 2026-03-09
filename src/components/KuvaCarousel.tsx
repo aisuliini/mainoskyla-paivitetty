@@ -18,9 +18,12 @@ export default function KuvaCarousel({
   max?: number
 }) {
   const urls = useMemo(() => {
-    const list = (kuvat ?? []).filter(Boolean).slice(0, max)
+    const list = (kuvat ?? [])
+      .filter((url): url is string => typeof url === 'string' && url.trim() !== '')
+      .slice(0, max)
+
     if (list.length > 0) return list
-    return kuvaUrl ? [kuvaUrl] : []
+    return kuvaUrl && kuvaUrl.trim() !== '' ? [kuvaUrl] : []
   }, [kuvat, kuvaUrl, max])
 
   const urlsKey = useMemo(() => urls.join('|'), [urls])
@@ -93,16 +96,17 @@ export default function KuvaCarousel({
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      <div className="relative aspect-[16/9] w-full">
-        <Image
-          src={urls[i]}
-          alt={alt}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, 900px"
-          priority={i === 0}
-        />
-      </div>
+      <div className="w-full">
+  <Image
+    src={urls[i]}
+    alt={alt}
+    width={1600}
+    height={900}
+    className="block h-auto w-full object-cover"
+    sizes="(max-width: 768px) 100vw, 900px"
+    priority={i === 0}
+  />
+</div>
 
       {urls.length > 1 && (
         <>
@@ -114,6 +118,7 @@ export default function KuvaCarousel({
           >
             ‹
           </button>
+
           <button
             type="button"
             onClick={next}
