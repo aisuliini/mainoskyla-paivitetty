@@ -18,8 +18,11 @@ export default function KirjauduSivu() {
 
   // UI state
   const [viesti, setViesti] = useState('')
-  const [loading, setLoading] = useState(true) // sivun auth-check
-  const [submitting, setSubmitting] = useState(false) // napit/lomakkeet
+const [loading, setLoading] = useState(true) // sivun auth-check
+
+const [googleLoading, setGoogleLoading] = useState(false)
+const [magicLoading, setMagicLoading] = useState(false)
+const [passwordLoading, setPasswordLoading] = useState(false)
 
   useEffect(() => {
   let mounted = true
@@ -36,7 +39,9 @@ export default function KirjauduSivu() {
     }
 
     // jos ei sessionia (esim. käyttäjä perui Googlen), avaa napit takaisin
-    setSubmitting(false)
+    setGoogleLoading(false)
+    setMagicLoading(false)
+    setPasswordLoading(false)
     setLoading(false)
   }
 
@@ -79,17 +84,18 @@ export default function KirjauduSivu() {
     (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
 
   const kirjauduSalasanalla = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setViesti('')
-    setSent(false)
-    setSubmitting(true)
+  e.preventDefault()
+  if (passwordLoading) return
 
+  setViesti('')
+  setSent(false)
+  setPasswordLoading(true)
+
+  try {
     const { error } = await supabase.auth.signInWithPassword({
       email: sahkoposti.trim(),
       password: salasana,
     })
-
-    setSubmitting(false)
 
     if (error) {
       setViesti('⚠️ Kirjautuminen epäonnistui. Tarkista sähköposti ja salasana.')
@@ -98,14 +104,23 @@ export default function KirjauduSivu() {
 
     router.replace('/profiili')
     router.refresh()
+  } catch (err) {
+    console.error(err)
+    setViesti('⚠️ Kirjautuminen epäonnistui. Yritä uudelleen.')
+  } finally {
+    setPasswordLoading(false)
   }
+}
 
   const lahetaMagicLink = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setViesti('')
-    setSent(false)
-    setSubmitting(true)
+  e.preventDefault()
+  if (magicLoading) return
 
+  setViesti('')
+  setSent(false)
+  setMagicLoading(true)
+
+  try {
     const { error } = await supabase.auth.signInWithOtp({
       email: magicEmail.trim(),
       options: {
@@ -113,34 +128,45 @@ export default function KirjauduSivu() {
       },
     })
 
-    setSubmitting(false)
-
     if (error) {
       setViesti('⚠️ Linkin lähetys epäonnistui. Yritä uudelleen hetken päästä.')
       return
     }
 
     setSent(true)
+  } catch (err) {
+    console.error(err)
+    setViesti('⚠️ Linkin lähetys epäonnistui. Yritä uudelleen.')
+  } finally {
+    setMagicLoading(false)
   }
+}
 
     const kirjauduGooglella = async () => {
-  if (submitting) return // ✅ estä tuplaklikit
+  if (googleLoading) return
 
   setViesti('')
   setSent(false)
-  setSubmitting(true)
+  setGoogleLoading(true)
 
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${siteUrl}/auth/callback`,
-      queryParams: { prompt: 'select_account' },
-    },
-  })
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${siteUrl}/auth/callback`,
+        queryParams: { prompt: 'select_account' },
+      },
+    })
 
-  if (error) {
+    if (error) {
+  setViesti('⚠️ Google-kirjautuminen epäonnistui. Yritä uudelleen.')
+  setGoogleLoading(false)
+  return
+}
+  } catch (err) {
+    console.error(err)
     setViesti('⚠️ Google-kirjautuminen epäonnistui. Yritä uudelleen.')
-    setSubmitting(false)
+    setGoogleLoading(false)
   }
 }
 
@@ -164,7 +190,7 @@ export default function KirjauduSivu() {
       <button
         type="button"
         onClick={kirjauduGooglella}
-        disabled={submitting}
+        disabled={googleLoading}
         className="
           w-full rounded-full px-6 py-3 font-semibold
           bg-white text-[#1E3A41]
@@ -173,7 +199,7 @@ export default function KirjauduSivu() {
           disabled:opacity-60 transition
         "
       >
-        Jatka Googlella
+        {googleLoading ? 'Avataan Googlea…' : 'Jatka Googlella'}
       </button>
 
       
@@ -199,7 +225,7 @@ export default function KirjauduSivu() {
 
         <button
           type="submit"
-          disabled={submitting}
+          disabled={magicLoading}
           className="
             w-full rounded-full px-6 py-3 font-semibold
             bg-[#EDF5F2] text-[#1E3A41]
@@ -208,7 +234,7 @@ export default function KirjauduSivu() {
             disabled:opacity-60
           "
         >
-          {submitting ? 'Lähetetään…' : 'Lähetä kirjautumislinkki'}
+          {magicLoading ? 'Lähetetään…' : 'Lähetä kirjautumislinkki'}
         </button>
 
         {sent && (
@@ -249,7 +275,7 @@ export default function KirjauduSivu() {
 
         <button
           type="submit"
-          disabled={submitting}
+          disabled={passwordLoading}
           className="
             w-full rounded-full px-6 py-3 font-semibold
             bg-[#1E3A41] text-white
@@ -257,7 +283,7 @@ export default function KirjauduSivu() {
             disabled:opacity-60
           "
         >
-          {submitting ? 'Kirjaudutaan…' : 'Kirjaudu'}
+          {passwordLoading ? 'Kirjaudutaan…' : 'Kirjaudu'}
         </button>
       </form>
 

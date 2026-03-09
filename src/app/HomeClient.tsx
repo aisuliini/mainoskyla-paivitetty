@@ -12,7 +12,7 @@ import CategoryCarousel from '@/components/CategoryCarousel'
 import { Search, Eye } from "lucide-react";
 
 
-
+const heroBg = '/images/hero-mainoskyla.jpg'
 
 import {
   Hammer,
@@ -64,6 +64,7 @@ export default function Home() {
   const [hakusana, setHakusana] = useState('')
   const [premiumIlmoitukset, setPremiumIlmoitukset] = useState<PremiumIlmoitus[]>([])
   const [showDesktopSuggest, setShowDesktopSuggest] = useState(false)
+
 
 const query = hakusana.trim().toLowerCase()
 
@@ -299,10 +300,21 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
 
 
-  <div className="relative z-10">
-<section className="relative px-4 sm:px-6 pt-6 sm:pt-10 pb-8 sm:pb-10 bg-gradient-to-b from-[#F4F8F6] to-white">
   
-        <div className="max-w-screen-xl mx-auto">
+<section className="relative overflow-hidden min-h-[420px] px-4 sm:px-6 pt-6 sm:pt-10 pb-8 sm:pb-10">
+  <div className="absolute inset-0">
+    <Image
+      src={heroBg}
+      alt=""
+      fill
+      priority
+      className="object-cover scale-105 opacity-[0.14]"
+      sizes="100vw"
+    />
+    <section className="relative overflow-hidden px-4 sm:px-6 pt-10 sm:pt-16 pb-10 sm:pb-14"></section>
+  </div>
+  
+        <div className="relative z-10 max-w-screen-xl mx-auto">
 <div className="flex flex-col items-center gap-4 text-center">
 <div className="w-full text-center flex flex-col items-center">
 <h1
@@ -954,7 +966,6 @@ className="
           </div>
         </div>
       </footer>
-</div>
     </main>
   )
 }

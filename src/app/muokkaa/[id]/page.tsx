@@ -616,9 +616,8 @@ premium_loppu: tyyppi === 'premium' && loppuDate ? toLocalDateString(loppuDate) 
             {/* STEP 2: Yhteystiedot */}
             <div className="space-y-4" data-error="yhteys">
               <p className="text-sm text-gray-600">
-                Valitse ensisijainen tapa, jolla haluat asiakkaan ottavan yhteyttä.
-                Lisää vähintään yksi yhteystieto.
-              </p>
+  Lisää vähintään yksi yhteystieto.
+</p>
 
               <label className="block font-medium">Ensisijainen yhteydenotto:</label>
               <select

@@ -69,7 +69,7 @@ export default function CityBanner({ city }: { city?: string }) {
         unoptimized
       />
       <span className="absolute top-3 left-3 rounded bg-black/70 px-2 py-1 text-xs text-white">
-        Mainos
+        Bannerimainos
       </span>
     </div>
   </div>
