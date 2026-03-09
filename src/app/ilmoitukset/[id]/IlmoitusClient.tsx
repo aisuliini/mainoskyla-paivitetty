@@ -151,7 +151,7 @@ export default function IlmoitusClient() {
 
   const shareUrl =
   typeof window !== 'undefined'
-    ? window.location.origin + '/ilmoitus/' + ilmoitus.id
+    ? window.location.origin + '/ilmoitukset/' + ilmoitus.id
     : ''
 
   return (
