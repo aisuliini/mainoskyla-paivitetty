@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
-import Image from 'next/image'
+import SafeCardImage from '@/components/SafeCardImage'
 import CityBanner from '@/components/CityBanner'
 
 type Ilmoitus = {
@@ -163,15 +163,14 @@ function AluehakuSisalto() {
               {ilmoitukset.map((ilmo) => (
                 <div key={ilmo.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
                   <div className="relative w-full h-40 bg-gray-100">
-                    <Image
-                      src={ilmo.kuva_url || '/placeholder.jpg'}
-                      alt={ilmo.otsikko}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                      className="rounded-t"
-                    />
-                  </div>
+  <SafeCardImage
+    src={ilmo.kuva_url}
+    alt={ilmo.otsikko}
+    fill
+    className="rounded-t object-cover"
+    sizes="(max-width: 768px) 100vw, 33vw"
+  />
+</div>
 
                   <div className="p-4">
                     <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>
