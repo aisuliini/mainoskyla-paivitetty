@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import SafeCardImage from '@/components/SafeCardImage'
 import Image from 'next/image'
 import Link from 'next/link'
 import Katselukerrat from '@/components/Katselukerrat';
@@ -592,13 +593,13 @@ className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandat
   "
 >
             <div className="relative w-full aspect-[4/3] bg-[#F6F7F7] overflow-hidden">
-              <Image
-              src={ilmo.kuva_url || '/placeholder.jpg'}
-              alt={ilmo.otsikko}
-              fill
-              className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
-             sizes="(max-width: 640px) 220px, (max-width: 1024px) 260px, 300px"
-              />
+              <SafeCardImage
+  src={ilmo.kuva_url}
+  alt={ilmo.otsikko}
+  fill
+  className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+  sizes="(max-width: 640px) 220px, (max-width: 1024px) 260px, 300px"
+/>
 
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/20 to-transparent" />
 
@@ -735,11 +736,11 @@ className="
     "
   >
               <div className="relative w-full aspect-[4/3] bg-[#F6F7F7] overflow-hidden">
-                <Image
-  src={ilmo.kuva_url || '/placeholder.jpg'}
+                <SafeCardImage
+  src={ilmo.kuva_url}
   alt={ilmo.otsikko}
   fill
-  className="object-cover object-[center_35%] transition-transform duration-500 group-hover:scale-[1.03]"
+  className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
   sizes="(max-width: 640px) 220px, (max-width: 1024px) 260px, 300px"
 />
 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/25 via-black/10 to-transparent" />
@@ -821,8 +822,8 @@ className="
     Etusivu
   </span>
 )}
-              <Image
-  src={ilmo.kuva_url || '/placeholder.jpg'}
+              <SafeCardImage
+  src={ilmo.kuva_url}
   alt={ilmo.otsikko}
   fill
   className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.03]"

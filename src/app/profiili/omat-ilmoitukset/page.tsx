@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import SafeCardImage from '@/components/SafeCardImage'
 import { supabase } from '@/lib/supabaseClient'
 import { Eye } from 'lucide-react'
 
@@ -212,16 +212,17 @@ useEffect(() => {
                 >
                   <div className="h-40 w-full bg-gray-100 flex items-center justify-center">
                     {ilmo.kuva_url ? (
-                      <Image
-                        src={ilmo.kuva_url}
-                        alt={ilmo.otsikko}
-                        width={400}
-                        height={160}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-xs text-gray-400">Ei kuvaa</span>
-                    )}
+  <SafeCardImage
+    src={ilmo.kuva_url}
+    alt={ilmo.otsikko}
+    width={400}
+    height={160}
+    className="h-full w-full object-cover"
+    sizes="(max-width: 768px) 100vw, 400px"
+  />
+) : (
+  <span className="text-xs text-gray-400">Ei kuvaa</span>
+)}
                   </div>
 
                   <div className="p-4">
