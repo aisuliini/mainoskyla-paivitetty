@@ -917,14 +917,34 @@ className="
   </div>
 </section>
 
-<section className="px-6 py-4 beige border-t border-persikka text-sm text-charcoal text-center">
+<section className="bg-[#F8FBF9] px-4 sm:px-6 py-10 border-t border-black/5">
+  <div className="max-w-screen-md mx-auto rounded-3xl bg-white px-6 py-7 text-center shadow-sm ring-1 ring-black/5">
+    <h3 className="text-lg sm:text-xl font-semibold text-[#1E3A41]">
+      Mainoskylä kehittyy jatkuvasti 💚
+    </h3>
+    <p className="mt-3 text-sm sm:text-base text-charcoal/70">
+      Parannamme palvelua aktiivisesti ja julkaisemme uusia ominaisuuksia vaiheittain.
+      Jos huomaat virheen tai haluat antaa palautetta, kuulemme mielellämme.
+    </p>
+    <div className="mt-5">
+      <Link
+        href="/yhteystiedot"
+        className="inline-flex items-center justify-center rounded-full bg-[#EDF5F2] px-5 py-2.5 text-sm font-semibold text-[#1E3A41] ring-1 ring-[#4F8F7A]/25 hover:bg-[#DCEEE8] transition"
+      >
+        Anna palautetta
+      </Link>
+    </div>
+  </div>
+</section>
 
-
-  ⚠️ Muistutus: Älä koskaan anna pankkitunnuksia tai siirrä rahaa ilmoittajalle. Ilmoituksiin liittyvät maksupyynnöt voivat olla huijausyrityksiä.
+<section className="bg-[#FFF8F6] px-4 sm:px-6 py-6 border-t border-[#F3D6CF]">
+  <div className="max-w-screen-md mx-auto text-center text-sm text-charcoal/80">
+    ⚠️ Älä koskaan anna pankkitunnuksia tai siirrä rahaa ilmoittajalle. Ilmoituksiin liittyvät maksupyynnöt voivat olla huijausyrityksiä.
+  </div>
 </section>
 
 
-      <footer className="bg-[#F3F5F4] text-[#1E3A41] mt-0">
+      <footer className="bg-[#EAF1EE] text-[#1E3A41] mt-0 border-t border-black/5">
   <div className="max-w-screen-xl mx-auto px-6 py-10 sm:py-12">
     <div className="flex flex-col items-center text-center">
       <nav className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm sm:text-[15px] font-medium">
@@ -972,7 +992,7 @@ className="
 
       <div className="mt-6 space-y-2 text-center">
         <p className="text-xs sm:text-sm text-charcoal/60">
-          Ilmoitukset ovat maksuttomia ja alusta on vielä kehitysvaiheessa.
+          Ilmoituksen lisääminen on ilmaista ja alusta on vielä kehitysvaiheessa.
         </p>
         <p className="text-sm text-[#1E3A41]/80">
           &copy; {new Date().getFullYear()} Mainoskylä
