@@ -91,9 +91,6 @@ const paikkaEhdotukset = useMemo(() => {
   const [uusimmat, setUusimmat] = useState<SuosittuIlmoitus[]>([])
   const uusimmatRef = useRef<HTMLDivElement | null>(null)
 
-  
-
-
 
 
 
@@ -119,28 +116,27 @@ const scrollNytSuosittua = (dir: 'left' | 'right') => {
     })
   }
 
-  useEffect(() => {
-    const nyt = new Date().toISOString()
+    useEffect(() => {
     const haePremiumit = async () => {
       const { data, error } = await supabase
         .from('ilmoitukset')
         .select('*')
+        .eq('maksuluokka', 'premium')
         .eq('premium', true)
         .eq('premium_tyyppi', 'etusivu')
-        .lte('premium_alku', nyt)
-        .gte('premium_loppu', nyt)
-        .order('premium_alku', { ascending: true })
-        .order('id', { ascending: true })
-        .limit(6) //Premium paikkoja yhteensä
+        .order('luotu', { ascending: false })
+        .limit(60) // Premium-paikkoja yhteensä
 
    
         
 
-      if (!error && data) {
+            if (!error && data) {
         const taydelliset = [...data]
-        while (taydelliset.length < 6) { // Premium paikkoja yhteensä 
+
+        const tyhjiaPaikkoja = Math.max(0, 6 - taydelliset.length)
+        for (let i = 0; i < tyhjiaPaikkoja; i++) {
           taydelliset.push({
-            id: `tyhja-${taydelliset.length}`,
+            id: `tyhja-${i}`,
             otsikko: 'Varaa etusivupaikka',
             kuvaus: 'Nosta palvelusi näkyvästi esiin Mainoskylän etusivulla.',
             sijainti: '',
@@ -148,6 +144,7 @@ const scrollNytSuosittua = (dir: 'left' | 'right') => {
             nayttoja: 0
           })
         }
+
         setPremiumIlmoitukset(taydelliset)
       }
     }
@@ -785,7 +782,7 @@ className="
 </h2>
 
 <p className="text-xs text-charcoal/60 mb-3">
-  Ilmoituksia, jotka ovat tällä hetkellä etusivulla näkyvyysajalla.
+  Premium-ilmoitukset näkyvät etusivulla sekä lisäksi hauissa ja kategorioissa.
 </p>
 
 
@@ -835,9 +832,7 @@ className="
           ) : (
   <div className="relative w-full aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#EEF6F2] via-[#F7FBF8] to-[#FFF6F2]">
     <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-[#4F6763]/70">
-        Etusivupaikka vapaana
-      </div>
+      
       <div className="mt-2 text-sm sm:text-base font-semibold text-[#1E3A41]">
         Varaa näkyvä paikka tähän
       </div>

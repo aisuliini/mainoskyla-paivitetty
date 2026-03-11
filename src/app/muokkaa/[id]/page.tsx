@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
-import { addDays } from 'date-fns'
+
 import { fi } from 'date-fns/locale'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import imageCompression from 'browser-image-compression'
@@ -71,9 +71,8 @@ export default function MuokkaaIlmoitusta() {
 
   // Näkyvyys
   const [tyyppi, setTyyppi] = useState<'perus' | 'premium'>('perus')
-  const [alku, setAlku] = useState<Date | null>(null) // premium-alku
-  const [kesto, setKesto] = useState('30')
-  const [varatutPaivat, setVaratutPaivat] = useState<Date[]>([])
+  const [originalTyyppi, setOriginalTyyppi] = useState<'perus' | 'premium'>('perus')
+  
 
   // Tapahtumat
   const [tapahtumaAlku, setTapahtumaAlku] = useState<Date | null>(null)
@@ -86,25 +85,6 @@ export default function MuokkaaIlmoitusta() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
 
-  function toLocalDateString(date: Date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-function fromDateOnly(value: string) {
-  const [year, month, day] = value.split('-').map(Number)
-  return new Date(year, month - 1, day, 12, 0, 0)
-}
-
-  const loppuDate = useMemo(() => {
-  if (tyyppi !== 'premium') return null
-  const start = alku ?? new Date()
-  const days = parseInt(kesto || '30', 10) || 30
-  const inclusiveDays = Math.max(0, days - 1)
-  return new Date(start.getTime() + inclusiveDays * 86400000)
-}, [tyyppi, alku, kesto])
 
 
   // ---------- helpers ----------
@@ -229,23 +209,14 @@ function fromDateOnly(value: string) {
       setKuvaus(row.kuvaus ?? '')
       setSijainti(row.sijainti ?? '')
       setKategoria(row.kategoria ?? '')
-      setTyyppi(row.maksuluokka === 'premium' ? 'premium' : 'perus')
+            const rowTyyppi = row.maksuluokka === 'premium' ? 'premium' : 'perus'
+      setTyyppi(rowTyyppi)
+      setOriginalTyyppi(rowTyyppi)
 
       setPuhelin(row.puhelin ?? '')
       setSahkoposti(row.sahkoposti ?? '')
       setLinkki(row.linkki ?? '')
 
-      // Premium päivät
-      if (row.premium_alku) setAlku(fromDateOnly(row.premium_alku))
-      // Kesto: premiumille lasketaan alkupäivästä loppuun, muuten pidetään oletus 30 (ei haittaa vaikka perus ei käytä sitä)
-    if (row.maksuluokka === 'premium' && row.premium_alku && row.premium_loppu) {
-    const a = new Date(row.premium_alku)
-    const l = new Date(row.premium_loppu)
-    const kestoPaivia = Math.round((l.getTime() - a.getTime()) / 86400000) + 1
-setKesto(String(Math.max(1, kestoPaivia)))
-} else {
-  setKesto('30')
-}
 
       // Tapahtumat
       if (row.tapahtuma_alku) setTapahtumaAlku(new Date(row.tapahtuma_alku))
@@ -261,12 +232,18 @@ setKesto(String(Math.max(1, kestoPaivia)))
     void hae()
   }, [ilmoitusId, router])
 
-  // Jos tapahtumaAlku valittu eikä loppua -> aseta sama (kuten LisääIlmoitus)
-  useEffect(() => {
-    if (tapahtumaAlku && !tapahtumaLoppu) {
-      setTapahtumaLoppu(tapahtumaAlku)
+    useEffect(() => {
+    if (kategoria !== 'Tapahtumat') {
+      setTapahtumaAlku(null)
+      setTapahtumaLoppu(null)
     }
-  }, [tapahtumaAlku, tapahtumaLoppu])
+  }, [kategoria])
+
+  useEffect(() => {
+  if (tapahtumaAlku && !tapahtumaLoppu) {
+    setTapahtumaLoppu(tapahtumaAlku)
+  }
+}, [tapahtumaAlku, tapahtumaLoppu])
 
   // ---------- sijaintiehdotukset ----------
   useEffect(() => {
@@ -290,45 +267,8 @@ setKesto(String(Math.max(1, kestoPaivia)))
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [])
 
-  // ---------- premium kalenteri (6 paikkaa / päivä) ----------
-  useEffect(() => {
-    const haePremiumKalenteri = async () => {
-      const nytISO = new Date().toISOString()
-      const { data } = await supabase
-        .from('ilmoitukset')
-        .select('id, premium_alku, premium_loppu')
-        .eq('premium', true)
-        .eq('premium_tyyppi', 'etusivu')
-        .gte('premium_loppu', nytISO)
-        .not('premium_alku', 'is', null)
-        .not('premium_loppu', 'is', null)
-
-      const paivaLaskuri: Record<string, number> = {}
-      ;(data ?? []).forEach((r) => {
-        const row = r as { id: string; premium_alku: string; premium_loppu: string }
-        // jos muokkaat samaa ilmoitusta, ei lasketa mukaan
-        if (row.id === ilmoitusId) return
-
-        const a = new Date(row.premium_alku)
-        const l = new Date(row.premium_loppu)
-        for (let d = a; d <= l; d = addDays(d, 1)) {
-  const key = toLocalDateString(d)
-  paivaLaskuri[key] = (paivaLaskuri[key] || 0) + 1
-}
-      })
-
-      const punaiset = Object.entries(paivaLaskuri)
-        .filter(([, count]) => count >= 6) // ✅ sama logiikka kuin LisääIlmoitus (6/päivä)
-        .map(([paiva]) => new Date(paiva))
-
-      setVaratutPaivat(punaiset)
-    }
-
-    if (tyyppi === 'premium') void haePremiumKalenteri()
-  }, [tyyppi, ilmoitusId])
-
   // ---------- image helpers ----------
-  const removeImageAt = (idx: number) => {
+    const removeImageAt = (idx: number) => {
     setImages((prev) => {
       const item = prev[idx]
       if (item?.kind === 'new') {
@@ -336,9 +276,16 @@ setKesto(String(Math.max(1, kestoPaivia)))
       }
       return prev.filter((_, i) => i !== idx)
     })
+
+    setReplaceIndex((current) => {
+      if (current === null) return null
+      if (current === idx) return null
+      if (current > idx) return current - 1
+      return current
+    })
   }
 
-  const uploadOne = async (file: File) => {
+    const uploadOne = async (file: File): Promise<string> => {
     const tiedostonimi = `${Date.now()}_${Math.random().toString(16).slice(2)}_${file.name}`
     const { error: uploadError } = await supabase.storage.from('kuvat').upload(tiedostonimi, file)
     if (uploadError) throw new Error('Kuvan lataus epäonnistui: ' + uploadError.message)
@@ -371,24 +318,24 @@ setKesto(String(Math.max(1, kestoPaivia)))
     setIsSubmitting(true)
 
     try {
-      // 1) Premium: tarkista kalenteri (6/päivä), jos premium & alku & loppu
-     if (tyyppi === 'premium' && loppuDate) {
-  const premiumAlku = alku ?? new Date()
 
-  const { data, error } = await supabase.rpc('check_premium_capacity', {
-    p_start: toLocalDateString(premiumAlku),
-    p_end: toLocalDateString(loppuDate),
-    p_exclude_id: ilmoitusId,
-  })
+                  if (tyyppi === 'premium' && originalTyyppi !== 'premium') {
+        const { count, error: countError } = await supabase
+          .from('ilmoitukset')
+          .select('*', { count: 'exact', head: true })
+          .eq('maksuluokka', 'premium')
+          .eq('premium', true)
+          .eq('premium_tyyppi', 'etusivu')
 
-  if (error) {
-    throw new Error(error.message)
-  }
+        if (countError) {
+          throw new Error('Premium-paikkojen tarkistus epäonnistui: ' + countError.message)
+        }
 
-  if (!data) {
-    throw new Error('Valituilla päivillä ei ole enää vapaata premium-näkyvyyspaikkaa.')
-  }
-}
+        if ((count ?? 0) >= 60) {
+          throw new Error('Etusivun premium-paikat ovat tällä hetkellä täynnä.')
+        }
+      }
+
 
       // 2) Kuvat: uploadataan vain "new", pidetään existing urlit
       const finalUrls: string[] = []
@@ -402,15 +349,12 @@ setKesto(String(Math.max(1, kestoPaivia)))
       }
 
       // 3) Päivät
-      const nykyhetki = new Date()
+      
 
       const tapahtumaLoppuFinal =
         kategoria === 'Tapahtumat' ? (tapahtumaLoppu ?? tapahtumaAlku) : null
 
-      const voimassaLoppuFinal =
-  kategoria === 'Tapahtumat'
-    ? (tapahtumaLoppuFinal ?? tapahtumaAlku)
-    : null
+      
 
 
       // 4) Update
@@ -424,15 +368,10 @@ setKesto(String(Math.max(1, kestoPaivia)))
         kuva_url: finalUrls[0] || null,
         kuvat: finalUrls.length > 0 ? JSON.stringify(finalUrls) : null,
 
-        premium: tyyppi === 'premium',
-premium_alku: tyyppi === 'premium' ? toLocalDateString(alku ?? new Date()) : null,
-premium_loppu: tyyppi === 'premium'
-  ? toLocalDateString(
-      loppuDate ??
-        new Date((alku ?? new Date()).getTime() + 29 * 86400000)
-    )
-  : null,
-premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
+               premium: tyyppi === 'premium',
+        premium_alku: null,
+        premium_loppu: null,
+        premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
 
         tapahtuma_alku: kategoria === 'Tapahtumat' ? tapahtumaAlku?.toISOString() : null,
         tapahtuma_loppu: kategoria === 'Tapahtumat' ? tapahtumaLoppuFinal?.toISOString() : null,
@@ -787,15 +726,15 @@ premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
     <option value="premium">Etusivu-ilmoitus (ilmainen)</option>
   </select>
 
-  {tyyppi === 'perus' && (
+    {tyyppi === 'perus' && (
     <p className="text-sm text-gray-600">
-      Perusilmoitus näkyy toistaiseksi, kunnes poistat sen.
+      Perusilmoitus näkyy kategorioissa ja hauissa, kunnes poistat sen.
     </p>
   )}
 
   {tyyppi === 'premium' && (
     <p className="text-sm text-gray-600">
-      Etusivu-ilmoitus näkyy etusivulla. Itse ilmoitus jää normaalisti sivustolle näkyviin, kunnes poistat sen.
+      Etusivu-ilmoitus näkyy etusivulla sekä lisäksi kategorioissa ja hauissa, kunnes poistat sen.
     </p>
   )}
 </div>

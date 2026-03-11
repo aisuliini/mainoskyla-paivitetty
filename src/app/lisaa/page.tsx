@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import { fi } from 'date-fns/locale'
 import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
-import { addDays } from 'date-fns'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import imageCompression from 'browser-image-compression'
 import Image from 'next/image'
@@ -21,37 +20,32 @@ export default function LisaaIlmoitus() {
   const [otsikko, setOtsikko] = useState('')
   const [kuvaus, setKuvaus] = useState('')
   const [sijainti, setSijainti] = useState('')
-const [kuvat, setKuvat] = useState<File[]>([])  // AJA KAIKKI VALIDOINNIT + PALAUTA VIRHEET (ei jää "stale errors" -ongelmaa)
+  const [kuvat, setKuvat] = useState<File[]>([])
   const [esikatselut, setEsikatselut] = useState<string[]>([])
   const [replaceIndex, setReplaceIndex] = useState<number | null>(null)
 
-  const [tyyppi, setTyyppi] = useState('perus')
-const [alku, setAlku] = useState<Date | null>(null)
-  const [kesto, setKesto] = useState('30')
+  const [tyyppi, setTyyppi] = useState<'perus' | 'premium'>('perus')
+
+
+  
   const [kategoria, setKategoria] = useState('')
-  const [varatutPaivat, setVaratutPaivat] = useState<Date[]>([])
+  
   const [sijaintiehdotukset, setSijaintiehdotukset] = useState<string[]>([])
- const [tapahtumaAlku, setTapahtumaAlku] = useState<Date | null>(null)
-const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | null>(null)
-const [user, setUser] = useState<{ id: string } | null>(null)
-const [isSubmitting, setIsSubmitting] = useState(false)
-const [errors, setErrors] = useState<Record<string, string>>({})
-const [submitError, setSubmitError] = useState<string | null>(null)
-const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
+  const [tapahtumaAlku, setTapahtumaAlku] = useState<Date | null>(null)
+  const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | null>(null)
+  const [user, setUser] = useState<{ id: string } | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
 
-const [puhelin, setPuhelin] = useState('')
-const [sahkoposti, setSahkoposti] = useState('')
-const [linkki, setLinkki] = useState('') // verkkosivu / some
-const [cta, setCta] = useState<'puhelin' | 'email' | 'linkki' | 'ei'>('puhelin')
+  const [puhelin, setPuhelin] = useState('')
+  const [sahkoposti, setSahkoposti] = useState('')
+  const [linkki, setLinkki] = useState('') // verkkosivu / some
+  const [cta, setCta] = useState<'puhelin' | 'email' | 'linkki' | 'ei'>('puhelin')
 
-const [publishedId, setPublishedId] = useState<string | null>(null)
+  const [publishedId, setPublishedId] = useState<string | null>(null)
 
-function toLocalDateString(date: Date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
 
 const validateAll = () => {
   const e: Record<string, string> = {}
@@ -112,11 +106,11 @@ const scrollToFirstError = (errs: Record<string, string>) => {
 }
 
 
-// Tämä tekee julkaisun (vain kun kutsutaan nappia painamalla)
 const submitNow = async () => {
   if (isSubmitting) return
 
-    setSubmitError(null)
+  setPublishedId(null)
+  setSubmitError(null)
   setSubmitSuccess(null)
 
   const errs = validateAll()
@@ -127,11 +121,6 @@ const submitNow = async () => {
   }
 
   setErrors({})
-
-
-  setPublishedId(null)
-  setSubmitError(null)
-  setSubmitSuccess(null)
 
   setIsSubmitting(true)
   try {
@@ -152,16 +141,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   await submitNow()
 }
 
-
-const ilmoituksenAlku = tyyppi === 'premium' ? (alku ?? new Date()) : new Date()
-
-const loppuDate =
-  tyyppi === 'premium' && ilmoituksenAlku
-    ? new Date(
-        ilmoituksenAlku.getTime() +
-          Math.max(0, (parseInt(kesto || '0') || 0) - 1) * 86400000
-      )
-    : null
 
 
   
@@ -196,8 +175,8 @@ useEffect(() => {
     return
   }
 
-  const ehdotukset = paikkakunnat
-    .filter((nimi: string) =>
+    const ehdotukset = (paikkakunnat as string[])
+    .filter((nimi) =>
       nimi.toLowerCase().startsWith(sijainti.toLowerCase())
     )
     .slice(0, 10)
@@ -216,50 +195,9 @@ useEffect(() => {
 }
 
   }
-  haeKayttaja()
+    void haeKayttaja()
 }, [])
 
-
-  useEffect(() => {
-  const haePremiumKalenteri = async () => {
-    const nytISO = toLocalDateString(new Date())
-    const { data } = await supabase
-  .from('ilmoitukset')
-  .select('*')
-  .eq('premium', true)
-  .eq('premium_tyyppi', 'etusivu')
-  .gte('premium_loppu', nytISO)
-
-
-    const paivaLaskuri: { [päivä: string]: number } = {}
-
-
-    type PremiumIlmoitus = {
-  premium_alku: string
-  premium_loppu: string
-}
-
-data?.forEach((ilmo: PremiumIlmoitus) => {
-  const alku = new Date(ilmo.premium_alku)
-  const loppu = new Date(ilmo.premium_loppu)
-  for (let d = alku; d <= loppu; d = addDays(d, 1)) {
-  const key = toLocalDateString(d)
-  paivaLaskuri[key] = (paivaLaskuri[key] || 0) + 1
-}
-})
-
-
-    const punaiset = Object.entries(paivaLaskuri)
-      .filter(([, count]) => count >= 6) // Näytä punaisena vain jos 52+ varattu
-      .map(([päivä]) => new Date(päivä))
-
-    setVaratutPaivat(punaiset)
-  }
-
-  if (tyyppi === 'premium') {
-    haePremiumKalenteri()
-  }
-}, [tyyppi])
 
 useEffect(() => {
   if (tapahtumaAlku && !tapahtumaLoppu) {
@@ -267,6 +205,12 @@ useEffect(() => {
   }
 }, [tapahtumaAlku, tapahtumaLoppu])
 
+useEffect(() => {
+  if (kategoria !== 'Tapahtumat') {
+    setTapahtumaAlku(null)
+    setTapahtumaLoppu(null)
+  }
+}, [kategoria])
 
 
 const isSafeUrl = (raw: string) => {
@@ -286,7 +230,7 @@ const isSafeUrl = (raw: string) => {
 }
 
 
-const handleUpload = async () => {
+const handleUpload = async (): Promise<void> => {
   console.log('handleUpload käynnissä')
   if (!user) {
   throw new Error('Kirjautuminen vaaditaan.')
@@ -294,6 +238,23 @@ const handleUpload = async () => {
 
   const nykyhetki = new Date()
 const kuvaUrls: string[] = []
+
+  if (tyyppi === 'premium') {
+    const { count, error: countError } = await supabase
+      .from('ilmoitukset')
+      .select('*', { count: 'exact', head: true })
+      .eq('maksuluokka', 'premium')
+      .eq('premium', true)
+      .eq('premium_tyyppi', 'etusivu')
+
+    if (countError) {
+      throw new Error('Premium-paikkojen tarkistus epäonnistui: ' + countError.message)
+    }
+
+    if ((count ?? 0) >= 60) {
+      throw new Error('Etusivun premium-paikat ovat tällä hetkellä täynnä.')
+    }
+  }
 
 if (kuvat.length > 0) {
   // ladataan max 4
@@ -315,23 +276,6 @@ if (kuvat.length > 0) {
   }
 }
 
-
-
-  if (tyyppi === 'premium' && ilmoituksenAlku && loppuDate) {
-  const { data, error } = await supabase.rpc('check_premium_capacity', {
-    p_start: toLocalDateString(ilmoituksenAlku),
-    p_end: toLocalDateString(loppuDate),
-    p_exclude_id: null,
-  })
-
-  if (error) {
-    throw new Error(error.message)
-  }
-
-  if (!data) {
-    throw new Error('Valituilla päivillä ei ole enää vapaata premium-näkyvyyspaikkaa.')
-  }
-}
 
   const tapahtumaLoppuDate =
   kategoria === 'Tapahtumat'
@@ -357,8 +301,8 @@ if (kuvat.length > 0) {
   maksuluokka: tyyppi,
   kategoria,
   premium: tyyppi === 'premium',
-  premium_alku: tyyppi === 'premium' ? (alku ? toLocalDateString(alku) : null) : null,
-  premium_loppu: tyyppi === 'premium' ? (loppuDate ? toLocalDateString(loppuDate) : null) : null,
+  premium_alku: null,
+  premium_loppu: null,
   voimassa_alku: kategoria === 'Tapahtumat'
     ? nykyhetki.toISOString()
     : null,
@@ -367,7 +311,7 @@ if (kuvat.length > 0) {
   nayttoja: 0,
   luotu: nykyhetki.toISOString(),
   tapahtuma_alku: kategoria === 'Tapahtumat' ? tapahtumaAlku?.toISOString() : null,
-  tapahtuma_loppu: kategoria === 'Tapahtumat' ? tapahtumaLoppu?.toISOString() : null,
+  tapahtuma_loppu: tapahtumaLoppuDate ? tapahtumaLoppuDate.toISOString() : null,
   puhelin: puhelin || null,
   sahkoposti: sahkoposti || null,
   linkki: linkki || null,
@@ -687,10 +631,10 @@ return
 
           <KuvanLataaja
   onImageCropped={async (rajattuBlob) => {
-    if (kuvat.length >= 4) {
-      alert('Voit lisätä enintään 4 kuvaa.')
-      return
-    }
+    if (kuvat.length >= 4 && replaceIndex === null) {
+  alert('Voit lisätä enintään 4 kuvaa.')
+  return
+}
 
     const tiedosto = new File([rajattuBlob], `kuva_${Date.now()}.jpg`, { type: 'image/jpeg' })
 
@@ -746,6 +690,13 @@ if (replaceIndex !== null) {
 
     setEsikatselut((prev) => prev.filter((_, i) => i !== idx))
     setKuvat((prev) => prev.filter((_, i) => i !== idx))
+
+    setReplaceIndex((current) => {
+      if (current === null) return null
+      if (current === idx) return null
+      if (current > idx) return current - 1
+      return current
+    })
   }}
   className="absolute top-2 right-2 z-20 rounded bg-white/95 px-2 py-1 text-xs shadow"
 >
@@ -776,15 +727,15 @@ if (replaceIndex !== null) {
     <option value="premium">Etusivu-ilmoitus (ilmainen)</option>
   </select>
 
-  {tyyppi === 'perus' && (
+    {tyyppi === 'perus' && (
     <p className="text-sm text-gray-600">
-      Perusilmoitus on ilmainen ja näkyy toistaiseksi (kunnes poistat sen).
+      Perusilmoitus näkyy kategorioissa ja hauissa, kunnes poistat sen.
     </p>
   )}
 
   {tyyppi === 'premium' && (
     <p className="text-sm text-gray-600">
-      Etusivu-ilmoitus näkyy etusivulla. Itse ilmoitus jää normaalisti sivustolle näkyviin, kunnes poistat sen.
+      Etusivu-ilmoitus näkyy etusivulla sekä lisäksi kategorioissa ja hauissa, kunnes poistat sen.
     </p>
   )}
 </div>
