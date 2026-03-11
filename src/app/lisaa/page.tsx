@@ -69,7 +69,6 @@ const validateAll = () => {
   if (!sij) e.sijainti = 'Sijainti on pakollinen.'
   if (!kategoria) e.kategoria = 'Valitse kategoria.'
 
-  if (tyyppi === 'premium' && !alku) e.alku = 'Valitse premium-alkupäivä.'
 
   if (kategoria === 'Tapahtumat') {
     if (!tapahtumaAlku) e.tapahtumaAlku = 'Valitse tapahtuman alkupäivä.'
@@ -154,7 +153,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 }
 
 
-const ilmoituksenAlku = tyyppi === 'premium' ? alku : new Date()
+const ilmoituksenAlku = tyyppi === 'premium' ? (alku ?? new Date()) : new Date()
 
 const loppuDate =
   tyyppi === 'premium' && ilmoituksenAlku
@@ -318,9 +317,9 @@ if (kuvat.length > 0) {
 
 
 
-  if (tyyppi === 'premium' && alku && loppuDate) {
+  if (tyyppi === 'premium' && ilmoituksenAlku && loppuDate) {
   const { data, error } = await supabase.rpc('check_premium_capacity', {
-    p_start: toLocalDateString(alku),
+    p_start: toLocalDateString(ilmoituksenAlku),
     p_end: toLocalDateString(loppuDate),
     p_exclude_id: null,
   })
@@ -353,16 +352,16 @@ if (kuvat.length > 0) {
   kuvaus,
   sijainti,
   kuva_url: kuvaUrls[0] || null,
-kuvat: kuvaUrls.length > 0 ? JSON.stringify(kuvaUrls) : null,
+  kuvat: kuvaUrls.length > 0 ? JSON.stringify(kuvaUrls) : null,
 
   maksuluokka: tyyppi,
   kategoria,
-  premium: tyyppi === 'premium' && !!alku,
-  premium_alku: tyyppi === 'premium' && alku ? toLocalDateString(alku) : null,
-  premium_loppu: tyyppi === 'premium' && loppuDate ? toLocalDateString(loppuDate) : null,
+  premium: tyyppi === 'premium',
+  premium_alku: tyyppi === 'premium' ? (alku ? toLocalDateString(alku) : null) : null,
+  premium_loppu: tyyppi === 'premium' ? (loppuDate ? toLocalDateString(loppuDate) : null) : null,
   voimassa_alku: kategoria === 'Tapahtumat'
-  ? nykyhetki.toISOString()
-  : null,
+    ? nykyhetki.toISOString()
+    : null,
   voimassa_loppu: voimassaLoppuFinal ? voimassaLoppuFinal.toISOString() : null,
   premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
   nayttoja: 0,
@@ -372,7 +371,6 @@ kuvat: kuvaUrls.length > 0 ? JSON.stringify(kuvaUrls) : null,
   puhelin: puhelin || null,
   sahkoposti: sahkoposti || null,
   linkki: linkki || null,
-
 }
 
 
@@ -768,57 +766,27 @@ if (replaceIndex !== null) {
 {/* STEP 4: Näkyvyys */}
 <div className="space-y-4">
   <label className="block font-medium">Valitse ilmoitustyyppi:</label>
-  <select
-  value={tyyppi}
-  onChange={(e) => setTyyppi(e.target.value === 'premium' ? 'premium' : 'perus')}
-  className="w-full border px-4 py-2 rounded"
->
-  <option value="perus">Perusilmoitus (ilmainen)</option>
-  <option value="premium">Etusivu-ilmoitus (ilmainen)</option>
-</select>
 
+  <select
+    value={tyyppi}
+    onChange={(e) => setTyyppi(e.target.value === 'premium' ? 'premium' : 'perus')}
+    className="w-full border px-4 py-2 rounded"
+  >
+    <option value="perus">Perusilmoitus (ilmainen)</option>
+    <option value="premium">Etusivu-ilmoitus (ilmainen)</option>
+  </select>
 
   {tyyppi === 'perus' && (
-  <p className="text-sm text-gray-600">
-    Perusilmoitus on ilmainen ja näkyy toistaiseksi (kunnes poistat sen).
-  </p>
-)}
+    <p className="text-sm text-gray-600">
+      Perusilmoitus on ilmainen ja näkyy toistaiseksi (kunnes poistat sen).
+    </p>
+  )}
 
-
-
-          {tyyppi === 'premium' && (
-            <>
-              <label className="block">Näkyvyysaika:</label>
-              <select value={kesto} onChange={(e) => setKesto(e.target.value)} className="w-full border px-4 py-2 rounded">
-                <option value="30">30 päivää</option>
-                <option value="60">60 päivää</option>
-                <option value="90">90 päivää</option>
-              </select>
-
-              <div data-error="alku" tabIndex={-1}>
-  <label className="block">Valitse premium-alkupäivä:</label>
-  <DayPicker
-    mode="single"
-    selected={alku ?? undefined}
-    onSelect={(d) => setAlku(d ?? null)}
-    modifiers={{ varattu: varatutPaivat }}
-    modifiersClassNames={{ varattu: 'bg-red-500 text-white' }}
-    locale={fi}
-  />
-</div>
-
-
-
-              {errors.alku && (
-               <p className="text-sm text-red-600 mt-1">
-              {errors.alku}
-               </p>
-             )}
-           </>
-         )}
-
-
-
+  {tyyppi === 'premium' && (
+    <p className="text-sm text-gray-600">
+      Etusivu-ilmoitus näkyy etusivulla. Itse ilmoitus jää normaalisti sivustolle näkyviin, kunnes poistat sen.
+    </p>
+  )}
 </div>
 
 {/* Desktop: Julkaise ilmoitus */}
