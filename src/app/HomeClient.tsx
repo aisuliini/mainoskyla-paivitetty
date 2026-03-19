@@ -342,7 +342,7 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
       "
     aria-label="Avaa haku"
   >
-    Hae palvelua tai tekijää...
+    Hae paikkakuntaa tai palvelua...
     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-charcoal/60">
       <Search size={20} />
     </span>
@@ -815,8 +815,8 @@ className="
           {ilmo.kuva_url ? (
             <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#F6F7F7]">
               {!ilmo.id.startsWith('tyhja-') && (
-  <span className="absolute top-2 left-2 z-10 text-[10px] bg-[#EDF5F2] text-[#1E3A41] px-2 py-1 rounded-full">
-    Etusivu
+  <span className="absolute top-2 left-2 z-10 text-[10px] bg-[#EDF5F2] text-[#1E3A41] px-2 py-1 rounded-full font-medium">
+    Suositeltu
   </span>
 )}
               <SafeCardImage
@@ -915,12 +915,11 @@ className="
 <section className="bg-[#F8FBF9] px-4 sm:px-6 py-10 border-t border-black/5">
   <div className="max-w-screen-md mx-auto rounded-3xl bg-white px-6 py-7 text-center shadow-sm ring-1 ring-black/5">
     <h3 className="text-lg sm:text-xl font-semibold text-[#1E3A41]">
-      Mainoskylä kehittyy jatkuvasti 💚
-    </h3>
-    <p className="mt-3 text-sm sm:text-base text-charcoal/70">
-      Parannamme palvelua aktiivisesti ja julkaisemme uusia ominaisuuksia vaiheittain.
-      Jos huomaat virheen tai haluat antaa palautetta, kuulemme mielellämme.
-    </p>
+  Rakennamme Mainoskylästä yhä parempaa paikallista palvelua 💚
+</h3>
+<p className="mt-3 text-sm sm:text-base text-charcoal/70">
+  Kehitämme palvelua jatkuvasti käyttäjien palautteen pohjalta. Jos haluat ehdottaa parannusta tai antaa palautetta, kuulemme mielellämme.
+</p>
     <div className="mt-5">
       <Link
         href="/yhteystiedot"
@@ -932,9 +931,15 @@ className="
   </div>
 </section>
 
-<section className="bg-[#FFF8F6] px-4 sm:px-6 py-6 border-t border-[#F3D6CF]">
-  <div className="max-w-screen-md mx-auto text-center text-sm text-charcoal/80">
-    ⚠️ Älä koskaan anna pankkitunnuksia tai siirrä rahaa ilmoittajalle. Ilmoituksiin liittyvät maksupyynnöt voivat olla huijausyrityksiä.
+<section className="bg-white px-4 sm:px-6 py-5 border-t border-black/5">
+  <div className="max-w-screen-md mx-auto text-center text-sm text-charcoal/70">
+    Turvallinen asiointi on tärkeää.{" "}
+    <Link
+      href="/turvallisuus"
+      className="font-medium text-[#1E3A41] underline underline-offset-2 hover:opacity-70 transition"
+    >
+      Lue turvallisuusohjeet
+    </Link>
   </div>
 </section>
 
@@ -986,13 +991,13 @@ className="
       </div>
 
       <div className="mt-6 space-y-2 text-center">
-        <p className="text-xs sm:text-sm text-charcoal/60">
-          Ilmoituksen lisääminen on ilmaista ja alusta on vielä kehitysvaiheessa.
-        </p>
-        <p className="text-sm text-[#1E3A41]/80">
-          &copy; {new Date().getFullYear()} Mainoskylä
-        </p>
-      </div>
+  <p className="text-xs sm:text-sm text-charcoal/60">
+    Ilmoituksen lisääminen on ilmaista – tuo palvelusi näkyville paikallisesti.
+  </p>
+  <p className="text-sm text-[#1E3A41]/80">
+    &copy; {new Date().getFullYear()} Mainoskylä
+  </p>
+</div>
     </div>
   </div>
 </footer>

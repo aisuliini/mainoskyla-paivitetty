@@ -209,9 +209,7 @@ export default function KuvanLataaja({
               </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-600">
-              Suositus: käytä mahdollisimman selkeää kuvaa. Rajaat seuraavassa näkymässä.
-            </p>
+            <p className="text-sm text-gray-600">Esikatsele kuvaa</p>
           )}
         </>
       ) : (

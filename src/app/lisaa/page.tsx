@@ -42,10 +42,18 @@ export default function LisaaIlmoitus() {
   const [puhelin, setPuhelin] = useState('')
   const [sahkoposti, setSahkoposti] = useState('')
   const [linkki, setLinkki] = useState('') // verkkosivu / some
-  const [cta, setCta] = useState<'puhelin' | 'email' | 'linkki' | 'ei'>('puhelin')
+  
 
   const [publishedId, setPublishedId] = useState<string | null>(null)
+  const [saaJakaaSomessa, setSaaJakaaSomessa] = useState(false)
 
+  
+
+  const inputClass =
+  'w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-[#1E3A41] placeholder:text-gray-400 outline-none focus:border-[#4F6763] focus:ring-0'
+
+const sectionClass =
+  'rounded-2xl border border-black/5 bg-[#FAFCFB] p-4 sm:p-5 space-y-4'
 
 const validateAll = () => {
   const e: Record<string, string> = {}
@@ -312,9 +320,10 @@ if (kuvat.length > 0) {
   luotu: nykyhetki.toISOString(),
   tapahtuma_alku: kategoria === 'Tapahtumat' ? tapahtumaAlku?.toISOString() : null,
   tapahtuma_loppu: tapahtumaLoppuDate ? tapahtumaLoppuDate.toISOString() : null,
-  puhelin: puhelin || null,
+    puhelin: puhelin || null,
   sahkoposti: sahkoposti || null,
   linkki: linkki || null,
+  saa_jakaa_somessa: saaJakaaSomessa,
 }
 
 
@@ -348,8 +357,7 @@ return
 } 
 
   return (
-  <main className="max-w-xl mx-auto px-4 sm:px-6 py-8 bg-white rounded shadow my-12">
-    {!user ? (
+<main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-12 my-8">    {!user ? (
       <div className="text-center py-16">
         <h1 className="text-2xl font-semibold mb-4">Kirjautuminen vaaditaan</h1>
         <p className="mb-6">Sinun täytyy olla kirjautunut lisätäksesi ilmoituksen.</p>
@@ -362,7 +370,11 @@ return
       </div>
     ) : (
       <>
-        <h1 className="text-2xl font-bold mb-4">Lisää uusi ilmoitus</h1>
+        <div className="mb-8">
+  <h1 className="text-2xl sm:text-3xl font-bold text-[#1E3A41]">
+    Lisää ilmoitus
+  </h1>
+</div>
         
         {submitSuccess && (
   <div className="mb-3 border border-green-200 bg-green-50 text-green-800 rounded p-3 text-sm">
@@ -389,10 +401,35 @@ return
 >
 
 
+{/*  Perustiedot */}
+<div className={sectionClass}>
+  <h2 className="text-lg font-semibold text-[#1E3A41]">Perustiedot</h2>
 
-{/* STEP 1: Perustiedot */}
-<div className="space-y-4">
+<select
+  name="kategoria"
+  value={kategoria}
+  onChange={(e) => setKategoria(e.target.value)}
+  required
+className={inputClass}>
 
+
+
+            <option value="">Valitse kategoria</option>
+            <option value="Arjen palvelut">Arjen palvelut</option>
+            <option value="Hyvinvointi ja Kauneus">Hyvinvointi ja Kauneus</option>
+            <option value="Koti ja Remontointi">Koti ja Remontointi</option>
+            <option value="Eläinpalvelut">Eläinpalvelut</option>
+            <option value="Käsityöläiset">Käsityöläiset</option>
+            <option value="Media ja Luovuus">Media ja Luovuus</option>
+            <option value="Vuokratilat ja Juhlapaikat">Vuokratilat ja Juhlapaikat</option>
+            <option value="Tapahtumat">Tapahtumat</option>    
+          </select>
+
+          {errors.kategoria && (
+  <p className="text-sm text-red-600 mt-1">
+    {errors.kategoria}
+  </p>
+)}
 
 
           <input
@@ -403,8 +440,7 @@ return
   onChange={(e) => setOtsikko(e.target.value)}
   required
   maxLength={80}
-  className="w-full border px-4 py-2 rounded break-words"
-/>
+  className={inputClass}/>
 <p className="text-sm text-gray-500 text-right">{otsikko.length}/80 merkkiä</p>
 
 {errors.otsikko && (
@@ -419,7 +455,7 @@ return
     value={kuvaus}
     onChange={(e) => setKuvaus(e.target.value)}
     required
-    className="w-full border px-4 py-2 rounded"
+    className={inputClass}
     />
 
          {errors.kuvaus && (
@@ -448,21 +484,20 @@ return
     }
   }}
   required
-  className="w-full border px-4 py-2 rounded"
-/>
+className={inputClass}/>
 
             {sijaintiehdotukset.length > 0 && (
-              <ul className="absolute z-10 bg-white border w-full mt-1 rounded shadow text-sm max-h-40 overflow-y-auto">
+              <ul className="absolute z-10 bg-white border border-black/10 w-full mt-2 rounded-2xl shadow-md text-sm max-h-48 overflow-y-auto">
                 {sijaintiehdotukset.map((ehdotus, i) => (
                   <li
-  key={i}
-  onMouseDown={(e) => e.preventDefault()}
-  onClick={() => {
-    setSijainti(ehdotus)
-    setSijaintiehdotukset([])
-  }}
-  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
->
+                    key={i}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setSijainti(ehdotus)
+                      setSijaintiehdotukset([])
+                    }}
+                    className="px-4 py-3 hover:bg-black/5 cursor-pointer"
+                  >
 
                     {ehdotus}
                   </li>
@@ -478,37 +513,12 @@ return
 )}
 
 
-<select
-  name="kategoria"
-  value={kategoria}
-  onChange={(e) => setKategoria(e.target.value)}
-  required
-  className="w-full border px-4 py-2 rounded"
->
-
-
-
-            <option value="">Valitse kategoria</option>
-            <option value="Arjen palvelut">Arjen palvelut</option>
-            <option value="Hyvinvointi ja Kauneus">Hyvinvointi ja Kauneus</option>
-            <option value="Koti ja Remontointi">Koti ja Remontointi</option>
-            <option value="Eläinpalvelut">Eläinpalvelut</option>
-            <option value="Käsityöläiset">Käsityöläiset</option>
-            <option value="Media ja Luovuus">Media ja Luovuus</option>
-            <option value="Vuokratilat ja Juhlapaikat">Vuokratilat ja Juhlapaikat</option>
-            <option value="Tapahtumat">Tapahtumat</option>    
-          </select>
-
-          {errors.kategoria && (
-  <p className="text-sm text-red-600 mt-1">
-    {errors.kategoria}
-  </p>
-)}
-
-          { kategoria === 'Tapahtumat' && (
-  <>
+{kategoria === 'Tapahtumat' && (
+  <div className="rounded-2xl bg-white border border-black/5 p-4 space-y-4">
     <div data-error="tapahtumaAlku" tabIndex={-1}>
-      <label className="block">Tapahtuman alkupäivä:</label>
+      <label className="block text-sm font-medium mb-2 text-[#1E3A41]">
+        Alkupäivä
+      </label>
       <DayPicker
         mode="single"
         selected={tapahtumaAlku ?? undefined}
@@ -518,7 +528,9 @@ return
     </div>
 
     <div data-error="tapahtumaLoppu" tabIndex={-1}>
-      <label className="block">Tapahtuman loppupäivä:</label>
+      <label className="block text-sm font-medium mb-2 text-[#1E3A41]">
+        Loppupäivä
+      </label>
       <DayPicker
         mode="single"
         selected={tapahtumaLoppu ?? undefined}
@@ -528,48 +540,29 @@ return
     </div>
 
     {errors.tapahtumaAlku && (
-      <p className="text-sm text-red-600 mt-1">
-        {errors.tapahtumaAlku}
-      </p>
+      <p className="text-sm text-red-600">{errors.tapahtumaAlku}</p>
     )}
 
     {errors.tapahtumaLoppu && (
-      <p className="text-sm text-red-600 mt-1">
-        {errors.tapahtumaLoppu}
-      </p>
+      <p className="text-sm text-red-600">{errors.tapahtumaLoppu}</p>
     )}
-  </>
+  </div>
 )}
 
 </div>
 
 
 {/* STEP 2: Yhteystiedot */}
-<div className="space-y-4" data-error="yhteys">
+<div className={sectionClass} data-error="yhteys">
+  <h2 className="text-lg font-semibold text-[#1E3A41]">Yhteystiedot</h2>
 
-  <p className="text-sm text-gray-600">
-  Lisää vähintään yksi yhteystieto.
-</p>
-
-  <label className="block font-medium">Ensisijainen yhteydenotto:</label>
-  <select
-    value={cta}
-    onChange={(e) => setCta(e.target.value as 'puhelin' | 'email' | 'linkki' | 'ei')}
-    className="w-full border px-4 py-2 rounded"
-  >
-    <option value="puhelin">Soitto / tekstiviesti</option>
-    <option value="email">Sähköposti</option>
-    <option value="linkki">Verkkosivu tai some</option>
-    <option value="ei">Ei yhteydenottoa (vain info)</option>
-  </select>
 
   <input
     type="text"
     placeholder="Puhelin (esim. 040 123 4567)"
     value={puhelin}
     onChange={(e) => setPuhelin(e.target.value)}
-    className="w-full border px-4 py-2 rounded"
-  />
+className={inputClass}  />
 
   <input
   name="sahkoposti"
@@ -577,8 +570,7 @@ return
   placeholder="Sähköposti"
   value={sahkoposti}
   onChange={(e) => setSahkoposti(e.target.value)}
-  className="w-full border px-4 py-2 rounded"
-/>
+className={inputClass}/>
 
   {errors.sahkoposti && <p className="text-sm text-red-600">{errors.sahkoposti}</p>}
 
@@ -588,28 +580,22 @@ return
   placeholder="Linkki (https://instagram.com/... tai https://yritys.fi)"
   value={linkki}
   onChange={(e) => setLinkki(e.target.value)}
-  className="w-full border px-4 py-2 rounded"
-/>
+className={inputClass}/>
 
   {errors.linkki && <p className="text-sm text-red-600">{errors.linkki}</p>}
 
   {errors.yhteys && <p className="text-sm text-red-600">{errors.yhteys}</p>}
 
-  <p className="text-xs text-gray-500">
-    Turvallisuus: linkkien täytyy alkaa https:// ja lyhytlinkit (bit.ly/tinyurl/t.co) estetään.
-  </p>
 </div>
 
 
 
 {/* STEP 3: Kuva */}
-<div className="space-y-4">
+<div className={sectionClass}>
+  <h2 className="text-lg font-semibold text-[#1E3A41]">Kuvat</h2>
 
 <label className="block font-medium">
-  Kuva (valinnainen)
-  <span className="ml-2 text-sm font-normal text-gray-500">
-    Suosittelemme kuvaa – ilman kuvaa näytetään Mainoskylä-placeholder.
-  </span>
+  Kuva (ilmoituksella on parempi menestys, kun siinä on kuva)
 </label>
 
 <p className="text-xs text-gray-500">
@@ -715,13 +701,14 @@ if (replaceIndex !== null) {
 </div>
 
 {/* STEP 4: Näkyvyys */}
-<div className="space-y-4">
+<div className={sectionClass}>
+  <h2 className="text-lg font-semibold text-[#1E3A41]">Näkyvyys</h2>
   <label className="block font-medium">Valitse ilmoitustyyppi:</label>
 
   <select
     value={tyyppi}
     onChange={(e) => setTyyppi(e.target.value === 'premium' ? 'premium' : 'perus')}
-    className="w-full border px-4 py-2 rounded"
+    className={inputClass}
   >
     <option value="perus">Perusilmoitus (ilmainen)</option>
     <option value="premium">Etusivu-ilmoitus (ilmainen)</option>
@@ -738,6 +725,20 @@ if (replaceIndex !== null) {
       Etusivu-ilmoitus näkyy etusivulla sekä lisäksi kategorioissa ja hauissa, kunnes poistat sen.
     </p>
   )}
+</div>
+
+<div className={sectionClass}>
+  <label className="flex items-start gap-3 cursor-pointer">
+    <input
+      type="checkbox"
+      checked={saaJakaaSomessa}
+      onChange={(e) => setSaaJakaaSomessa(e.target.checked)}
+      className="mt-1 h-4 w-4 rounded border-gray-300"
+    />
+    <span className="text-sm text-[#1E3A41]">
+  Ilmoituksen saa jakaa Mainoskylän somekanavissa
+</span>
+  </label>
 </div>
 
 {/* Desktop: Julkaise ilmoitus */}

@@ -404,8 +404,7 @@ export default function MuokkaaIlmoitusta() {
   if (loading) return <p className="text-center py-8">Ladataan...</p>
 
   return (
-    <main className="max-w-xl mx-auto px-4 sm:px-6 py-8 bg-white rounded shadow my-12">
-      {!user ? (
+<main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-12 my-8">      {!user ? (
         <div className="text-center py-16">
           <h1 className="text-2xl font-semibold mb-4">Kirjautuminen vaaditaan</h1>
           <p className="mb-6">Sinun täytyy olla kirjautunut muokataksesi ilmoitusta.</p>
@@ -556,21 +555,7 @@ export default function MuokkaaIlmoitusta() {
 
             {/* STEP 2: Yhteystiedot */}
             <div className="space-y-4" data-error="yhteys">
-              <p className="text-sm text-gray-600">
-  Lisää vähintään yksi yhteystieto.
-</p>
-
-              <label className="block font-medium">Ensisijainen yhteydenotto:</label>
-              <select
-                value={cta}
-                onChange={(e) => setCta(e.target.value as 'puhelin' | 'email' | 'linkki' | 'ei')}
-                className="w-full border px-4 py-2 rounded"
-              >
-                <option value="puhelin">Soitto / tekstiviesti</option>
-                <option value="email">Sähköposti</option>
-                <option value="linkki">Verkkosivu tai some</option>
-                <option value="ei">Ei yhteydenottoa (vain info)</option>
-              </select>
+              
 
               <input
                 type="text"
@@ -602,15 +587,13 @@ export default function MuokkaaIlmoitusta() {
 
               {errors.yhteys && <p className="text-sm text-red-600">{errors.yhteys}</p>}
 
-              <p className="text-xs text-gray-500">
-                Turvallisuus: linkkien täytyy alkaa https:// ja lyhytlinkit (bit.ly/tinyurl/t.co) estetään.
-              </p>
+          
             </div>
 
             {/* STEP 3: Kuva */}
             <div className="space-y-4">
               <label className="block font-medium">
-                Kuva (valinnainen)
+                Kuva
                 <span className="ml-2 text-sm font-normal text-gray-500">
                   Suosittelemme kuvaa – ilman kuvaa näytetään Mainoskylä-placeholder.
                 </span>
