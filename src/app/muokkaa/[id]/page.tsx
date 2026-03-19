@@ -63,7 +63,7 @@ export default function MuokkaaIlmoitusta() {
   const [puhelin, setPuhelin] = useState('')
   const [sahkoposti, setSahkoposti] = useState('')
   const [linkki, setLinkki] = useState('')
-  const [cta, setCta] = useState<'puhelin' | 'email' | 'linkki' | 'ei'>('puhelin') // UI-only
+  
 
   // Kuvat (max 4)
   const [images, setImages] = useState<ImageItem[]>([])
@@ -85,7 +85,11 @@ export default function MuokkaaIlmoitusta() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
 
+  const inputClass =
+  'w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-[#1E3A41] placeholder:text-gray-400 outline-none focus:border-[#4F6763] focus:ring-0'
 
+const sectionClass =
+  'rounded-2xl border border-black/5 bg-[#FAFCFB] p-4 sm:p-5 space-y-4'
 
   // ---------- helpers ----------
   const isSafeUrl = (raw: string) => {
@@ -417,7 +421,11 @@ export default function MuokkaaIlmoitusta() {
         </div>
       ) : (
         <>
-          <h1 className="text-2xl font-bold mb-4">Muokkaa ilmoitusta</h1>
+          <div className="mb-8">
+  <h1 className="text-2xl sm:text-3xl font-bold text-[#1E3A41]">
+    Muokkaa ilmoitusta
+  </h1>
+</div>
 
           {submitSuccess && (
             <div className="mb-3 border border-green-200 bg-green-50 text-green-800 rounded p-3 text-sm">
@@ -442,7 +450,8 @@ export default function MuokkaaIlmoitusta() {
             className="space-y-4"
           >
             {/* STEP 1: Perustiedot */}
-            <div className="space-y-4">
+<div className={sectionClass}>
+  <h2 className="text-lg font-semibold text-[#1E3A41]">Perustiedot</h2>
               <input
                 name="otsikko"
                 type="text"
@@ -450,8 +459,7 @@ export default function MuokkaaIlmoitusta() {
                 value={otsikko}
                 onChange={(e) => setOtsikko(e.target.value)}
                 maxLength={80}
-                className="w-full border px-4 py-2 rounded break-words"
-              />
+className={inputClass}              />
               <p className="text-sm text-gray-500 text-right">{otsikko.length}/80 merkkiä</p>
               {errors.otsikko && <p className="text-sm text-red-600 mt-1">{errors.otsikko}</p>}
 
@@ -460,8 +468,7 @@ export default function MuokkaaIlmoitusta() {
                 placeholder="Kuvaus"
                 value={kuvaus}
                 onChange={(e) => setKuvaus(e.target.value)}
-                className="w-full border px-4 py-2 rounded"
-              />
+className={`${inputClass} min-h-[140px] resize-y`}              />
               {errors.kuvaus && <p className="text-sm text-red-600 mt-1">{errors.kuvaus}</p>}
               <p className="text-sm text-gray-500 text-right">{kuvaus.length} merkkiä</p>
 
@@ -483,8 +490,7 @@ export default function MuokkaaIlmoitusta() {
                       setSijaintiehdotukset([])
                     }
                   }}
-                  className="w-full border px-4 py-2 rounded"
-                />
+className={`${inputClass} min-h-[140px] resize-y`}                />
 
                 {sijaintiehdotukset.length > 0 && (
                   <ul className="absolute z-10 bg-white border w-full mt-1 rounded shadow text-sm max-h-40 overflow-y-auto">
@@ -511,8 +517,7 @@ export default function MuokkaaIlmoitusta() {
                 name="kategoria"
                 value={kategoria}
                 onChange={(e) => setKategoria(e.target.value)}
-                className="w-full border px-4 py-2 rounded"
-              >
+className={`${inputClass} min-h-[140px] resize-y`}              >
                 <option value="">Valitse kategoria</option>
                 <option value="Arjen palvelut">Arjen palvelut</option>
                 <option value="Hyvinvointi ja Kauneus">Hyvinvointi ja Kauneus</option>
@@ -562,8 +567,7 @@ export default function MuokkaaIlmoitusta() {
                 placeholder="Puhelin (esim. 040 123 4567)"
                 value={puhelin}
                 onChange={(e) => setPuhelin(e.target.value)}
-                className="w-full border px-4 py-2 rounded"
-              />
+className={`${inputClass} min-h-[140px] resize-y`}              />
 
               <input
                 name="sahkoposti"
@@ -571,8 +575,7 @@ export default function MuokkaaIlmoitusta() {
                 placeholder="Sähköposti"
                 value={sahkoposti}
                 onChange={(e) => setSahkoposti(e.target.value)}
-                className="w-full border px-4 py-2 rounded"
-              />
+className={`${inputClass} min-h-[140px] resize-y`}              />
               {errors.sahkoposti && <p className="text-sm text-red-600">{errors.sahkoposti}</p>}
 
               <input
@@ -581,8 +584,7 @@ export default function MuokkaaIlmoitusta() {
                 placeholder="Linkki (https://instagram.com/... tai https://yritys.fi)"
                 value={linkki}
                 onChange={(e) => setLinkki(e.target.value)}
-                className="w-full border px-4 py-2 rounded"
-              />
+className={`${inputClass} min-h-[140px] resize-y`}              />
               {errors.linkki && <p className="text-sm text-red-600">{errors.linkki}</p>}
 
               {errors.yhteys && <p className="text-sm text-red-600">{errors.yhteys}</p>}
@@ -703,8 +705,7 @@ export default function MuokkaaIlmoitusta() {
   <select
     value={tyyppi}
     onChange={(e) => setTyyppi(e.target.value === 'premium' ? 'premium' : 'perus')}
-    className="w-full border px-4 py-2 rounded"
-  >
+className={`${inputClass} min-h-[140px] resize-y`}  >
     <option value="perus">Perusilmoitus (ilmainen)</option>
     <option value="premium">Etusivu-ilmoitus (ilmainen)</option>
   </select>
@@ -721,6 +722,8 @@ export default function MuokkaaIlmoitusta() {
     </p>
   )}
 </div>
+
+
 
             {/* Nappi */}
             <div className="flex justify-end pt-6 border-t">
