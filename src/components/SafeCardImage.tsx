@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Image from 'next/image'
 
 type Props = {
@@ -11,6 +11,7 @@ type Props = {
   height?: number
   className?: string
   sizes?: string
+  priority?: boolean
 }
 
 export default function SafeCardImage({
@@ -21,36 +22,45 @@ export default function SafeCardImage({
   height,
   className = '',
   sizes,
+  priority = false,
 }: Props) {
-  const finalSrc = src && src.trim() !== '' ? src : '/placeholder.jpg'
-  const [failed, setFailed] = useState(false)
+  const safeSrc = useMemo(() => {
+    const value = src?.trim()
+    return value && value.length > 0 ? value : '/placeholder.jpg'
+  }, [src])
+
+  const [imgSrc, setImgSrc] = useState(safeSrc)
+
+  const handleError = () => {
+    if (imgSrc !== '/placeholder.jpg') {
+      setImgSrc('/placeholder.jpg')
+    }
+  }
 
   if (fill) {
     return (
       <Image
-        key={`${finalSrc}-${failed ? 'raw' : 'optimized'}`}
-        src={finalSrc}
+        src={imgSrc}
         alt={alt}
         fill
         className={className}
-        sizes={sizes}
-        unoptimized={failed}
-        onError={() => setFailed(true)}
+        sizes={sizes || '100vw'}
+        priority={priority}
+        onError={handleError}
       />
     )
   }
 
   return (
     <Image
-      key={`${finalSrc}-${failed ? 'raw' : 'optimized'}`}
-      src={finalSrc}
+      src={imgSrc}
       alt={alt}
       width={width || 400}
       height={height || 300}
       className={className}
       sizes={sizes}
-      unoptimized={failed}
-      onError={() => setFailed(true)}
+      priority={priority}
+      onError={handleError}
     />
   )
 }

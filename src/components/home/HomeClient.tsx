@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import SafeCardImage from '@/components/SafeCardImage'
 import Image from 'next/image'
 import Link from 'next/link'
 import Katselukerrat from '@/components/Katselukerrat';
-import { supabase } from '@/lib/supabaseClient'
 import { FaFacebookF, FaInstagram, } from 'react-icons/fa'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import CategoryCarousel from '@/components/CategoryCarousel'
@@ -47,6 +46,12 @@ type SuosittuIlmoitus = {
   kategoria?: string | null
 }
 
+type HomeProps = {
+  initialPremiumIlmoitukset: PremiumIlmoitus[]
+  initialNytSuosittua: SuosittuIlmoitus[]
+  initialUusimmat: SuosittuIlmoitus[]
+}
+
 const ESIMERKKIHAKUJA = [
   'kotiapu',
   'siivous',
@@ -59,11 +64,15 @@ const ESIMERKKIHAKUJA = [
 ] as const
 
 
-export default function Home() {
+export default function HomeClient({
+  initialPremiumIlmoitukset,
+  initialNytSuosittua,
+  initialUusimmat,
+}: HomeProps) {
   const router = useRouter()
   const [hakusana, setHakusana] = useState('')
-  const [premiumIlmoitukset, setPremiumIlmoitukset] = useState<PremiumIlmoitus[]>([])
-  const [showDesktopSuggest, setShowDesktopSuggest] = useState(false)
+  const [premiumIlmoitukset] = useState<PremiumIlmoitus[]>(initialPremiumIlmoitukset)
+const [showDesktopSuggest, setShowDesktopSuggest] = useState(false)
 
 
 const query = hakusana.trim().toLowerCase()
@@ -86,10 +95,10 @@ const paikkaEhdotukset = useMemo(() => {
 
 
 
-  const [nytSuosittua, setNytSuosittua] = useState<SuosittuIlmoitus[]>([])
-  const nytSuosittuaRef = useRef<HTMLDivElement | null>(null)
-  const [uusimmat, setUusimmat] = useState<SuosittuIlmoitus[]>([])
-  const uusimmatRef = useRef<HTMLDivElement | null>(null)
+ const [nytSuosittua] = useState<SuosittuIlmoitus[]>(initialNytSuosittua)
+const nytSuosittuaRef = useRef<HTMLDivElement | null>(null)
+const [uusimmat] = useState<SuosittuIlmoitus[]>(initialUusimmat)
+const uusimmatRef = useRef<HTMLDivElement | null>(null)
 
 
 
@@ -115,88 +124,6 @@ const scrollNytSuosittua = (dir: 'left' | 'right') => {
       behavior: 'smooth',
     })
   }
-
-    useEffect(() => {
-    const haePremiumit = async () => {
-      const { data, error } = await supabase
-  .from('ilmoitukset')
-  .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja')
-  .eq('maksuluokka', 'premium')
-  .eq('premium', true)
-  .eq('premium_tyyppi', 'etusivu')
-  .order('luotu', { ascending: false })
-  .limit(60)
-
-   
-        
-
-            if (!error && data) {
-        const taydelliset = [...data]
-
-        const tyhjiaPaikkoja = Math.max(0, 6 - taydelliset.length)
-        for (let i = 0; i < tyhjiaPaikkoja; i++) {
-          taydelliset.push({
-            id: `tyhja-${i}`,
-            otsikko: 'Varaa etusivupaikka',
-            kuvaus: 'Nosta palvelusi näkyvästi esiin Mainoskylän etusivulla.',
-            sijainti: '',
-            kuva_url: '',
-            nayttoja: 0
-          })
-        }
-
-        setPremiumIlmoitukset(taydelliset)
-      }
-    }
-    haePremiumit()
-  }, [])
-
-  // ✅ Nyt suosittua
-useEffect(() => {
-  const haeNytSuosittua = async () => {
-    const nytISO = new Date().toISOString()
-
-    const { data, error } = await supabase
-      .from('ilmoitukset')
-      .select('*')
-      .or(
-        `and(voimassa_alku.is.null,voimassa_loppu.is.null),
-         and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),
-         and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),
-         and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`.replace(/\s+/g, '')
-      )
-      .order('nayttoja', { ascending: false })
-      .order('luotu', { ascending: false })
-      .limit(20)
-
-    if (!error && data) setNytSuosittua(data as SuosittuIlmoitus[])
-  }
-
-  haeNytSuosittua()
-}, [])
-
-// ✅ Uusimmat
-useEffect(() => {
-  const haeUusimmat = async () => {
-    const nytISO = new Date().toISOString()
-
-    const { data, error } = await supabase
-      .from('ilmoitukset')
-      .select('*')
-      .or(
-        `and(voimassa_alku.is.null,voimassa_loppu.is.null),
-         and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),
-         and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),
-         and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`.replace(/\s+/g, '')
-      )
-      .order('luotu', { ascending: false })
-      .limit(20)
-
-    if (!error && data) setUusimmat(data as SuosittuIlmoitus[])
-  }
-
-  haeUusimmat()
-}, [])
 
 
 

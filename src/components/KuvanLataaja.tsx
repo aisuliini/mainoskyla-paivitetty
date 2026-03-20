@@ -200,6 +200,7 @@ export default function KuvanLataaja({
   width={800}
   height={300}
   className="w-full h-[160px] object-cover"
+  unoptimized
 />
               <div className="p-3 flex items-center justify-between gap-3">
                 <p className="text-sm text-gray-600 truncate">

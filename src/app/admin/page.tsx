@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 
+
 type Ilmoitus = {
   id: string
   otsikko: string
@@ -11,6 +12,7 @@ type Ilmoitus = {
   luotu: string | null
   visible?: boolean | null
   premium?: boolean | null
+  saa_jakaa_somessa?: boolean | null
 }
 
 type Profiili = {
@@ -59,8 +61,7 @@ export default function AdminPage() {
 
       const { data: ilmoituksetData, error: ilmoErr } = await supabase
         .from('ilmoitukset')
-        .select('id, otsikko, sijainti, luotu, visible, premium')
-        .order('luotu', { ascending: false })
+.select('id, otsikko, sijainti, luotu, visible, premium, saa_jakaa_somessa')        .order('luotu', { ascending: false })
 
       if (ilmoErr) {
         setErrorMsg(`ilmoitukset fetch error: ${ilmoErr.message}`)
@@ -97,7 +98,6 @@ export default function AdminPage() {
       // näytä pieni ilmoitus
       setToast(`Uusi ilmoitus: ${row.otsikko}`)
 
-      // lisää listan kärkeen (ettei tarvitse refresh)
       setIlmoitukset((prev) => [
   {
     id: row.id,
@@ -105,7 +105,8 @@ export default function AdminPage() {
     sijainti: row.sijainti ?? null,
     luotu: row.luotu ?? new Date().toISOString(),
     visible: row.visible ?? true,
-    premium: row.premium ?? false
+    premium: row.premium ?? false,
+    saa_jakaa_somessa: row.saa_jakaa_somessa ?? false,
   },
   ...prev
 ])
@@ -202,6 +203,10 @@ return () => {
                   {(ilmoitus.sijainti ?? '—')} •{' '}
                   {ilmoitus.luotu ? new Date(ilmoitus.luotu).toLocaleDateString() : '—'}
                 </p>
+
+                <p className="text-sm text-gray-600 mt-1">
+  Somejako: {ilmoitus.saa_jakaa_somessa ? '✅ Sallittu' : '❌ Ei sallittu'}
+</p>
 
                 <div className="mt-2 flex gap-2 flex-wrap">
                   <button
