@@ -3,9 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 
-const ALLOWED_SORTS = ['uusin', 'aakkoset'] as const
-export type SortValue = (typeof ALLOWED_SORTS)[number]
-
+export type SortValue = 'uusin' | 'aakkoset'
 type Props = {
   initialQ: string
   initialSijainti: string

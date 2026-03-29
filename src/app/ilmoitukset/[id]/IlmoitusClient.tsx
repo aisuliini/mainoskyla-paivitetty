@@ -12,7 +12,6 @@ type Profiili = ListingProfile
 
 export default function IlmoitusClient({
   initialIlmoitus,
-  initialProfiili,
 }: {
   initialIlmoitus: Ilmoitus
   initialProfiili: Profiili | null
