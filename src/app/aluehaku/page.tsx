@@ -1,203 +1,122 @@
-'use client'
-
-import { useEffect, useMemo, useState, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabaseClient'
-import SafeCardImage from '@/components/SafeCardImage'
+import type { Metadata } from 'next'
+import ListingGrid from '@/components/listings/ListingGrid'
 import CityBanner from '@/components/CityBanner'
+import SearchLocationFilter from '@/components/search/SearchLocationFilter'
+import { getSearchListings } from '@/lib/listings/getSearchListings'
+import CategoryPagination from '@/components/category/CategoryPagination'
 
-type Ilmoitus = {
-  id: string
-  otsikko: string
-  kuvaus: string
-  sijainti: string
-  kuva_url?: string | null
-  luotu?: string | null
+
+type PageProps = {
+  searchParams: Promise<{
+    q?: string
+    sijainti?: string
+    page?: string
+  }>
 }
 
-function AluehakuSisalto() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const sp = await searchParams
+  const q = (sp.q ?? '').trim()
+  const sijainti = (sp.sijainti ?? '').trim()
 
-  
-  const qParam = (searchParams.get('q') || '').trim()
-  const sijaintiParam = (searchParams.get('sijainti') || '').trim()
-
-  
-  const hakusana = qParam || (qParam === '' && sijaintiParam ? sijaintiParam : '')
-
-  const [paikkakunta, setPaikkakunta] = useState<string>(qParam ? sijaintiParam : '')
-
-  const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    setPaikkakunta(qParam ? sijaintiParam : '')
-  }, [qParam, sijaintiParam])
-
-  const otsikkoTeksti = useMemo(() => {
-    if (!hakusana) return 'Haku'
-    if (qParam && sijaintiParam) return `Hakutulokset: ${qParam} — ${sijaintiParam}`
-    return `Hakutulokset: ${hakusana}`
-  }, [hakusana, qParam, sijaintiParam])
-
-  useEffect(() => {
-    const hae = async () => {
-      if (!hakusana) {
-        setIlmoitukset([])
-        return
-      }
-
-      setLoading(true)
-      const nytISO = new Date().toISOString()
-
-      let query = supabase
-        .from('ilmoitukset')
-        .select('id, otsikko, kuvaus, sijainti, kuva_url, luotu')
-        // voimassaoloehdot (sama kuin sulla)
-        .or(
-          `and(voimassa_alku.is.null,voimassa_loppu.is.null),
-           and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),
-           and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),
-           and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`.replace(/\s+/g, '')
-        )
-
-      query = query.or(
-        `otsikko.ilike.%${hakusana}%,
-         kuvaus.ilike.%${hakusana}%,
-         sijainti.ilike.%${hakusana}%`.replace(/\s+/g, '')
-      )
-
-      if (qParam && sijaintiParam) {
-        query = query.ilike('sijainti', `%${sijaintiParam}%`)
-      }
-
-      const { data, error } = await query.order('luotu', { ascending: false }).limit(60)
-
-      if (error) {
-        console.error('Aluehaku virhe:', error.message)
-        setIlmoitukset([])
-      } else {
-        setIlmoitukset((data as Ilmoitus[]) ?? [])
-      }
-
-      setLoading(false)
+  if (!q && !sijainti) {
+    return {
+      title: 'Haku | Mainoskylä',
+      description: 'Hae paikallisia palveluita Mainoskylästä.',
+      robots: {
+        index: false,
+        follow: true,
+      },
     }
-
-    hae()
-  }, [hakusana, qParam, sijaintiParam])
-
-  const paivitaPaikkakuntaURL = () => {
-    if (!qParam) return // jos ei q:ta, tätä filtteriä ei käytetä
-    const next = new URLSearchParams(searchParams.toString())
-
-    const value = paikkakunta.trim()
-    if (!value) next.delete('sijainti')
-    else next.set('sijainti', value)
-
-    router.replace(`/aluehaku?${next.toString()}`)
   }
 
+  const title =
+    q && sijainti
+      ? `Hakutulokset: ${q} – ${sijainti} | Mainoskylä`
+      : `Hakutulokset: ${q || sijainti} | Mainoskylä`
+
+  const description =
+    q && sijainti
+      ? `Selaa hakutuloksia haulle ${q} paikkakunnalla ${sijainti}.`
+      : `Selaa hakutuloksia haulle ${q || sijainti} Mainoskylässä.`
+
+  return {
+    title,
+    description,
+    robots: {
+      index: false,
+      follow: true,
+    },
+  }
+}
+
+export default async function AluehakuPage({ searchParams }: PageProps) {
+  const sp = await searchParams
+
+  const q = (sp.q ?? '').trim()
+  const sijainti = (sp.sijainti ?? '').trim()
+
+  const parsedPage = Number(sp.page || '1')
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1
+
+  const hakusana = q || (!q && sijainti ? sijainti : '')
+
+  const otsikkoTeksti = !hakusana
+    ? 'Haku'
+    : q && sijainti
+      ? `Hakutulokset: ${q} — ${sijainti}`
+      : `Hakutulokset: ${hakusana}`
+
+  const result = await getSearchListings({
+    q,
+    sijainti,
+    page,
+    pageSize: 24,
+  })
+
   return (
-    <main className="max-w-screen-xl mx-auto p-6">
+    <main className="mx-auto max-w-screen-xl p-6">
       {!hakusana ? (
         <div className="max-w-xl">
-          <h1 className="text-2xl font-bold mb-2">Haku</h1>
+          <h1 className="mb-2 text-2xl font-bold">Haku</h1>
           <p className="text-gray-600">
-            Kirjoita hakusana yläpalkin hakuun (esim. doula), niin näytän tulokset tässä.
+            Kirjoita hakusana yläpalkin hakuun, niin näytän tulokset tässä.
             <br />
             Tällä sivulla voit rajata tuloksia paikkakunnalla.
           </p>
         </div>
       ) : (
         <>
-          <h1 className="text-2xl font-bold mb-4">{otsikkoTeksti}</h1>
+          <h1 className="mb-4 text-2xl font-bold">{otsikkoTeksti}</h1>
 
           <div className="mb-6">
-            <CityBanner city={sijaintiParam || hakusana} />
+            <CityBanner city={sijainti || hakusana} />
           </div>
 
-          {qParam ? (
-            <div className="mb-5 flex flex-col sm:flex-row gap-3 sm:items-end">
-              <div className="w-full sm:max-w-sm">
-                <label className="block text-sm font-medium mb-1">📍 Paikkakunta (valinnainen)</label>
-                <input
-                  value={paikkakunta}
-                  onChange={(e) => setPaikkakunta(e.target.value)}
-                  placeholder="Esim. Turku"
-                  className="w-full border rounded-lg px-3 py-2"
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={paivitaPaikkakuntaURL}
-                  className="px-4 py-2 text-sm bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
-                >
-                  Rajaa
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPaikkakunta('')
-                    const next = new URLSearchParams(searchParams.toString())
-                    next.delete('sijainti')
-                    router.replace(`/aluehaku?${next.toString()}`)
-                  }}
-                  className="px-4 py-2 text-sm border rounded hover:bg-gray-50"
-                >
-                  Tyhjennä
-                </button>
-              </div>
-            </div>
+          {q ? (
+            <SearchLocationFilter
+              initialQ={q}
+              initialSijainti={sijainti}
+            />
           ) : null}
 
-          {loading ? (
-            <p>Ladataan tuloksia...</p>
-          ) : ilmoitukset.length === 0 ? (
-            <p>Ei tuloksia haulle.</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {ilmoitukset.map((ilmo) => (
-                <div key={ilmo.id} className="bg-white border rounded-lg shadow-sm overflow-hidden">
-                  <div className="relative w-full h-40 bg-gray-100">
-  <SafeCardImage
-    src={ilmo.kuva_url}
-    alt={ilmo.otsikko}
-    fill
-    className="rounded-t object-cover"
-    sizes="(max-width: 768px) 100vw, 33vw"
-  />
-</div>
+                    <div className="mb-4 text-sm text-gray-600">
+            {result.total} ilmoitusta
+          </div>
 
-                  <div className="p-4">
-                    <h3 className="font-semibold text-lg mb-1 truncate">{ilmo.otsikko}</h3>
-                    <p className="text-sm text-gray-600 line-clamp-2">{ilmo.kuvaus}</p>
-                    <p className="text-xs text-gray-500">{ilmo.sijainti}</p>
+          <ListingGrid items={result.items} />
 
-                    <button
-                      onClick={() => router.push(`/ilmoitukset/${ilmo.id}`)}
-                      className="mt-3 px-4 py-2 text-sm bg-[#3f704d] text-white rounded hover:bg-[#2f5332]"
-                    >
-                      Näytä
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <CategoryPagination
+            currentPage={result.page}
+            hasMore={result.hasMore}
+            pathname="/aluehaku"
+            searchParams={{
+              q,
+              sijainti,
+            }}
+          />
         </>
       )}
     </main>
-  )
-}
-
-export default function AluehakuPage() {
-  return (
-    <Suspense fallback={<div className="p-6">Ladataan hakua...</div>}>
-      <AluehakuSisalto />
-    </Suspense>
   )
 }

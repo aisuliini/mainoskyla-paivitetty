@@ -5,12 +5,16 @@ import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
-
 import { fi } from 'date-fns/locale'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import imageCompression from 'browser-image-compression'
 import Image from 'next/image'
 import KuvanLataaja from '@/components/KuvanLataaja'
+import {
+  CATEGORY_CONFIG,
+  normalizeCategoryValue,
+} from '@/lib/categories/category-config'
+
 
 type IlmoitusRow = {
   id: string
@@ -37,6 +41,7 @@ type IlmoitusRow = {
   puhelin?: string | null
   sahkoposti?: string | null
   linkki?: string | null
+  saa_jakaa_somessa?: boolean | null
 }
 
 type ImageItem =
@@ -63,7 +68,7 @@ export default function MuokkaaIlmoitusta() {
   const [puhelin, setPuhelin] = useState('')
   const [sahkoposti, setSahkoposti] = useState('')
   const [linkki, setLinkki] = useState('')
-  
+  const [saaJakaaSomessa, setSaaJakaaSomessa] = useState(false)
 
   // Kuvat (max 4)
   const [images, setImages] = useState<ImageItem[]>([])
@@ -122,8 +127,7 @@ const sectionClass =
     if (!kategoria) e.kategoria = 'Valitse kategoria.'
 
 
-    if (kategoria === 'Tapahtumat') {
-      if (!tapahtumaAlku) e.tapahtumaAlku = 'Valitse tapahtuman alkupäivä.'
+if (kategoria === 'tapahtumat-ja-juhlapalvelut') {      if (!tapahtumaAlku) e.tapahtumaAlku = 'Valitse tapahtuman alkupäivä.'
       if (tapahtumaAlku && tapahtumaLoppu && tapahtumaLoppu < tapahtumaAlku) {
         e.tapahtumaLoppu = 'Loppupäivä ei voi olla ennen alkupäivää.'
       }
@@ -212,7 +216,7 @@ const sectionClass =
       setOtsikko(row.otsikko ?? '')
       setKuvaus(row.kuvaus ?? '')
       setSijainti(row.sijainti ?? '')
-      setKategoria(row.kategoria ?? '')
+      setKategoria(normalizeCategoryValue(row.kategoria))
             const rowTyyppi = row.maksuluokka === 'premium' ? 'premium' : 'perus'
       setTyyppi(rowTyyppi)
       setOriginalTyyppi(rowTyyppi)
@@ -220,6 +224,7 @@ const sectionClass =
       setPuhelin(row.puhelin ?? '')
       setSahkoposti(row.sahkoposti ?? '')
       setLinkki(row.linkki ?? '')
+      setSaaJakaaSomessa(row.saa_jakaa_somessa ?? false)
 
 
       // Tapahtumat
@@ -237,9 +242,9 @@ const sectionClass =
   }, [ilmoitusId, router])
 
     useEffect(() => {
-    if (kategoria !== 'Tapahtumat') {
-      setTapahtumaAlku(null)
-      setTapahtumaLoppu(null)
+    if (kategoria !== 'tapahtumat-ja-juhlapalvelut') {
+  setTapahtumaAlku(null)
+  setTapahtumaLoppu(null)
     }
   }, [kategoria])
 
@@ -356,35 +361,54 @@ const sectionClass =
       
 
       const tapahtumaLoppuFinal =
-        kategoria === 'Tapahtumat' ? (tapahtumaLoppu ?? tapahtumaAlku) : null
+  kategoria === 'tapahtumat-ja-juhlapalvelut'
+    ? (tapahtumaLoppu ?? tapahtumaAlku)
+    : null
+
+    const voimassaLoppuFinal =
+  kategoria === 'tapahtumat-ja-juhlapalvelut'
+    ? (tapahtumaLoppuFinal ?? tapahtumaAlku)
+    : null
 
       
 
 
-      // 4) Update
       const payload = {
-        otsikko,
-        kuvaus,
-        sijainti,
-        kategoria,
-        maksuluokka: tyyppi,
+  otsikko,
+  kuvaus,
+  sijainti,
+  kategoria,
+  visible: true,
+  maksuluokka: tyyppi,
 
-        kuva_url: finalUrls[0] || null,
-        kuvat: finalUrls.length > 0 ? JSON.stringify(finalUrls) : null,
+  kuva_url: finalUrls[0] || null,
+  kuvat: finalUrls.length > 0 ? JSON.stringify(finalUrls) : null,
 
-               premium: tyyppi === 'premium',
-        premium_alku: null,
-        premium_loppu: null,
-        premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
+  premium: tyyppi === 'premium',
+  premium_alku: null,
+  premium_loppu: null,
+  premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
 
-        tapahtuma_alku: kategoria === 'Tapahtumat' ? tapahtumaAlku?.toISOString() : null,
-        tapahtuma_loppu: kategoria === 'Tapahtumat' ? tapahtumaLoppuFinal?.toISOString() : null,
+  voimassa_alku:
+    kategoria === 'tapahtumat-ja-juhlapalvelut'
+      ? new Date().toISOString()
+      : null,
+  voimassa_loppu: voimassaLoppuFinal ? voimassaLoppuFinal.toISOString() : null,
 
+  tapahtuma_alku:
+    kategoria === 'tapahtumat-ja-juhlapalvelut'
+      ? tapahtumaAlku?.toISOString()
+      : null,
+  tapahtuma_loppu:
+    kategoria === 'tapahtumat-ja-juhlapalvelut'
+      ? tapahtumaLoppuFinal?.toISOString()
+      : null,
 
-        puhelin: puhelin || null,
-        sahkoposti: sahkoposti || null,
-        linkki: linkki || null,
-      }
+  puhelin: puhelin || null,
+  sahkoposti: sahkoposti || null,
+  linkki: linkki || null,
+  saa_jakaa_somessa: saaJakaaSomessa,
+}
 
       const { error } = await supabase.from('ilmoitukset').update(payload).eq('id', ilmoitusId)
       if (error) throw new Error(error.message)
@@ -468,7 +492,8 @@ className={inputClass}              />
                 placeholder="Kuvaus"
                 value={kuvaus}
                 onChange={(e) => setKuvaus(e.target.value)}
-className={`${inputClass} min-h-[140px] resize-y`}              />
+                className={inputClass}
+              />
               {errors.kuvaus && <p className="text-sm text-red-600 mt-1">{errors.kuvaus}</p>}
               <p className="text-sm text-gray-500 text-right">{kuvaus.length} merkkiä</p>
 
@@ -490,7 +515,8 @@ className={`${inputClass} min-h-[140px] resize-y`}              />
                       setSijaintiehdotukset([])
                     }
                   }}
-className={`${inputClass} min-h-[140px] resize-y`}                />
+className={inputClass}  
+              />
 
                 {sijaintiehdotukset.length > 0 && (
                   <ul className="absolute z-10 bg-white border w-full mt-1 rounded shadow text-sm max-h-40 overflow-y-auto">
@@ -514,23 +540,21 @@ className={`${inputClass} min-h-[140px] resize-y`}                />
               {errors.sijainti && <p className="text-sm text-red-600 mt-1">{errors.sijainti}</p>}
 
               <select
-                name="kategoria"
-                value={kategoria}
-                onChange={(e) => setKategoria(e.target.value)}
-className={`${inputClass} min-h-[140px] resize-y`}              >
-                <option value="">Valitse kategoria</option>
-                <option value="Arjen palvelut">Arjen palvelut</option>
-                <option value="Hyvinvointi ja Kauneus">Hyvinvointi ja Kauneus</option>
-                <option value="Koti ja Remontointi">Koti ja Remontointi</option>
-                <option value="Eläinpalvelut">Eläinpalvelut</option>
-                <option value="Käsityöläiset">Käsityöläiset</option>
-                <option value="Media ja Luovuus">Media ja Luovuus</option>
-                <option value="Vuokratilat ja Juhlapaikat">Vuokratilat ja Juhlapaikat</option>
-                <option value="Tapahtumat">Tapahtumat</option>
-              </select>
+  name="kategoria"
+  value={kategoria}
+  onChange={(e) => setKategoria(e.target.value)}
+  className={inputClass}
+>
+  <option value="">Valitse kategoria</option>
+  {CATEGORY_CONFIG.map((category) => (
+    <option key={category.slug} value={category.slug}>
+      {category.name}
+    </option>
+  ))}
+</select>
               {errors.kategoria && <p className="text-sm text-red-600 mt-1">{errors.kategoria}</p>}
 
-              {kategoria === 'Tapahtumat' && (
+              {kategoria === 'tapahtumat-ja-juhlapalvelut' && (
                 <>
                   <div data-error="tapahtumaAlku" tabIndex={-1}>
                     <label className="block">Tapahtuman alkupäivä:</label>
@@ -567,7 +591,8 @@ className={`${inputClass} min-h-[140px] resize-y`}              >
                 placeholder="Puhelin (esim. 040 123 4567)"
                 value={puhelin}
                 onChange={(e) => setPuhelin(e.target.value)}
-className={`${inputClass} min-h-[140px] resize-y`}              />
+className={inputClass}            
+/>
 
               <input
                 name="sahkoposti"
@@ -575,7 +600,8 @@ className={`${inputClass} min-h-[140px] resize-y`}              />
                 placeholder="Sähköposti"
                 value={sahkoposti}
                 onChange={(e) => setSahkoposti(e.target.value)}
-className={`${inputClass} min-h-[140px] resize-y`}              />
+className={inputClass}
+             />
               {errors.sahkoposti && <p className="text-sm text-red-600">{errors.sahkoposti}</p>}
 
               <input
@@ -584,7 +610,7 @@ className={`${inputClass} min-h-[140px] resize-y`}              />
                 placeholder="Linkki (https://instagram.com/... tai https://yritys.fi)"
                 value={linkki}
                 onChange={(e) => setLinkki(e.target.value)}
-className={`${inputClass} min-h-[140px] resize-y`}              />
+className={inputClass}            />
               {errors.linkki && <p className="text-sm text-red-600">{errors.linkki}</p>}
 
               {errors.yhteys && <p className="text-sm text-red-600">{errors.yhteys}</p>}
@@ -705,7 +731,8 @@ className={`${inputClass} min-h-[140px] resize-y`}              />
   <select
     value={tyyppi}
     onChange={(e) => setTyyppi(e.target.value === 'premium' ? 'premium' : 'perus')}
-className={`${inputClass} min-h-[140px] resize-y`}  >
+    className={inputClass}
+  >
     <option value="perus">Perusilmoitus (ilmainen)</option>
     <option value="premium">Etusivu-ilmoitus (ilmainen)</option>
   </select>
@@ -723,7 +750,19 @@ className={`${inputClass} min-h-[140px] resize-y`}  >
   )}
 </div>
 
-
+<div className={sectionClass}>
+  <label className="flex items-start gap-3 cursor-pointer">
+    <input
+      type="checkbox"
+      checked={saaJakaaSomessa}
+      onChange={(e) => setSaaJakaaSomessa(e.target.checked)}
+      className="mt-1 h-4 w-4 rounded border-gray-300"
+    />
+    <span className="text-sm text-[#1E3A41]">
+      Ilmoituksen saa jakaa Mainoskylän somekanavissa
+    </span>
+  </label>
+</div>
 
             {/* Nappi */}
             <div className="flex justify-end pt-6 border-t">

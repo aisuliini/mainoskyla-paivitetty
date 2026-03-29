@@ -14,7 +14,7 @@ function ProfiiliContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const created = searchParams.get('created') // "1" jos ilmoitus lisätty
+  const created = searchParams.get('created')
   const city = searchParams.get('city') || ''
 
   const [loading, setLoading] = useState<boolean>(true)
@@ -30,19 +30,22 @@ function ProfiiliContent() {
 
       if (!user) {
         router.replace('/kirjaudu')
-        router.refresh()
         return
       }
 
       if (!mounted) return
       setEmail(user.email ?? null)
 
-      const { data: profiiliData } = await supabase
-        .from('profiilit')
+      const { data: profiiliData, error: profiiliError } = await supabase
+        .from('profiles')
         .select('nimi')
         .eq('id', user.id)
         .maybeSingle()
         .returns<ProfiiliRow>()
+
+      if (profiiliError) {
+        console.error('Profiilin haku epäonnistui:', profiiliError)
+      }
 
       if (!mounted) return
       setNimi(profiiliData?.nimi ?? null)
@@ -99,7 +102,6 @@ function ProfiiliContent() {
             </div>
           )}
 
-          {/* Profiilikortti */}
           <div className="bg-white border rounded-xl p-5 shadow-sm mb-6">
             {otsikkoNimi ? (
               <p className="text-lg font-semibold">{otsikkoNimi}</p>
@@ -110,7 +112,6 @@ function ProfiiliContent() {
             {nimi && email && <p className="text-sm text-gray-600">{email}</p>}
           </div>
 
-          {/* Valikko */}
           <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
             <Link
               href="/profiili/omat-ilmoitukset"
@@ -141,18 +142,18 @@ function ProfiiliContent() {
             </Link>
 
             <Link
-  href="/profiili/bannerit"
-  className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 border-t"
->
-  <div className="flex items-center gap-3">
-    <Megaphone />
-    <div>
-      <p className="font-medium">Bannerimainonta</p>
-      <p className="text-sm text-gray-600">Hallitse kaupunkibannereita</p>
-    </div>
-  </div>
-  <span className="text-gray-400">›</span>
-</Link>
+              href="/profiili/bannerit"
+              className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 border-t"
+            >
+              <div className="flex items-center gap-3">
+                <Megaphone />
+                <div>
+                  <p className="font-medium">Bannerimainonta</p>
+                  <p className="text-sm text-gray-600">Hallitse kaupunkibannereita</p>
+                </div>
+              </div>
+              <span className="text-gray-400">›</span>
+            </Link>
 
             <Link
               href="/profiili/asetukset"

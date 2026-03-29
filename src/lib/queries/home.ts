@@ -1,44 +1,38 @@
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { supabaseServer } from '@/lib/supabaseServer'
 
 export async function getHomePageData() {
   const nytISO = new Date().toISOString()
 
-  const premiumQuery = supabase
+  const aktiivinenEhto = `and(voimassa_alku.is.null,voimassa_loppu.is.null),
+and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),
+and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),
+and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`.replace(/\s+/g, '')
+
+  const premiumQuery = supabaseServer
     .from('ilmoitukset')
     .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja')
+    .eq('visible', true)
     .eq('maksuluokka', 'premium')
     .eq('premium', true)
     .eq('premium_tyyppi', 'etusivu')
+    .or(aktiivinenEhto)
     .order('luotu', { ascending: false })
     .limit(60)
 
-  const suosittuaQuery = supabase
+  const suosittuaQuery = supabaseServer
     .from('ilmoitukset')
     .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, kategoria, luotu')
-    .or(
-      `and(voimassa_alku.is.null,voimassa_loppu.is.null),
-       and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),
-       and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),
-       and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`.replace(/\s+/g, '')
-    )
+    .eq('visible', true)
+    .or(aktiivinenEhto)
     .order('nayttoja', { ascending: false })
     .order('luotu', { ascending: false })
     .limit(12)
 
-  const uusimmatQuery = supabase
+  const uusimmatQuery = supabaseServer
     .from('ilmoitukset')
     .select('id, otsikko, kuvaus, sijainti, kuva_url, nayttoja, kategoria, luotu')
-    .or(
-      `and(voimassa_alku.is.null,voimassa_loppu.is.null),
-       and(voimassa_alku.lte.${nytISO},voimassa_loppu.gte.${nytISO}),
-       and(voimassa_alku.is.null,voimassa_loppu.gte.${nytISO}),
-       and(voimassa_alku.lte.${nytISO},voimassa_loppu.is.null)`.replace(/\s+/g, '')
-    )
+    .eq('visible', true)
+    .or(aktiivinenEhto)
     .order('luotu', { ascending: false })
     .limit(12)
 
@@ -47,6 +41,18 @@ export async function getHomePageData() {
     suosittuaQuery,
     uusimmatQuery,
   ])
+
+  if (premiumRes.error) {
+    console.error('getHomePageData premium error:', premiumRes.error)
+  }
+
+  if (suosittuaRes.error) {
+    console.error('getHomePageData suosittua error:', suosittuaRes.error)
+  }
+
+  if (uusimmatRes.error) {
+    console.error('getHomePageData uusimmat error:', uusimmatRes.error)
+  }
 
   return {
     premium: premiumRes.data ?? [],

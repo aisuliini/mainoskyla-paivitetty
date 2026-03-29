@@ -11,7 +11,7 @@ import imageCompression from 'browser-image-compression'
 import Image from 'next/image'
 import KuvanLataaja from '@/components/KuvanLataaja'
 import ShareButtons from '@/components/ShareButtons'
-
+import { CATEGORY_CONFIG } from '@/lib/categories/category-config'
 
 
 export default function LisaaIlmoitus() {
@@ -72,8 +72,7 @@ const validateAll = () => {
   if (!kategoria) e.kategoria = 'Valitse kategoria.'
 
 
-  if (kategoria === 'Tapahtumat') {
-    if (!tapahtumaAlku) e.tapahtumaAlku = 'Valitse tapahtuman alkupäivä.'
+if (kategoria === 'tapahtumat-ja-juhlapalvelut') {    if (!tapahtumaAlku) e.tapahtumaAlku = 'Valitse tapahtuman alkupäivä.'
     if (tapahtumaAlku && tapahtumaLoppu && tapahtumaLoppu < tapahtumaAlku) {
       e.tapahtumaLoppu = 'Loppupäivä ei voi olla ennen alkupäivää.'
     }
@@ -214,10 +213,10 @@ useEffect(() => {
 }, [tapahtumaAlku, tapahtumaLoppu])
 
 useEffect(() => {
-  if (kategoria !== 'Tapahtumat') {
-    setTapahtumaAlku(null)
-    setTapahtumaLoppu(null)
-  }
+  if (kategoria !== 'tapahtumat-ja-juhlapalvelut') {
+  setTapahtumaAlku(null)
+  setTapahtumaLoppu(null)
+}
 }, [kategoria])
 
 
@@ -286,12 +285,12 @@ if (kuvat.length > 0) {
 
 
   const tapahtumaLoppuDate =
-  kategoria === 'Tapahtumat'
+  kategoria === 'tapahtumat-ja-juhlapalvelut'
     ? (tapahtumaLoppu ?? tapahtumaAlku)
     : null
 
   const voimassaLoppuFinal =
-  kategoria === 'Tapahtumat'
+  kategoria === 'tapahtumat-ja-juhlapalvelut'
     ? (tapahtumaLoppuDate ?? tapahtumaAlku)
     : null
 
@@ -306,19 +305,21 @@ if (kuvat.length > 0) {
   kuva_url: kuvaUrls[0] || null,
   kuvat: kuvaUrls.length > 0 ? JSON.stringify(kuvaUrls) : null,
 
+  visible: true,
+
   maksuluokka: tyyppi,
   kategoria,
   premium: tyyppi === 'premium',
   premium_alku: null,
   premium_loppu: null,
-  voimassa_alku: kategoria === 'Tapahtumat'
+  voimassa_alku: kategoria === 'tapahtumat-ja-juhlapalvelut'
     ? nykyhetki.toISOString()
     : null,
   voimassa_loppu: voimassaLoppuFinal ? voimassaLoppuFinal.toISOString() : null,
   premium_tyyppi: tyyppi === 'premium' ? 'etusivu' : null,
   nayttoja: 0,
   luotu: nykyhetki.toISOString(),
-  tapahtuma_alku: kategoria === 'Tapahtumat' ? tapahtumaAlku?.toISOString() : null,
+  tapahtuma_alku: kategoria === 'tapahtumat-ja-juhlapalvelut' ? tapahtumaAlku?.toISOString() : null,
   tapahtuma_loppu: tapahtumaLoppuDate ? tapahtumaLoppuDate.toISOString() : null,
     puhelin: puhelin || null,
   sahkoposti: sahkoposti || null,
@@ -410,20 +411,15 @@ return
   value={kategoria}
   onChange={(e) => setKategoria(e.target.value)}
   required
-className={inputClass}>
-
-
-
-            <option value="">Valitse kategoria</option>
-            <option value="Arjen palvelut">Arjen palvelut</option>
-            <option value="Hyvinvointi ja Kauneus">Hyvinvointi ja Kauneus</option>
-            <option value="Koti ja Remontointi">Koti ja Remontointi</option>
-            <option value="Eläinpalvelut">Eläinpalvelut</option>
-            <option value="Käsityöläiset">Käsityöläiset</option>
-            <option value="Media ja Luovuus">Media ja Luovuus</option>
-            <option value="Vuokratilat ja Juhlapaikat">Vuokratilat ja Juhlapaikat</option>
-            <option value="Tapahtumat">Tapahtumat</option>    
-          </select>
+  className={inputClass}
+>
+  <option value="">Valitse kategoria</option>
+  {CATEGORY_CONFIG.map((category) => (
+    <option key={category.slug} value={category.slug}>
+      {category.name}
+    </option>
+  ))}
+</select>
 
           {errors.kategoria && (
   <p className="text-sm text-red-600 mt-1">
@@ -513,7 +509,7 @@ className={inputClass}/>
 )}
 
 
-{kategoria === 'Tapahtumat' && (
+{kategoria === 'tapahtumat-ja-juhlapalvelut' && (
   <div className="rounded-2xl bg-white border border-black/5 p-4 space-y-4">
     <div data-error="tapahtumaAlku" tabIndex={-1}>
       <label className="block text-sm font-medium mb-2 text-[#1E3A41]">

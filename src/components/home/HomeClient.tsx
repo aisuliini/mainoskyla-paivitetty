@@ -1,67 +1,17 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import SafeCardImage from '@/components/SafeCardImage'
-import Image from 'next/image'
 import Link from 'next/link'
-import Katselukerrat from '@/components/Katselukerrat';
-import { FaFacebookF, FaInstagram, } from 'react-icons/fa'
-import paikkakunnat from '@/data/suomen-paikkakunnat.json'
+import { FaFacebookF, FaInstagram } from 'react-icons/fa'
 import CategoryCarousel from '@/components/CategoryCarousel'
-import { Search, Eye } from "lucide-react";
-
-
-
-import {
-  Hammer,
-  PawPrint,
-  Scissors,
-  Camera,
-  PartyPopper,
-  Heart,
-  Home as HomeIcon,
-  Calendar,
-} from "lucide-react";
-
-const heroBg = '/images/hero-mainoskyla.jpg'
-
-
-type PremiumIlmoitus = {
-  id: string
-  otsikko: string
-  kuvaus: string
-  sijainti: string
-  kuva_url?: string
-  nayttoja?: number
-}
-
-type SuosittuIlmoitus = {
-  id: string
-  otsikko: string
-  kuvaus: string
-  sijainti: string
-  kuva_url?: string | null
-  nayttoja?: number | null
-  kategoria?: string | null
-}
-
-type HomeProps = {
-  initialPremiumIlmoitukset: PremiumIlmoitus[]
-  initialNytSuosittua: SuosittuIlmoitus[]
-  initialUusimmat: SuosittuIlmoitus[]
-}
-
-const ESIMERKKIHAKUJA = [
-  'kotiapu',
-  'siivous',
-  'remontti',
-  'hieronta',
-  'koirahoitaja',
-  'valokuvaaja',
-  'juhlatila',
-  'pihanhoito',
-] as const
+import { CATEGORY_CONFIG } from '@/lib/categories/category-config'
+import PopularNowSection from '@/components/home/PopularNowSection'
+import LatestListingsSection from '@/components/home/LatestListingsSection'
+import PremiumListingsSection from '@/components/home/PremiumListingsSection'
+import type { HomeProps, PremiumIlmoitus, SuosittuIlmoitus } from '@/components/home/home-types'
+import { homeCategoryIcons } from '@/components/home/home-category-icons'
+import HomeSearch from '@/components/home/HomeSearch'
 
 
 export default function HomeClient({
@@ -70,28 +20,8 @@ export default function HomeClient({
   initialUusimmat,
 }: HomeProps) {
   const router = useRouter()
-  const [hakusana, setHakusana] = useState('')
   const [premiumIlmoitukset] = useState<PremiumIlmoitus[]>(initialPremiumIlmoitukset)
-const [showDesktopSuggest, setShowDesktopSuggest] = useState(false)
 
-
-const query = hakusana.trim().toLowerCase()
-
-// Palvelut/tekijät (ESIMERKKIHAKUJA)
-const palveluEhdotukset = useMemo(() => {
-  if (!query) return [...ESIMERKKIHAKUJA].slice(0, 8)
-  return ESIMERKKIHAKUJA
-    .filter((x) => x.toLowerCase().includes(query))
-    .slice(0, 8)
-}, [query])
-
-// Paikkakunnat (json)
-const paikkaEhdotukset = useMemo(() => {
-  if (!query) return [] // tyhjällä ei tarvitse näyttää paikkakuntia
-  return (paikkakunnat as string[])
-    .filter((p) => p.toLowerCase().includes(query))
-    .slice(0, 8)
-}, [query])
 
 
 
@@ -127,81 +57,12 @@ const scrollNytSuosittua = (dir: 'left' | 'right') => {
 
 
 
-const hae = () => {
-  const q = hakusana.trim()
-  if (!q) return
 
-  router.push(`/aluehaku?q=${encodeURIComponent(q)}`)
-}
-
-
-
-
-
-
-
-const kategoriat = [
-  {
-    nimi: "Arjen palvelut",
-    href: "/kategoriat/arjen-palvelut",
-    ikoni: <Hammer className="h-6 w-6 text-[#1E3A41]" />,
-    enabled: true,
-  },
-  {
-    nimi: "Eläinpalvelut",
-    href: "/kategoriat/elainpalvelut",
-    ikoni: <PawPrint className="h-6 w-6 text-[#1E3A41]" />,
-    enabled: true,
-  },
-  {
-    nimi: "Käsityöläiset",
-    href: "/kategoriat/kasityolaiset",
-    ikoni: <Scissors className="h-6 w-6 text-[#1E3A41]" />,
-    enabled: true,
-  },
-  {
-    nimi: "Media ja Luovuus",
-    href: "/kategoriat/media-ja-luovuus",
-    ikoni: <Camera className="h-6 w-6 text-[#1E3A41]" />,
-    enabled: true,
-  },
-  {
-    nimi: "Vuokratilat ja Juhlapaikat",
-    href: "/kategoriat/vuokratilat-ja-juhlapaikat",
-    ikoni: <PartyPopper className="h-6 w-6 text-[#1E3A41]" />,
-    enabled: true,
-  },
-  {
-    nimi: "Hyvinvointi ja Kauneus",
-    href: "/kategoriat/hyvinvointi-ja-kauneus",
-    ikoni: <Heart className="h-6 w-6 text-[#1E3A41]" />,
-    enabled: true,
-  },
-  {
-    nimi: "Koti ja Remontointi",
-    href: "/kategoriat/koti-ja-remontointi",
-    ikoni: <HomeIcon className="h-6 w-6 text-[#1E3A41]" />,
-    enabled: true,
-  },
-  {
-    nimi: "Tapahtumat",
-    href: "/kategoriat/tapahtumat",
-    ikoni: <Calendar className="h-6 w-6 text-[#1E3A41]" />,
-    enabled: true,
-  },
-].map((kategoria) => ({
-  ...kategoria,
-  bg: `
-    bg-[#E8EFEC]
-    hover:bg-[#DCE7E2]
-    text-[#1E3A41]
-    ring-1 ring-black/5
-    transition-all
-    duration-200
-  `,
+const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
+  nimi: category.name,
+  href: `/kategoriat/${category.slug}`,
+  ikoni: homeCategoryIcons[category.slug] ?? homeCategoryIcons['arjen-palvelut'],
 }))
-
-const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
 
     return (
@@ -211,17 +72,18 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 
   
 <section className="relative overflow-hidden px-4 sm:px-6 pt-10 sm:pt-16 pb-12 sm:pb-14">
-  <div className="absolute inset-0">
-    <Image
-      src={heroBg}
-      alt=""
-      fill
-      priority
-      className="object-cover blur-[0.5px] scale-105 opacity-[0.42]"
-      sizes="100vw"
-    />
-    <div className="absolute inset-0 bg-white/22" />
-  </div>
+  <div className="absolute inset-0 overflow-hidden">
+  <div
+    className="absolute inset-0"
+    style={{
+      background: 'linear-gradient(135deg, #F8FBF9 0%, #EEF6F2 45%, #FFF6F2 100%)',
+    }}
+  />
+
+  <div className="absolute -top-16 -left-10 h-56 w-56 rounded-full blur-3xl bg-[#DCEEE8]/70" />
+  <div className="absolute top-10 right-0 h-64 w-64 rounded-full blur-3xl bg-[#FCE3DB]/55" />
+  <div className="absolute bottom-0 left-1/3 h-52 w-52 rounded-full blur-3xl bg-white/60" />
+</div>
   
         <div className="relative z-10 max-w-screen-xl mx-auto">
 <div className="flex flex-col items-center gap-4 text-center">
@@ -245,202 +107,10 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
 </p>
 
 
-
-
 </div>
 
 
-
-
-
-{/* 🔎 Haku (ilman korttia) */}
-<div className="w-full max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto mt-4 sm:mt-6 text-left">
-  <div className="w-full">
-    {/* ✅ MOBIILI: avaa erillinen haku */}
-<div className="sm:hidden">
-  <button
-    type="button"
-    onClick={() => router.push('/haku')}
-    className="
-      w-full rounded-full border border-charcoal/15 bg-white
-      pl-5 pr-12 py-4 text-left
-      text-charcoal/70
-      relative
-      "
-    aria-label="Avaa haku"
-  >
-    Hae paikkakuntaa tai palvelua...
-    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-charcoal/60">
-      <Search size={20} />
-    </span>
-  </button>
-</div>
-
-{/* ✅ MOBIILI CTA */}
-<div className="sm:hidden mt-3 flex justify-center">
-  <button
-    type="button"
-    onClick={() => router.push('/lisaa')}
-    className="
-      rounded-full
-      px-8 py-3
-      text-sm font-semibold
-      bg-[#EDF5F2] text-[#1E3A41]
-      hover:bg-[#DCEEE8]
-      transition
-      ring-1 ring-[#4F8F7A]/35
-    "
-  >
-    Lisää ilmoitus (ilmainen)
-  </button>
-</div>
-
-
-{/* ✅ DESKTOP: haku etusivulla + CTA + paremmat ehdotukset */}
-<div className="hidden sm:block">
-  <form
-    onSubmit={(e) => {
-      e.preventDefault()
-      hae()
-    }}
-    className="relative"
-  >
-    <input
-      type="search"
-      placeholder="Hae palvelua tai tekijää..."
-      value={hakusana}
-      onChange={(e) => {
-        setHakusana(e.target.value)
-        setShowDesktopSuggest(true)
-      }}
-      onFocus={() => setShowDesktopSuggest(true)}
-      onBlur={() => {
-        // pieni viive että ehtii klikata listasta
-        setTimeout(() => setShowDesktopSuggest(false), 120)
-      }}
-      className="
-        w-full rounded-full border border-charcoal/15 bg-white
-        pl-5 pr-12 py-4 text-charcoal placeholder:text-charcoal/50
-        outline-none focus:outline-none focus:ring-0 focus:border-charcoal/30
-      "
-      inputMode="search"
-      enterKeyHint="search"
-      autoCorrect="off"
-      autoCapitalize="none"
-      spellCheck={false}
-    />
-
-    <button
-      type="submit"
-      className="absolute right-4 top-1/2 -translate-y-1/2 text-charcoal/70 hover:text-persikka transition"
-      aria-label="Hae"
-    >
-      <Search size={20} />
-    </button>
-
-    {/* ✅ Ehdotukset */}
-    {showDesktopSuggest && (palveluEhdotukset.length > 0 || paikkaEhdotukset.length > 0) && (
-      <div className="absolute left-0 right-0 mt-2 z-20">
-        <div className="bg-white/95 backdrop-blur border border-black/10 rounded-2xl shadow-md overflow-hidden">
-          <ul className="max-h-80 overflow-y-auto py-1">
-
-            {/* Paikkakunnat */}
-            {paikkaEhdotukset.length > 0 && (
-              <li className="px-4 pt-3 pb-2 text-[11px] uppercase tracking-wide text-charcoal/50">
-                Paikkakunnat
-              </li>
-            )}
-
-            {paikkaEhdotukset.slice(0, 8).map((p) => (
-              <li key={`paikka-${p}`}>
-                <button
-                  type="button"
-                  className="w-full text-left px-4 py-3 hover:bg-black/5 flex items-center justify-between"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    setHakusana(p)
-                    setShowDesktopSuggest(false)
-                    router.push(`/aluehaku?q=${encodeURIComponent(p)}`)
-                  }}
-                >
-                  <span>{p}</span>
-                  <span className="text-[11px] text-charcoal/40">alue</span>
-                </button>
-              </li>
-            ))}
-
-            {/* Palvelut/tekijät */}
-            {palveluEhdotukset.length > 0 && (
-              <li className="px-4 pt-3 pb-2 text-[11px] uppercase tracking-wide text-charcoal/50">
-                Palvelut ja tekijät
-              </li>
-            )}
-
-            {palveluEhdotukset.slice(0, 8).map((x) => (
-              <li key={`palvelu-${x}`}>
-                <button
-                  type="button"
-                  className="w-full text-left px-4 py-3 hover:bg-black/5 flex items-center justify-between"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    setHakusana(x)
-                    setShowDesktopSuggest(false)
-                    router.push(`/aluehaku?q=${encodeURIComponent(x)}`)
-                  }}
-                >
-                  <span>{x}</span>
-                  <span className="text-[11px] text-charcoal/40">haku</span>
-                </button>
-              </li>
-            ))}
-
-            {/* Näytä kaikki */}
-            <li className="border-t border-black/10 mt-1">
-              <button
-                type="button"
-                className="w-full text-left px-4 py-3 hover:bg-black/5 font-semibold text-[#1E3A41]"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  setShowDesktopSuggest(false)
-                  hae()
-                }}
-              >
-                Näytä kaikki tulokset →
-              </button>
-            </li>
-
-          </ul>
-        </div>
-      </div>
-    )}
-  </form>
-
-  {/* ✅ CTA */}
-<div className="mt-4 flex items-center justify-center">
-  <button
-    type="button"
-    onClick={() => router.push('/lisaa')}
-    className="
-      rounded-full px-7 py-3 text-sm font-semibold
-      bg-[#EDF5F2] text-[#1E3A41]
-      hover:bg-[#DCEEE8] transition
-      ring-1 ring-[#4F8F7A]/35
-    "
-  >
-    Lisää ilmoitus (ilmainen)
-  </button>
-  
-</div>
-
-</div>
-
-
-
-  </div>
-</div>
-
-
-
+<HomeSearch />
 
 </div>
 
@@ -454,111 +124,11 @@ const visibleKategoriat = kategoriat.filter((k) => k.enabled)
       <section className="bg-white px-4 sm:px-6 py-6 sm:py-8">
   <div className="max-w-screen-xl mx-auto">
 
-{/*  Nyt suosittua */}
-{nytSuosittua.length > 0 && (
-
-  <div className="w-full mt-2 sm:mt-5">
-    <div className="flex items-center justify-between px-1">
-      <div className="text-left">
-        <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-[#1E3A41]">
-  Suosittua juuri nyt
-</h2>
-
-<p className="text-xs sm:text-sm text-charcoal/60 mt-1">
-  Kurkatuimmat palvelut ja kiinnostavat löydöt Mainoskylässä.
-</p>
-        
-      </div>
-
-      {/* Desktop: nuolinapit */}
-      <div className="hidden sm:flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => scrollNytSuosittua('left')}
-          className="h-9 w-9 rounded-full bg-white ring-1 ring-black/10 hover:ring-black/20 flex items-center justify-center"
-          aria-label="Selaa vasemmalle"
-        >
-          ‹
-        </button>
-        <button
-          type="button"
-          onClick={() => scrollNytSuosittua('right')}
-          className="h-9 w-9 rounded-full bg-white ring-1 ring-black/10 hover:ring-black/20 flex items-center justify-center"
-          aria-label="Selaa oikealle"
-        >
-          ›
-        </button>
-      </div>
-    </div>
-
-    {/* Yksi rivi: mobiili swipe + desktop myös scroll, mutta ohjataan nuolilla */}
-    <div className="mt-2 sm:mt-3 -mx-4 px-4 pr-6">
-      <div
-  ref={nytSuosittuaRef}
-className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar scroll-smooth"
-  style={{ WebkitOverflowScrolling: 'touch' }}
->
-
-        {nytSuosittua.map((ilmo) => (
-          <Link
-  key={ilmo.id}
-  href={`/ilmoitukset/${ilmo.id}`}
-  className="
-    group
-    snap-start
-    flex-none
-    w-[220px] sm:w-[260px] lg:w-[300px]
-    bg-white ring-1 ring-black/5
-    rounded-[22px] overflow-hidden
-    shadow-sm hover:shadow-lg
-    hover:-translate-y-1
-    transition-all duration-300
-    text-left
-  "
->
-            <div className="relative w-full aspect-[4/3] bg-[#F6F7F7] overflow-hidden">
-              <SafeCardImage
-  src={ilmo.kuva_url}
-  alt={ilmo.otsikko}
-  fill
-  className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
-  sizes="(max-width: 640px) 220px, (max-width: 1024px) 260px, 300px"
+<PopularNowSection
+  items={nytSuosittua}
+  sectionRef={nytSuosittuaRef}
+  onScroll={scrollNytSuosittua}
 />
-
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/20 to-transparent" />
-
-            </div>
-
-            
-
-            <div className="p-3">
-              <div className="font-semibold text-sm text-[#1E3A41] truncate">
-                {ilmo.otsikko}
-              </div>
-              <div className="text-xs text-charcoal/70 truncate">
-                {ilmo.sijainti}
-              </div>
-
-              <div className="mt-2 flex items-center gap-2 text-[11px] text-charcoal/60">
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#F6F7F7] px-2 py-1">
-                <Eye className="h-4 w-4" />
-                {ilmo.nayttoja ?? 0}
-                </span>
-
-                {ilmo.kategoria && (
-                  <span className="truncate rounded-full bg-[#F6F7F7] px-2 py-1">
-                    {ilmo.kategoria}
-                  </span>
-                )}
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </div>
-  </div>
-)}
-
 
 
 
@@ -577,10 +147,10 @@ className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandat
 
 
 {/* Desktop: kaikki samalla rivillä */}
-<div className="hidden sm:flex justify-center mt-8 px-2 py-2">
-  <div className="flex gap-5 justify-center px-6">
+<div className="hidden sm:block mt-8 px-2 py-2">
+  <div className="flex flex-wrap gap-5 justify-center px-6 max-w-5xl mx-auto">
     {visibleKategoriat.map((k) => (
-      <div key={k.nimi} className="flex flex-col items-center shrink-0">
+  <div key={k.href} className="flex flex-col items-center shrink-0">
         <button
         onClick={() => router.push(k.href)}
 className="
@@ -606,216 +176,18 @@ className="
 </section>
 
     {/* Uusimmat ilmoitukset (kategorioiden jälkeen, ennen etusivun ilmoituksia) */}
-{uusimmat.length > 0 && (
-  <section className="bg-white px-4 sm:px-6 py-8">
-    <div className="max-w-screen-xl mx-auto">
-      <div className="flex items-center justify-between px-1">
-        <div className="text-left">
-          <h2 className="text-base sm:text-lg font-semibold text-[#1E3A41]">
-            Uusimmat ilmoitukset
-          </h2>
-          <p className="text-xs text-charcoal/60">
-           Tuoreimmat tekijät ja palvelut – lisääntyvät koko ajan
-          </p>
-
-        </div>
-
-        <div className="hidden sm:flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => scrollUusimmat('left')}
-            className="h-9 w-9 rounded-full bg-white ring-1 ring-black/10 hover:ring-black/20 flex items-center justify-center"
-            aria-label="Selaa vasemmalle"
-          >
-            ‹
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollUusimmat('right')}
-            className="h-9 w-9 rounded-full bg-white ring-1 ring-black/10 hover:ring-black/20 flex items-center justify-center"
-            aria-label="Selaa oikealle"
-          >
-            ›
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-3 -mx-4 px-4 pr-6">
-        <div
-          ref={uusimmatRef}
-          className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar scroll-smooth"
-          style={{ WebkitOverflowScrolling: 'touch' }}
-        >
-          {uusimmat.map((ilmo) => (
-  <Link
-    key={ilmo.id}
-    href={`/ilmoitukset/${ilmo.id}`}
-    className="
-      group
-      snap-start flex-none
-      w-[220px] sm:w-[260px] lg:w-[300px]
-      bg-white ring-1 ring-black/5 rounded-[22px] overflow-hidden
-      shadow-sm hover:shadow-lg hover:-translate-y-1
-      transition-all duration-300 text-left
-    "
-  >
-              <div className="relative w-full aspect-[4/3] bg-[#F6F7F7] overflow-hidden">
-                <SafeCardImage
-  src={ilmo.kuva_url}
-  alt={ilmo.otsikko}
-  fill
-  className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
-  sizes="(max-width: 640px) 220px, (max-width: 1024px) 260px, 300px"
+<LatestListingsSection
+  items={uusimmat}
+  sectionRef={uusimmatRef}
+  onScroll={scrollUusimmat}
 />
-<div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/25 via-black/10 to-transparent" />
 
 
-              </div>
-
-              <div className="p-3">
-                <div className="font-semibold text-sm text-[#1E3A41] truncate">
-                  {ilmo.otsikko}
-                </div>
-                <div className="text-xs text-charcoal/70 truncate">
-                  {ilmo.sijainti}
-                </div>
-
-                <div className="mt-2 flex items-center gap-2 text-[11px] text-charcoal/60">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[#F6F7F7] px-2 py-1">
-                    <Eye className="h-4 w-4" />
-                    {ilmo.nayttoja ?? 0}
-                  </span>
-
-                  {ilmo.kategoria && (
-                    <span className="truncate rounded-full bg-[#F6F7F7] px-2 py-1">
-                      {ilmo.kategoria}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </div>
-  </section>
-)}
-
-
-<section className="bg-[#F6FAF8] px-4 sm:px-6 py-10 sm:py-12">
-  <div className="max-w-screen-xl mx-auto">
-<h2 className="text-lg sm:text-xl font-semibold tracking-tight text-[#1E3A41] mb-2">
-  Etusivulla näkyvät ilmoitukset
-</h2>
-
-<p className="text-xs text-charcoal/60 mb-3">
-  Premium-ilmoitukset näkyvät etusivulla sekä lisäksi hauissa ja kategorioissa.
-</p>
-
-
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-
-      {premiumIlmoitukset.map((ilmo) => (
-  <div
-    key={ilmo.id}
-    role="button"
-    tabIndex={0}
-    onClick={() => {
-      if (!ilmo.id.startsWith('tyhja-')) {
-        router.push(`/ilmoitukset/${ilmo.id}`)
-      }
-    }}
-    onKeyDown={(e) => {
-      if (e.key === 'Enter' && !ilmo.id.startsWith('tyhja-')) {
-        router.push(`/ilmoitukset/${ilmo.id}`)
-      }
-    }}
-    className={`
-  group bg-white ring-1 ring-black/5
-  rounded-[22px] overflow-hidden
-  shadow-sm
-  transition-all duration-300 ease-out
-  ${ilmo.id.startsWith('tyhja-') ? 'cursor-default' : 'cursor-pointer hover:-translate-y-1 hover:shadow-lg'}
-`}
-  >
-
-          {ilmo.kuva_url ? (
-            <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#F6F7F7]">
-              {!ilmo.id.startsWith('tyhja-') && (
-  <span className="absolute top-2 left-2 z-10 text-[10px] bg-[#EDF5F2] text-[#1E3A41] px-2 py-1 rounded-full font-medium">
-    Suositeltu
-  </span>
-)}
-              <SafeCardImage
-  src={ilmo.kuva_url}
-  alt={ilmo.otsikko}
-  fill
-  className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.03]"
-  sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+<PremiumListingsSection
+  items={premiumIlmoitukset}
+  onOpenListing={(id) => router.push(`/ilmoitukset/${id}`)}
+  onAddListing={() => router.push('/lisaa')}
 />
-<div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/20 via-black/5 to-transparent" />
-
-            </div>
-          ) : (
-  <div className="relative w-full aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#EEF6F2] via-[#F7FBF8] to-[#FFF6F2]">
-    <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-      
-      <div className="mt-2 text-sm sm:text-base font-semibold text-[#1E3A41]">
-        Varaa näkyvä paikka tähän
-      </div>
-      <div className="mt-2 text-xs text-charcoal/60 max-w-[220px]">
-        Näy etusivulla ja tuo palvelusi esiin heti kävijöille.
-      </div>
-    </div>
-  </div>
-)}
-          <div className="px-3 pb-3 pt-1.5">
-  <h3 className="text-[15px] sm:text-base font-semibold leading-snug text-[#1E3A41] line-clamp-2 min-h-[40px]">
-    {ilmo.otsikko}
-  </h3>
-
-  {ilmo.sijainti && (
-    <div className="mt-1 text-xs font-medium text-charcoal/65 truncate">
-      {ilmo.sijainti}
-    </div>
-  )}
-
-  {ilmo.kuvaus && (
-    <p className="mt-1.5 text-[13px] leading-5 text-charcoal/75 line-clamp-2 min-h-[38px]">
-      {ilmo.kuvaus}
-    </p>
-  )}
-
-  {ilmo.id.startsWith('tyhja-') ? (
-    <button
-      onClick={(e) => {
-        e.stopPropagation()
-        router.push('/lisaa')
-      }}
-      className="
-        mt-3 w-full px-3 py-2.5 text-xs font-semibold
-        rounded-full
-        bg-[#EDF5F2]
-        text-[#1E3A41]
-        ring-1 ring-[#4F8F7A]/35
-        hover:bg-[#DCEEE8]
-        hover:ring-[#4F8F7A]/55
-        transition
-      "
-    >
-      Lisää oma ilmoitus
-    </button>
-  ) : (
-    <div className="mt-2.5">
-      <Katselukerrat count={ilmo.nayttoja || 0} small />
-    </div>
-  )}
-</div>
-        </div>
-      ))}
-    </div>
-  </div>
-</section>
 
 
 <section className="bg-white px-4 sm:px-6 py-14 sm:py-16">

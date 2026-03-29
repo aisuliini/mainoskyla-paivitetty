@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import HomeClientWrapper from '@/app/HomeClientWrapper'
-
+import HomeClient from '@/components/home/HomeClient'
+import { getHomePageData } from '@/lib/queries/home'
 
 export const metadata: Metadata = {
   title: 'Mainoskylä – Löydä tai mainosta paikallisesti',
@@ -18,6 +18,28 @@ export const metadata: Metadata = {
   },
 }
 
-export default function Page() {
-  return <HomeClientWrapper />
+export default async function Page() {
+  const { premium, suosittua, uusimmat } = await getHomePageData()
+
+  const taydellisetPremiumit = [...premium]
+  const tyhjiaPaikkoja = Math.max(0, 6 - taydellisetPremiumit.length)
+
+  for (let i = 0; i < tyhjiaPaikkoja; i++) {
+    taydellisetPremiumit.push({
+      id: `tyhja-${i}`,
+      otsikko: 'Varaa etusivupaikka',
+      kuvaus: 'Nosta palvelusi näkyvästi esiin Mainoskylän etusivulla.',
+      sijainti: '',
+      kuva_url: '',
+      nayttoja: 0,
+    })
+  }
+
+  return (
+    <HomeClient
+      initialPremiumIlmoitukset={taydellisetPremiumit}
+      initialNytSuosittua={suosittua}
+      initialUusimmat={uusimmat}
+    />
+  )
 }

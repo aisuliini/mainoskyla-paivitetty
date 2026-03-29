@@ -1,16 +1,16 @@
-import { createClient } from '@supabase/supabase-js'
 import IlmoituksetClient from './IlmoituksetClient'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { supabase } from '@/lib/supabaseClient'
 
 export default async function Page() {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('ilmoitukset')
-    .select('*')
+    .select('id, otsikko, kuvaus, sijainti, kuva_url, kategoria, luotu, nayttoja')
+    .eq('visible', true)
     .order('luotu', { ascending: false })
+
+  if (error) {
+    throw new Error(`Ilmoitusten haku epäonnistui: ${error.message}`)
+  }
 
   return <IlmoituksetClient initialIlmoitukset={data ?? []} />
 }

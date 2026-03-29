@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import SafeCardImage from '@/components/SafeCardImage'
+import SafeCardImage from '@/components/listings/SafeCardImage'
 import { supabase } from '@/lib/supabaseClient'
 import { Eye } from 'lucide-react'
 
