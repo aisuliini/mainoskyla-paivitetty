@@ -56,7 +56,8 @@ export default function MuokkaaIlmoitusta() {
   const wrapperRef = useRef<HTMLDivElement>(null)
 
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<{ id: string } | null>(null)
+const [authLoading, setAuthLoading] = useState(true)
+const [user, setUser] = useState<{ id: string } | null>(null)
 
   // FORM: Perustiedot
   const [otsikko, setOtsikko] = useState('')
@@ -179,15 +180,38 @@ if (kategoria === 'tapahtumat-ja-juhlapalvelut') {      if (!tapahtumaAlku) e.ta
     return []
   }
 
-  // ---------- auth ----------
   useEffect(() => {
-    const haeKayttaja = async () => {
-      const { data: sessionData } = await supabase.auth.getSession()
-      if (sessionData?.session?.user) setUser(sessionData.session.user)
-      else setUser(null)
+  const loadUser = async () => {
+    try {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser()
+
+      if (error) {
+        setUser(null)
+        return
+      }
+
+      setUser(user ? { id: user.id } : null)
+    } finally {
+      setAuthLoading(false)
     }
-    void haeKayttaja()
-  }, [])
+  }
+
+  void loadUser()
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    setUser(session?.user ? { id: session.user.id } : null)
+    setAuthLoading(false)
+  })
+
+  return () => {
+    subscription.unsubscribe()
+  }
+}, [])
 
   // ---------- fetch ilmoitus ----------
   useEffect(() => {
@@ -295,14 +319,28 @@ if (kategoria === 'tapahtumat-ja-juhlapalvelut') {      if (!tapahtumaAlku) e.ta
   }
 
     const uploadOne = async (file: File): Promise<string> => {
-    const tiedostonimi = `${Date.now()}_${Math.random().toString(16).slice(2)}_${file.name}`
-    const { error: uploadError } = await supabase.storage.from('kuvat').upload(tiedostonimi, file)
-    if (uploadError) throw new Error('Kuvan lataus epäonnistui: ' + uploadError.message)
+  if (!user) throw new Error('Kirjautuminen vaaditaan.')
 
-    const { data: publicUrl } = supabase.storage.from('kuvat').getPublicUrl(tiedostonimi)
-    if (!publicUrl?.publicUrl) throw new Error('Kuvan public URL epäonnistui.')
-    return publicUrl.publicUrl
+  const tiedostonimi = `${Date.now()}_${Math.random().toString(16).slice(2)}_${file.name}`
+  const filePath = `${user.id}/${tiedostonimi}`
+
+  const { error: uploadError } = await supabase.storage.from('kuvat').upload(filePath, file, {
+    upsert: false,
+    contentType: file.type || 'image/jpeg',
+  })
+
+  if (uploadError) {
+    throw new Error('Kuvan lataus epäonnistui: ' + uploadError.message)
   }
+
+  const { data: publicUrl } = supabase.storage.from('kuvat').getPublicUrl(filePath)
+
+  if (!publicUrl?.publicUrl) {
+    throw new Error('Kuvan public URL epäonnistui.')
+  }
+
+  return publicUrl.publicUrl
+}
 
   // ---------- submit ----------
   const submitNow = async () => {
@@ -432,7 +470,12 @@ if (kategoria === 'tapahtumat-ja-juhlapalvelut') {      if (!tapahtumaAlku) e.ta
   if (loading) return <p className="text-center py-8">Ladataan...</p>
 
   return (
-<main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-12 my-8">      {!user ? (
+<main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-12 my-8">
+  {authLoading ? (
+    <div className="text-center py-16">
+      <h1 className="text-2xl font-semibold mb-4">Tarkistetaan kirjautumista...</h1>
+    </div>
+  ) : !user ? (
         <div className="text-center py-16">
           <h1 className="text-2xl font-semibold mb-4">Kirjautuminen vaaditaan</h1>
           <p className="mb-6">Sinun täytyy olla kirjautunut muokataksesi ilmoitusta.</p>
@@ -476,6 +519,21 @@ if (kategoria === 'tapahtumat-ja-juhlapalvelut') {      if (!tapahtumaAlku) e.ta
             {/* STEP 1: Perustiedot */}
 <div className={sectionClass}>
   <h2 className="text-lg font-semibold text-[#1E3A41]">Perustiedot</h2>
+
+  <select
+  name="kategoria"
+  value={kategoria}
+  onChange={(e) => setKategoria(e.target.value)}
+  className={inputClass}
+>
+  <option value="">Valitse kategoria</option>
+  {CATEGORY_CONFIG.map((category) => (
+    <option key={category.slug} value={category.slug}>
+      {category.name}
+    </option>
+  ))}
+</select>
+{errors.kategoria && <p className="text-sm text-red-600 mt-1">{errors.kategoria}</p>}
               <input
                 name="otsikko"
                 type="text"
@@ -539,51 +597,48 @@ className={inputClass}
 
               {errors.sijainti && <p className="text-sm text-red-600 mt-1">{errors.sijainti}</p>}
 
-              <select
-  name="kategoria"
-  value={kategoria}
-  onChange={(e) => setKategoria(e.target.value)}
-  className={inputClass}
->
-  <option value="">Valitse kategoria</option>
-  {CATEGORY_CONFIG.map((category) => (
-    <option key={category.slug} value={category.slug}>
-      {category.name}
-    </option>
-  ))}
-</select>
-              {errors.kategoria && <p className="text-sm text-red-600 mt-1">{errors.kategoria}</p>}
+          
 
               {kategoria === 'tapahtumat-ja-juhlapalvelut' && (
-                <>
-                  <div data-error="tapahtumaAlku" tabIndex={-1}>
-                    <label className="block">Tapahtuman alkupäivä:</label>
-                    <DayPicker
-                      mode="single"
-                      selected={tapahtumaAlku ?? undefined}
-                      onSelect={(d) => setTapahtumaAlku(d ?? null)}
-                      locale={fi}
-                    />
-                  </div>
+  <div className="rounded-2xl bg-white border border-black/5 p-4 space-y-4">
+    <div data-error="tapahtumaAlku" tabIndex={-1}>
+      <label className="block text-sm font-medium mb-2 text-[#1E3A41]">
+        Alkupäivä
+      </label>
+      <DayPicker
+        mode="single"
+        selected={tapahtumaAlku ?? undefined}
+        onSelect={(d) => setTapahtumaAlku(d ?? null)}
+        locale={fi}
+      />
+    </div>
 
-                  <div data-error="tapahtumaLoppu" tabIndex={-1}>
-                    <label className="block">Tapahtuman loppupäivä:</label>
-                    <DayPicker
-                      mode="single"
-                      selected={tapahtumaLoppu ?? undefined}
-                      onSelect={(d) => setTapahtumaLoppu(d ?? null)}
-                      locale={fi}
-                    />
-                  </div>
+    <div data-error="tapahtumaLoppu" tabIndex={-1}>
+      <label className="block text-sm font-medium mb-2 text-[#1E3A41]">
+        Loppupäivä
+      </label>
+      <DayPicker
+        mode="single"
+        selected={tapahtumaLoppu ?? undefined}
+        onSelect={(d) => setTapahtumaLoppu(d ?? null)}
+        locale={fi}
+      />
+    </div>
 
-                  {errors.tapahtumaAlku && <p className="text-sm text-red-600 mt-1">{errors.tapahtumaAlku}</p>}
-                  {errors.tapahtumaLoppu && <p className="text-sm text-red-600 mt-1">{errors.tapahtumaLoppu}</p>}
-                </>
-              )}
+    {errors.tapahtumaAlku && (
+      <p className="text-sm text-red-600">{errors.tapahtumaAlku}</p>
+    )}
+
+    {errors.tapahtumaLoppu && (
+      <p className="text-sm text-red-600">{errors.tapahtumaLoppu}</p>
+    )}
+  </div>
+)}
             </div>
 
             {/* STEP 2: Yhteystiedot */}
-            <div className="space-y-4" data-error="yhteys">
+            <div className={sectionClass} data-error="yhteys">
+  <h2 className="text-lg font-semibold text-[#1E3A41]">Yhteystiedot</h2>
               
 
               <input
@@ -619,13 +674,12 @@ className={inputClass}            />
             </div>
 
             {/* STEP 3: Kuva */}
-            <div className="space-y-4">
-              <label className="block font-medium">
-                Kuva
-                <span className="ml-2 text-sm font-normal text-gray-500">
-                  Suosittelemme kuvaa – ilman kuvaa näytetään Mainoskylä-placeholder.
-                </span>
-              </label>
+            <div className={sectionClass}>
+  <h2 className="text-lg font-semibold text-[#1E3A41]">Kuvat</h2>
+
+  <label className="block font-medium">
+    Kuva (ilmoituksella on parempi menestys, kun siinä on kuva)
+  </label>
 
               <p className="text-xs text-gray-500">
                 Voit lisätä enintään 4 kuvaa. Ensimmäinen kuva näkyy listauksessa.
@@ -725,7 +779,8 @@ className={inputClass}            />
             </div>
 
             {/* STEP 4: Näkyvyys */}
-<div className="space-y-4">
+<div className={sectionClass}>
+  <h2 className="text-lg font-semibold text-[#1E3A41]">Näkyvyys</h2>
   <label className="block font-medium">Valitse ilmoitustyyppi:</label>
 
   <select

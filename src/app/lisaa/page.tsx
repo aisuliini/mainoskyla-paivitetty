@@ -46,7 +46,7 @@ export default function LisaaIlmoitus() {
 
   const [publishedId, setPublishedId] = useState<string | null>(null)
   const [saaJakaaSomessa, setSaaJakaaSomessa] = useState(false)
-
+  const [authLoading, setAuthLoading] = useState(true)
   
 
   const inputClass =
@@ -193,17 +193,42 @@ useEffect(() => {
 
 
 
+useEffect(() => {
+  const loadUser = async () => {
+    try {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser()
 
-  useEffect(() => {
-  const haeKayttaja = async () => {
-    const { data: sessionData } = await supabase.auth.getSession()
-    if (sessionData?.session?.user) {
-  setUser(sessionData.session.user)
-}
+      console.log('LisaaIlmoitus auth.getUser:', { user, error })
 
+      if (error) {
+        setUser(null)
+        return
+      }
+
+      setUser(user ? { id: user.id } : null)
+    } finally {
+      setAuthLoading(false)
+    }
   }
-    void haeKayttaja()
+
+  void loadUser()
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    console.log('LisaaIlmoitus onAuthStateChange:', session?.user?.id)
+    setUser(session?.user ? { id: session.user.id } : null)
+    setAuthLoading(false)
+  })
+
+  return () => {
+    subscription.unsubscribe()
+  }
 }, [])
+  
 
 
 useEffect(() => {
@@ -264,19 +289,35 @@ const kuvaUrls: string[] = []
   }
 
 if (kuvat.length > 0) {
-  // ladataan max 4
   const files = kuvat.slice(0, 4)
 
   for (const f of files) {
     const tiedostonimi = `${Date.now()}_${Math.random().toString(16).slice(2)}_${f.name}`
-    const { error: uploadError } = await supabase.storage.from('kuvat').upload(tiedostonimi, f)
+    const filePath = `${user.id}/${tiedostonimi}`
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+  .from('kuvat')
+  .upload(filePath, f, {
+    upsert: false,
+    contentType: f.type || 'image/jpeg',
+  })
+
+console.log('STORAGE upload result:', {
+  filePath,
+  uploadData,
+  uploadError,
+  userId: user.id,
+})
 
     if (uploadError) {
       console.error('Upload error:', uploadError)
       throw new Error('Kuvan lataus epäonnistui: ' + uploadError.message)
     }
 
-    const { data: publicUrl } = supabase.storage.from('kuvat').getPublicUrl(tiedostonimi)
+    const { data: publicUrl } = supabase.storage
+      .from('kuvat')
+      .getPublicUrl(filePath)
+
     if (publicUrl?.publicUrl) {
       kuvaUrls.push(publicUrl.publicUrl)
     }
@@ -358,7 +399,11 @@ return
 } 
 
   return (
-<main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-12 my-8">    {!user ? (
+<main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-12 my-8">    {authLoading ? (
+  <div className="text-center py-16">
+    <h1 className="text-2xl font-semibold mb-4">Tarkistetaan kirjautumista...</h1>
+  </div>
+) : !user ? (
       <div className="text-center py-16">
         <h1 className="text-2xl font-semibold mb-4">Kirjautuminen vaaditaan</h1>
         <p className="mb-6">Sinun täytyy olla kirjautunut lisätäksesi ilmoituksen.</p>

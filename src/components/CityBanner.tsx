@@ -21,15 +21,15 @@ export default function CityBanner({ city }: { city?: string }) {
         const nowIso = new Date().toISOString()
 
         const { data, error } = await supabase
-          .from('city_banners')
-          .select('banner_url, starts_at, ends_at')
-          .in('status', ['active', 'scheduled'])
-          .lte('starts_at', nowIso)
-          .gte('ends_at', nowIso)
-          .ilike('city', cityNorm)
-          .order('starts_at', { ascending: false })
-          .limit(1)
-          .maybeSingle()
+  .from('city_banners')
+  .select('banner_url, starts_at, ends_at')
+  .eq('status', 'active')
+  .lte('starts_at', nowIso)
+  .gte('ends_at', nowIso)
+  .ilike('city', cityNorm)
+  .order('starts_at', { ascending: false })
+  .limit(1)
+  .maybeSingle()
 
         if (cancelled) return
 
