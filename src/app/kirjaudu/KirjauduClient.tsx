@@ -129,7 +129,7 @@ const [passwordLoading, setPasswordLoading] = useState(false)
     const { error } = await supabase.auth.signInWithOtp({
       email: magicEmail.trim(),
       options: {
-        emailRedirectTo: `${siteUrl}/auth/callback`,
+        emailRedirectTo: `${siteUrl}/auth/callback?next=/profiili`,
       },
     })
 

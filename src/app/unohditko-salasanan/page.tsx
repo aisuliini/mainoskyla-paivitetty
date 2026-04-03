@@ -30,7 +30,7 @@ export default function UnohtuikoSalasanaSivu() {
       }
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${siteUrl}/salasana-uusi`,
+        redirectTo: `${siteUrl}/auth/callback?next=/salasana-uusi`,
       })
 
       if (error) {
