@@ -56,8 +56,9 @@ export default function MuokkaaIlmoitusta() {
   const wrapperRef = useRef<HTMLDivElement>(null)
 
   const [loading, setLoading] = useState(true)
-const [authLoading, setAuthLoading] = useState(true)
-const [user, setUser] = useState<{ id: string } | null>(null)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [user, setUser] = useState<{ id: string } | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   // FORM: Perustiedot
   const [otsikko, setOtsikko] = useState('')
@@ -128,11 +129,12 @@ const sectionClass =
     if (!kategoria) e.kategoria = 'Valitse kategoria.'
 
 
-if (kategoria === 'tapahtumat-ja-juhlapalvelut') {      if (!tapahtumaAlku) e.tapahtumaAlku = 'Valitse tapahtuman alkupäivä.'
-      if (tapahtumaAlku && tapahtumaLoppu && tapahtumaLoppu < tapahtumaAlku) {
-        e.tapahtumaLoppu = 'Loppupäivä ei voi olla ennen alkupäivää.'
-      }
-    }
+if (kategoria === 'tapahtumat-ja-juhlapalvelut') {
+  if (!tapahtumaAlku) e.tapahtumaAlku = 'Valitse tapahtuman alkupäivä.'
+  if (tapahtumaAlku && tapahtumaLoppu && tapahtumaLoppu < tapahtumaAlku) {
+    e.tapahtumaLoppu = 'Loppupäivä ei voi olla ennen alkupäivää.'
+  }
+}
 
     const p = puhelin.trim()
     const s = sahkoposti.trim()
@@ -188,12 +190,25 @@ if (kategoria === 'tapahtumat-ja-juhlapalvelut') {      if (!tapahtumaAlku) e.ta
         error,
       } = await supabase.auth.getUser()
 
-      if (error) {
+      if (error || !user) {
         setUser(null)
+        setIsAdmin(false)
         return
       }
 
-      setUser(user ? { id: user.id } : null)
+      setUser({ id: user.id })
+
+      const { data: adminRow, error: adminError } = await supabase
+        .from('admin_users')
+        .select('user_id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (adminError) {
+        console.error('Admin-tarkistus epäonnistui:', adminError)
+      }
+
+      setIsAdmin(!!adminRow)
     } finally {
       setAuthLoading(false)
     }
@@ -205,6 +220,7 @@ if (kategoria === 'tapahtumat-ja-juhlapalvelut') {      if (!tapahtumaAlku) e.ta
     data: { subscription },
   } = supabase.auth.onAuthStateChange((_event, session) => {
     setUser(session?.user ? { id: session.user.id } : null)
+    if (!session?.user) setIsAdmin(false)
     setAuthLoading(false)
   })
 
@@ -215,55 +231,57 @@ if (kategoria === 'tapahtumat-ja-juhlapalvelut') {      if (!tapahtumaAlku) e.ta
 
   // ---------- fetch ilmoitus ----------
   useEffect(() => {
-    if (!ilmoitusId) return
+  if (!ilmoitusId || authLoading || !user) return
 
-    const hae = async () => {
-      setLoading(true)
-      setSubmitError(null)
-      setSubmitSuccess(null)
+  const hae = async () => {
+    setLoading(true)
+    setSubmitError(null)
+    setSubmitSuccess(null)
 
-      const { data, error } = await supabase
-        .from('ilmoitukset')
-        .select('*')
-        .eq('id', ilmoitusId)
-        .single()
+    let query = supabase
+      .from('ilmoitukset')
+      .select('*')
+      .eq('id', ilmoitusId)
 
-      if (error || !data) {
-        setLoading(false)
-        alert('Ilmoitusta ei löytynyt.')
-        router.push('/profiili')
-        return
-      }
-
-      const row = data as IlmoitusRow
-
-      setOtsikko(row.otsikko ?? '')
-      setKuvaus(row.kuvaus ?? '')
-      setSijainti(row.sijainti ?? '')
-      setKategoria(normalizeCategoryValue(row.kategoria))
-            const rowTyyppi = row.maksuluokka === 'premium' ? 'premium' : 'perus'
-      setTyyppi(rowTyyppi)
-      setOriginalTyyppi(rowTyyppi)
-
-      setPuhelin(row.puhelin ?? '')
-      setSahkoposti(row.sahkoposti ?? '')
-      setLinkki(row.linkki ?? '')
-      setSaaJakaaSomessa(row.saa_jakaa_somessa ?? false)
-
-
-      // Tapahtumat
-      if (row.tapahtuma_alku) setTapahtumaAlku(new Date(row.tapahtuma_alku))
-      if (row.tapahtuma_loppu) setTapahtumaLoppu(new Date(row.tapahtuma_loppu))
-
-      // Kuvat -> ImageItem existing
-      const urls = parseKuvatFromRow(row).slice(0, 4)
-      setImages(urls.map((u) => ({ kind: 'existing', url: u })))
-
-      setLoading(false)
+    if (!isAdmin) {
+      query = query.eq('user_id', user.id)
     }
 
-    void hae()
-  }, [ilmoitusId, router])
+    const { data, error } = await query.single()
+
+    if (error || !data) {
+      setLoading(false)
+      router.replace('/profiili')
+      return
+    }
+
+    const row = data as IlmoitusRow
+
+    setOtsikko(row.otsikko ?? '')
+    setKuvaus(row.kuvaus ?? '')
+    setSijainti(row.sijainti ?? '')
+    setKategoria(normalizeCategoryValue(row.kategoria))
+
+    const rowTyyppi = row.maksuluokka === 'premium' ? 'premium' : 'perus'
+    setTyyppi(rowTyyppi)
+    setOriginalTyyppi(rowTyyppi)
+
+    setPuhelin(row.puhelin ?? '')
+    setSahkoposti(row.sahkoposti ?? '')
+    setLinkki(row.linkki ?? '')
+    setSaaJakaaSomessa(row.saa_jakaa_somessa ?? false)
+
+    if (row.tapahtuma_alku) setTapahtumaAlku(new Date(row.tapahtuma_alku))
+    if (row.tapahtuma_loppu) setTapahtumaLoppu(new Date(row.tapahtuma_loppu))
+
+    const urls = parseKuvatFromRow(row).slice(0, 4)
+    setImages(urls.map((u) => ({ kind: 'existing', url: u })))
+
+    setLoading(false)
+  }
+
+  void hae()
+}, [ilmoitusId, router, authLoading, user, isAdmin])
 
     useEffect(() => {
     if (kategoria !== 'tapahtumat-ja-juhlapalvelut') {
@@ -358,9 +376,9 @@ if (kategoria === 'tapahtumat-ja-juhlapalvelut') {      if (!tapahtumaAlku) e.ta
     setErrors({})
 
     if (!user) {
-      setSubmitError('Kirjautuminen vaaditaan.')
-      return
-    }
+  setSubmitError('Kirjautuminen vaaditaan.')
+  return
+}
 
     setIsSubmitting(true)
 
@@ -448,8 +466,18 @@ if (kategoria === 'tapahtumat-ja-juhlapalvelut') {      if (!tapahtumaAlku) e.ta
   saa_jakaa_somessa: saaJakaaSomessa,
 }
 
-      const { error } = await supabase.from('ilmoitukset').update(payload).eq('id', ilmoitusId)
-      if (error) throw new Error(error.message)
+      let updateQuery = supabase
+  .from('ilmoitukset')
+  .update(payload)
+  .eq('id', ilmoitusId)
+
+if (!isAdmin && user?.id) {
+  updateQuery = updateQuery.eq('user_id', user.id)
+}
+
+const { error } = await updateQuery
+
+if (error) throw new Error(error.message)
 
       setSubmitSuccess('Ilmoitus päivitetty!')
       await new Promise((r) => setTimeout(r, 700))
@@ -467,28 +495,44 @@ if (kategoria === 'tapahtumat-ja-juhlapalvelut') {      if (!tapahtumaAlku) e.ta
     await submitNow()
   }
 
-  if (loading) return <p className="text-center py-8">Ladataan...</p>
+  if (authLoading) {
+  return (
+    <main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-12 my-8">
+      <div className="text-center py-16">
+        <h1 className="text-2xl font-semibold mb-4">Tarkistetaan kirjautumista...</h1>
+      </div>
+    </main>
+  )
+}
+
+if (!user) {
+  return (
+    <main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-12 my-8">
+      <div className="text-center py-16">
+        <h1 className="text-2xl font-semibold mb-4">Kirjautuminen vaaditaan</h1>
+        <p className="mb-6">Sinun täytyy olla kirjautunut muokataksesi ilmoitusta.</p>
+        <button
+          onClick={() => router.push('/kirjaudu')}
+          className="bg-[#F5A3B3] text-[#1E3A41] px-6 py-3 rounded hover:bg-[#3f704d]"
+        >
+          Siirry kirjautumaan
+        </button>
+      </div>
+    </main>
+  )
+}
+
+if (loading) {
+  return (
+    <main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-12 my-8">
+      <p className="text-center py-8">Ladataan...</p>
+    </main>
+  )
+}
 
   return (
-<main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-12 my-8">
-  {authLoading ? (
-    <div className="text-center py-16">
-      <h1 className="text-2xl font-semibold mb-4">Tarkistetaan kirjautumista...</h1>
-    </div>
-  ) : !user ? (
-        <div className="text-center py-16">
-          <h1 className="text-2xl font-semibold mb-4">Kirjautuminen vaaditaan</h1>
-          <p className="mb-6">Sinun täytyy olla kirjautunut muokataksesi ilmoitusta.</p>
-          <button
-            onClick={() => router.push('/kirjaudu')}
-            className="bg-[#F5A3B3] text-[#1E3A41] px-6 py-3 rounded hover:bg-[#3f704d]"
-          >
-            Siirry kirjautumaan
-          </button>
-        </div>
-      ) : (
-        <>
-          <div className="mb-8">
+  <main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-12 my-8">
+    <div className="mb-8">
   <h1 className="text-2xl sm:text-3xl font-bold text-[#1E3A41]">
     Muokkaa ilmoitusta
   </h1>
@@ -833,8 +877,6 @@ className={inputClass}            />
               </button>
             </div>
           </form>
-        </>
-      )}
-    </main>
-  )
+  </main>
+)
 }

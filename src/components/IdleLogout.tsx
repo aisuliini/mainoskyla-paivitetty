@@ -3,6 +3,8 @@
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
+import { signOutAndRedirect } from '@/lib/auth/signOutAndRedirect'
+
 
 const IDLE_MINUTES = 60
 
@@ -23,9 +25,7 @@ export default function IdleLogout() {
         const { data: latest } = await supabase.auth.getSession()
         if (!latest.session?.user) return
 
-        await supabase.auth.signOut()
-        router.replace('/kirjaudu?reason=idle')
-        router.refresh()
+        await signOutAndRedirect(router, 'idle')
       }, IDLE_MINUTES * 60 * 1000)
     }
 

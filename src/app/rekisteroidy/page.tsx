@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
@@ -15,8 +15,41 @@ export default function RekisteroidySivu() {
   const [viesti, setViesti] = useState('')
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
 
   const router = useRouter()
+
+  useEffect(() => {
+  let mounted = true
+
+  const checkSession = async () => {
+    const { data, error } = await supabase.auth.getSession()
+    if (error) console.warn('getSession error', error)
+    if (!mounted) return
+
+    if (data.session?.user) {
+      router.replace('/profiili')
+      router.refresh()
+      return
+    }
+
+    setAuthLoading(false)
+  }
+
+  void checkSession()
+
+  const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    if (session?.user) {
+      router.replace('/profiili')
+      router.refresh()
+    }
+  })
+
+  return () => {
+    mounted = false
+    sub.subscription.unsubscribe()
+  }
+}, [router])
 
   const rekisteroidy = async (e: FormEvent) => {
     e.preventDefault()
@@ -42,37 +75,56 @@ export default function RekisteroidySivu() {
     setLoading(true)
 
     try {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
 
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password: salasana,
-        options: {
-          emailRedirectTo: `${siteUrl}/auth/callback`,
-        },
-      })
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password: salasana,
+    options: {
+      emailRedirectTo: `${siteUrl}/auth/callback`,
+    },
+  })
 
-      if (error) {
-        setViesti('⚠️ Rekisteröityminen epäonnistui: ' + error.message)
-        return
-      }
+  if (error) {
+    console.error('Rekisteröityminen epäonnistui:', error)
 
-      // ✅ Email confirmations ON → ei tule sessionia heti
-      if (!data.session) {
-        setDone(true)
-        setViesti(
-          '✅ Rekisteröityminen onnistui! Lähetimme vahvistuslinkin sähköpostiisi. Avaa linkki, niin kirjautuminen vahvistuu Mainoskylään.'
-        )
-        return
-      }
-
-      // ✅ Email confirmations OFF → session tulee heti
-      router.replace('/profiili')
-      router.refresh()
-    } finally {
-      setLoading(false)
+    if (error.message.toLowerCase().includes('already registered')) {
+      setViesti('⚠️ Tällä sähköpostilla on jo tili. Kokeile kirjautumista.')
+    } else {
+      setViesti('⚠️ Rekisteröityminen epäonnistui. Yritä uudelleen.')
     }
+
+    return
   }
+
+  if (!data.session) {
+    setDone(true)
+    setViesti(
+      '✅ Rekisteröityminen onnistui! Lähetimme vahvistuslinkin sähköpostiisi. Avaa linkki, niin kirjautuminen vahvistuu Mainoskylään.'
+    )
+    return
+  }
+
+  router.replace('/profiili')
+  router.refresh()
+} catch (err) {
+  console.error('Rekisteröitymisessä tapahtui poikkeus:', err)
+  setViesti('⚠️ Rekisteröityminen epäonnistui. Yritä uudelleen.')
+} finally {
+  setLoading(false)
+}
+  }
+
+  if (authLoading) {
+  return (
+    <main className="max-w-md mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-2 text-[#1E3A41]">Rekisteröidy</h1>
+      <p className="text-sm text-charcoal/70">Ladataan…</p>
+    </main>
+  )
+}
 
   return (
     <main className="max-w-md mx-auto p-6">
@@ -153,7 +205,7 @@ export default function RekisteroidySivu() {
                 className="rounded-full px-5 py-2 text-sm font-semibold bg-white ring-1 ring-black/10"
                 href="mailto:"
               >
-                Avaa sähköposti
+                Avaa sähköpostisovellus
               </a>
             </div>
           )}

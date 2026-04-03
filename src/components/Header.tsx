@@ -4,9 +4,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Suspense, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { supabase } from '@/lib/supabaseClient'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Search } from 'lucide-react'
+import { signOutAndRedirect } from '@/lib/auth/signOutAndRedirect'
+
 
 function HeaderFallback() {
   // Kevyt fallback ettei SSR/CSR rakenne heittele (auttaa myös hydrationiin)
@@ -43,9 +44,9 @@ function HeaderInner() {
   if (loading) return null
 
   const kirjauduUlos = async () => {
-    await supabase.auth.signOut()
-    router.refresh()
-  }
+  closeMenus()
+  await signOutAndRedirect(router, 'manual')
+}
 
   const closeMenus = () => {
     setHakusana('')

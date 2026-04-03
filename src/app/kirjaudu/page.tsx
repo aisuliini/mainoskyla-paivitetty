@@ -1,12 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
 
 export default function KirjauduSivu() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const loggedOut = searchParams.get('logout') === '1'
+  const idleLogout = searchParams.get('reason') === 'idle'
+  const logoutError = searchParams.get('logout_error') === '1'
 
   // Salasana login
   const [sahkoposti, setSahkoposti] = useState('')
@@ -185,6 +190,24 @@ const [passwordLoading, setPasswordLoading] = useState(false)
       <p className="text-sm text-charcoal/70 mb-6">
         Kirjautumalla voit hallita ja muokata omia ilmoituksiasi.
       </p>
+
+      {loggedOut && (
+  <div className="mb-4 rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+    Olet kirjautunut ulos.
+  </div>
+)}
+
+{idleLogout && (
+  <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+    Sinut kirjattiin ulos käyttämättömyyden vuoksi.
+  </div>
+)}
+
+{logoutError && (
+  <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+    Uloskirjautumisessa tapahtui virhe. Yritä uudelleen.
+  </div>
+)}
 
       {/* GOOGLE */}
       <button

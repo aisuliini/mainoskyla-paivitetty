@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
 import { List, PlusCircle, Megaphone, Settings, LogOut } from 'lucide-react'
+import { signOutAndRedirect } from '@/lib/auth/signOutAndRedirect'
+
 
 type ProfiiliRow = {
   nimi: string | null
@@ -61,10 +63,8 @@ function ProfiiliContent() {
   }, [router])
 
   const kirjauduUlos = async () => {
-    await supabase.auth.signOut()
-    router.replace('/')
-    router.refresh()
-  }
+  await signOutAndRedirect(router, 'manual')
+}
 
   const otsikkoNimi = nimi ?? email ?? ''
 
