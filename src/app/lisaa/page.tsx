@@ -295,19 +295,18 @@ if (kuvat.length > 0) {
     const tiedostonimi = `${Date.now()}_${Math.random().toString(16).slice(2)}_${f.name}`
     const filePath = `${user.id}/${tiedostonimi}`
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
-  .from('kuvat')
-  .upload(filePath, f, {
-    upsert: false,
-    contentType: f.type || 'image/jpeg',
-  })
+    const { error: uploadError } = await supabase.storage
+      .from('kuvat')
+      .upload(filePath, f, {
+        upsert: false,
+        contentType: f.type || 'image/jpeg',
+      })
 
-console.log('STORAGE upload result:', {
-  filePath,
-  uploadData,
-  uploadError,
-  userId: user.id,
-})
+    console.log('STORAGE upload result:', {
+      filePath,
+      userId: user.id,
+      uploadError,
+    })
 
     if (uploadError) {
       console.error('Upload error:', uploadError)
