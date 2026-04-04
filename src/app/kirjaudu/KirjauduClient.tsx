@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
+import { getSiteUrl } from '@/lib/auth/getSiteUrl'
+
 
 export default function KirjauduSivu() {
   const router = useRouter()
@@ -84,9 +86,7 @@ const [passwordLoading, setPasswordLoading] = useState(false)
 }, [router])
     
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
+const siteUrl = getSiteUrl()
 
   const kirjauduSalasanalla = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault()
@@ -129,14 +129,15 @@ const [passwordLoading, setPasswordLoading] = useState(false)
     const { error } = await supabase.auth.signInWithOtp({
       email: magicEmail.trim(),
       options: {
-        emailRedirectTo: `${siteUrl}/auth/callback?next=/profiili`,
+        emailRedirectTo: `${siteUrl}/auth/callback`,
       },
     })
 
     if (error) {
-      setViesti('⚠️ Linkin lähetys epäonnistui. Yritä uudelleen hetken päästä.')
-      return
-    }
+  console.error('Magic link error:', error)
+  setViesti(`⚠️ Linkin lähetys epäonnistui: ${error.message}`)
+  return
+}
 
     setSent(true)
   } catch (err) {

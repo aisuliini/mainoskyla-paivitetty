@@ -29,14 +29,14 @@ export default function UnohtuikoSalasanaSivu() {
       }
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${siteUrl}/auth/callback?next=/salasana-uusi`,
+        redirectTo: `${siteUrl}/salasana-uusi`,
       })
 
       if (error) {
-        console.error('Salasanan palautuslinkin lähetys epäonnistui:', error)
-        setViesti('⚠️ Linkin lähetys epäonnistui. Yritä uudelleen.')
-        return
-      }
+  console.error('Reset password error:', error)
+  setViesti(`⚠️ Linkin lähetys epäonnistui: ${error.message}`)
+  return
+}
 
       // Turvallisempi yleisviesti: ei paljasteta onko sähköposti olemassa
       setSent(true)

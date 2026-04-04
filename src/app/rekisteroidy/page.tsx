@@ -5,6 +5,7 @@ import type { FormEvent } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { getSiteUrl } from '@/lib/auth/getSiteUrl'
 
 export default function RekisteroidySivu() {
   const [sahkoposti, setSahkoposti] = useState('')
@@ -75,9 +76,8 @@ export default function RekisteroidySivu() {
     setLoading(true)
 
     try {
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
+
+const siteUrl = getSiteUrl()
 
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -93,8 +93,8 @@ export default function RekisteroidySivu() {
     if (error.message.toLowerCase().includes('already registered')) {
       setViesti('⚠️ Tällä sähköpostilla on jo tili. Kokeile kirjautumista.')
     } else {
-      setViesti('⚠️ Rekisteröityminen epäonnistui. Yritä uudelleen.')
-    }
+  setViesti(`⚠️ Rekisteröityminen epäonnistui: ${error.message}`)
+}
 
     return
   }
