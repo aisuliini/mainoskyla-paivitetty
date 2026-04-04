@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import { getSiteUrl } from '@/lib/auth/getSiteUrl'
 
 export default function UnohtuikoSalasanaSivu() {
   const [sahkoposti, setSahkoposti] = useState('')
@@ -18,9 +19,7 @@ export default function UnohtuikoSalasanaSivu() {
     setLoading(true)
 
     try {
-      const siteUrl =
-        process.env.NEXT_PUBLIC_SITE_URL ??
-        (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
+      const siteUrl = getSiteUrl()
 
       const email = sahkoposti.trim()
 
