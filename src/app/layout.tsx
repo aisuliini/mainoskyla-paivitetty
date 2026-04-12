@@ -1,9 +1,9 @@
 // src/app/layout.tsx
 import './globals.css'
 import Script from 'next/script'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
-import CookieBanner from '@/components/CookieBanner'
+import Header from '@/components/layout/Header'
+import Footer from '@/components/layout/Footer'
+import CookieBanner from '@/components/layout/CookieBanner'
 import { Analytics } from '@vercel/analytics/react'
 import { AuthProvider } from '@/context/AuthContext'
 import { Inter } from 'next/font/google'

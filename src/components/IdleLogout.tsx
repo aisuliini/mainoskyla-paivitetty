@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
-import { signOutAndRedirect } from '@/lib/auth/signOutAndRedirect'
+import { signOutAndRedirect } from '@/features/auth/utils/signOutAndRedirect'
 
 
 const IDLE_MINUTES = 60

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
-import KuvanLataaja from '@/components/KuvanLataaja'
+import KuvanLataaja from '@/features/listings/components/KuvanLataaja'
 import imageCompression from 'browser-image-compression'
 import { DayPicker } from 'react-day-picker'
 import { fi } from 'date-fns/locale'

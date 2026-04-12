@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
 import { List, PlusCircle, Megaphone, Settings, LogOut } from 'lucide-react'
-import { signOutAndRedirect } from '@/lib/auth/signOutAndRedirect'
+import { signOutAndRedirect } from '@/features/auth/utils/signOutAndRedirect'
 
 
 type ProfiiliRow = {

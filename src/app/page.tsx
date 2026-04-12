@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import HomeClient from '@/components/home/HomeClient'
-import { getHomePageData } from '@/lib/queries/home'
+import HomeClient from '@/features/home/components/HomeClient'
+import { getHomePageData } from '@/features/home/server/home'
 
 export const metadata: Metadata = {
   title: 'Mainoskylä – Löydä tai mainosta paikallisesti',

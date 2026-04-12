@@ -1,13 +1,13 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getCategoryBySlug } from '@/lib/categories/category-config'
+import { getCategoryBySlug } from '@/features/categories/config/category-config'
 import {
   getCategoryListings,
   type CategoryListingSort,
-} from '@/lib/listings/getCategoryListings'
-import ListingGrid from '@/components/listings/ListingGrid'
-import CategoryFilters from '@/components/category/CategoryFilters'
-import CategoryPagination from '@/components/category/CategoryPagination'
+} from '@/features/categories/server/getCategoryListings'
+import ListingGrid from '@/features/listings/components/ListingGrid'
+import CategoryFilters from '@/features/categories/components/CategoryFilters'
+import CategoryPagination from '@/features/categories/components/CategoryPagination'
 type PageProps = {
   params: Promise<{ slug: string }>
   searchParams: Promise<{

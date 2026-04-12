@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import ListingGrid from '@/components/listings/ListingGrid'
+import ListingGrid from '@/features/listings/components/ListingGrid'
 import CityBanner from '@/components/CityBanner'
 import SearchLocationFilter from '@/components/search/SearchLocationFilter'
-import { getSearchListings } from '@/lib/listings/getSearchListings'
-import CategoryPagination from '@/components/category/CategoryPagination'
+import { getSearchListings } from '@/features/search/server/getSearchListings'
+import CategoryPagination from '@/features/categories/components/CategoryPagination'
 
 
 type PageProps = {

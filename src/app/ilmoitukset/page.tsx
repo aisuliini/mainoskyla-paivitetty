@@ -1,4 +1,4 @@
-import IlmoituksetClient from './IlmoituksetClient'
+import IlmoituksetClient from '@/features/listings/components/IlmoituksetClient'
 import { supabase } from '@/lib/supabaseClient'
 
 export default async function Page() {

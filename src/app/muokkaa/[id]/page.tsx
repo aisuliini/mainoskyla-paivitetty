@@ -9,11 +9,11 @@ import { fi } from 'date-fns/locale'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import imageCompression from 'browser-image-compression'
 import Image from 'next/image'
-import KuvanLataaja from '@/components/KuvanLataaja'
+import KuvanLataaja from '@/features/listings/components/KuvanLataaja'
 import {
   CATEGORY_CONFIG,
   normalizeCategoryValue,
-} from '@/lib/categories/category-config'
+} from '@/features/categories/config/category-config'
 
 
 type IlmoitusRow = {

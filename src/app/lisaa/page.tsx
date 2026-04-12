@@ -9,9 +9,9 @@ import 'react-day-picker/dist/style.css'
 import paikkakunnat from '@/data/suomen-paikkakunnat.json'
 import imageCompression from 'browser-image-compression'
 import Image from 'next/image'
-import KuvanLataaja from '@/components/KuvanLataaja'
-import ShareButtons from '@/components/ShareButtons'
-import { CATEGORY_CONFIG } from '@/lib/categories/category-config'
+import KuvanLataaja from '@/features/listings/components/KuvanLataaja'
+import ShareButtons from '@/components/shared/ShareButtons'
+import { CATEGORY_CONFIG } from '@/features/categories/config/category-config'
 
 
 export default function LisaaIlmoitus() {

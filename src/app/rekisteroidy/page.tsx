@@ -5,7 +5,7 @@ import type { FormEvent } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getSiteUrl } from '@/lib/auth/getSiteUrl'
+import { getSiteUrl } from '@/features/auth/utils/getSiteUrl'
 
 export default function RekisteroidySivu() {
   const [sahkoposti, setSahkoposti] = useState('')

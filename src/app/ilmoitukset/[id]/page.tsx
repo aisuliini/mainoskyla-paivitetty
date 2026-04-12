@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import IlmoitusClient from './IlmoitusClient'
-import { getListingById } from '@/lib/listings/getListingById'
-import { getListingProfile } from '@/lib/listings/getListingProfile'
+import IlmoitusClient from '@/features/listings/components/IlmoitusClient'
+import { getListingById } from '@/features/listings/server/queries/getListingById'
+import { getListingProfile } from '@/features/listings/server/queries/getListingProfile'
 
 const siteUrl = 'https://mainoskyla.fi'
 const fallbackImage = `${siteUrl}/og-mainoskyla.jpg`

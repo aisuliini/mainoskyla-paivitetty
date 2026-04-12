@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import { getSiteUrl } from '@/lib/auth/getSiteUrl'
+import { getSiteUrl } from '@/features/auth/utils/getSiteUrl'
 
 export default function UnohtuikoSalasanaSivu() {
   const [sahkoposti, setSahkoposti] = useState('')
