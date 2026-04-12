@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import ListingGrid from '@/features/listings/components/ListingGrid'
-import CityBanner from '@/components/CityBanner'
+import CityBanner from '@/features/banners/components/CityBanner'
 import SearchLocationFilter from '@/components/search/SearchLocationFilter'
 import { getSearchListings } from '@/features/search/server/getSearchListings'
 import CategoryPagination from '@/features/categories/components/CategoryPagination'
