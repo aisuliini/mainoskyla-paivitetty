@@ -83,7 +83,7 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
 
 
   
-<section className="relative overflow-hidden px-4 sm:px-6 pt-10 sm:pt-16 pb-12 sm:pb-14">
+<section className="relative overflow-hidden px-4 sm:px-6 pt-[88px] sm:pt-16 pb-12 sm:pb-14">
   <div className="absolute inset-0 overflow-hidden">
   <div
     className="absolute inset-0"
@@ -148,21 +148,21 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
 <div className="h-1 sm:h-1.5" />
 
 {/* Kategoriat: mobiilissa 2 saraketta, desktopissa yhdellä rivillä */}
-<div className="mt-1 sm:mt-2 px-0 sm:px-2 pt-1 sm:pt-2 pb-2 sm:pb-3">
+<div className="relative mt-1 sm:mt-2 px-0 sm:px-2 pt-1 sm:pt-2 pb-2 sm:pb-3">
   {/* Mobiili: 2 vaakariviä, swipe-karuselli */}
 <div className="sm:hidden overflow-x-auto no-scrollbar">
-  <div className="inline-grid grid-flow-col grid-rows-2 gap-x-5 gap-y-4 pr-10 pl-1 min-w-max">
+  <div className="inline-grid grid-flow-col grid-rows-2 gap-x-4 gap-y-4 pr-16 pl-1 min-w-max">
     {visibleKategoriat.map((k) => (
       <button
         key={k.href}
         type="button"
         onClick={() => router.push(k.href)}
-        className="flex w-[96px] flex-col items-center text-center shrink-0"
+        className="flex w-[84px] flex-col items-center text-center shrink-0"
       >
         <div
           className="
             flex items-center justify-center
-            w-16 h-16 rounded-full
+            w-[60px] h-[60px] rounded-full
             bg-[#EDF5F2]
             hover:bg-[#DCEEE8]
             transition
@@ -172,7 +172,7 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
           {k.ikoni}
         </div>
 
-        <span className="mt-2 text-[13px] leading-snug text-[#1E3A41] max-w-[96px]">
+        <span className="mt-2 text-[12px] leading-snug text-[#1E3A41] max-w-[84px]">
           {k.nimi}
         </span>
       </button>
