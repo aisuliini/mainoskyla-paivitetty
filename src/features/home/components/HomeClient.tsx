@@ -148,35 +148,37 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
 <div className="h-1 sm:h-1.5" />
 
 {/* Kategoriat: mobiilissa 2 saraketta, desktopissa yhdellä rivillä */}
-<div className="mt-1 sm:mt-2 px-1 sm:px-2 pt-1 sm:pt-2 pb-2 sm:pb-3">
-  {/* Mobiili */}
-  <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:hidden max-w-sm mx-auto">
+<div className="mt-1 sm:mt-2 px-0 sm:px-2 pt-1 sm:pt-2 pb-2 sm:pb-3">
+  {/* Mobiili: 2 vaakariviä, swipe-karuselli */}
+<div className="sm:hidden overflow-x-auto no-scrollbar">
+  <div className="inline-grid grid-flow-col grid-rows-2 gap-x-5 gap-y-4 pr-10 pl-1 min-w-max">
     {visibleKategoriat.map((k) => (
       <button
         key={k.href}
         type="button"
         onClick={() => router.push(k.href)}
-        className="flex flex-col items-center text-center"
+        className="flex w-[96px] flex-col items-center text-center shrink-0"
       >
         <div
           className="
             flex items-center justify-center
-            w-14 h-14 rounded-full
+            w-16 h-16 rounded-full
             bg-[#EDF5F2]
             hover:bg-[#DCEEE8]
             transition
-            ring-1 ring-[#4F8F7A]/30
+            ring-1 ring-[#4F8F7A]/25
           "
         >
           {k.ikoni}
         </div>
 
-        <span className="mt-2 text-xs leading-tight text-[#1E3A41] max-w-[88px]">
+        <span className="mt-2 text-[13px] leading-snug text-[#1E3A41] max-w-[96px]">
           {k.nimi}
         </span>
       </button>
     ))}
   </div>
+</div>
 
   {/* Desktop */}
   <div className="hidden sm:flex sm:justify-center sm:gap-5 lg:gap-6 xl:gap-7 sm:flex-nowrap sm:px-4 pt-2">
@@ -254,18 +256,20 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
   </div>
 </section>
 
-<section className="bg-[#F8FBF9] px-4 sm:px-6 py-10 border-t border-black/5">
-  <div className="max-w-screen-md mx-auto rounded-3xl bg-white px-6 py-7 text-center shadow-sm ring-1 ring-black/5">
-    <h3 className="text-lg sm:text-xl font-semibold text-[#1E3A41]">
-  Rakennamme Mainoskylästä yhä parempaa paikallista palvelua 💚
-</h3>
-<p className="mt-3 text-sm sm:text-base text-charcoal/70">
-  Kehitämme palvelua jatkuvasti käyttäjien palautteen pohjalta. Jos haluat ehdottaa parannusta tai antaa palautetta, kuulemme mielellämme.
-</p>
-    <div className="mt-5">
+<section className="bg-[#F8FBF9] px-4 sm:px-6 py-12 border-t border-black/5">
+  <div className="max-w-screen-md mx-auto text-center">
+    <h3 className="text-xl sm:text-2xl font-semibold text-[#1E3A41] tracking-tight">
+      Rakennamme Mainoskylästä yhä parempaa paikallista palvelua 💚
+    </h3>
+
+    <p className="mt-3 text-sm sm:text-base text-charcoal/70 max-w-2xl mx-auto leading-relaxed">
+      Kehitämme palvelua jatkuvasti käyttäjien palautteen pohjalta. Jos haluat ehdottaa parannusta tai antaa palautetta, kuulemme mielellämme.
+    </p>
+
+    <div className="mt-6">
       <Link
         href="/yhteystiedot"
-        className="inline-flex items-center justify-center rounded-full bg-[#EDF5F2] px-5 py-2.5 text-sm font-semibold text-[#1E3A41] ring-1 ring-[#4F8F7A]/25 hover:bg-[#DCEEE8] transition"
+        className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-[#1E3A41] ring-1 ring-[#4F8F7A]/20 hover:bg-[#EDF5F2] transition"
       >
         Anna palautetta
       </Link>
