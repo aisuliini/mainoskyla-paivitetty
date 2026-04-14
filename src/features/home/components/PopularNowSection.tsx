@@ -32,15 +32,15 @@ export default function PopularNowSection({
         }
       />
 
-      <div className="mt-2 sm:mt-3 -mx-4 px-4 pr-6">
-        <div
-  ref={sectionRef}
-  className="flex gap-3 scroll-x pr-6"
->
+      <div className="mt-2 sm:mt-3 -mx-4 overflow-x-auto no-scrollbar px-4 pb-2">
+  <div
+    ref={sectionRef}
+    className="flex items-stretch gap-3 pr-4"
+  >
   {items.map((ilmo) => (
     <div
       key={ilmo.id}
-      className="min-w-[290px] max-w-[290px] snap-start shrink-0 rounded-[22px] overflow-hidden"
+      className="min-w-[250px] max-w-[250px] snap-start shrink-0 self-stretch"
     >
       <HomeListingCarouselCard
         item={ilmo}

@@ -30,17 +30,16 @@ export default function HomeListingCarouselCard({
       href={`/ilmoitukset/${item.id}`}
       onClick={handleClick}
       className="
-        group
-        snap-start
-        flex-none
-        w-[220px] sm:w-[260px] lg:w-[300px]
-        bg-white ring-1 ring-black/5
-        rounded-[22px] overflow-hidden
-        shadow-sm hover:shadow-lg
-        hover:-translate-y-1
-        transition-all duration-300
-        text-left
-      "
+  group
+  block
+  h-full w-full
+  bg-white ring-1 ring-black/5
+  rounded-[22px] overflow-hidden
+  shadow-sm hover:shadow-lg
+  hover:-translate-y-1
+  transition-all duration-300
+  text-left
+"
     >
       <div className="relative w-full aspect-[3/2] bg-[#F6F7F7] overflow-hidden">
         <SafeCardImage

@@ -22,44 +22,33 @@ export default function CategoryCarousel({ categories }: { categories: Category[
 
   return (
     <section className="w-full bg-white">
-      <div className="relative overflow-hidden">
-        <div className="overflow-x-auto overscroll-x-contain scroll-smooth no-scrollbar">
-          <div className="flex snap-x snap-mandatory">
-            {pages.map((page, idx) => (
-              <div
-                key={idx}
-                className="w-[86%] shrink-0 snap-start pl-1 pr-2"
-              >
-                <div className="grid grid-cols-4 gap-x-3 gap-y-5 py-2">
-                  {page.map((cat) => (
-                    <Link
-                      key={cat.href}
-                      href={cat.href}
-                      className="flex flex-col items-center text-center select-none"
-                    >
-                      <div className="grid place-items-center h-12 w-12 rounded-full bg-[#EDF5F2] ring-1 ring-[#4F8F7A]/30 shadow-sm transition hover:bg-[#DCEEE8]">
-                        {cat.icon}
-                      </div>
+      <div className="overflow-x-auto overscroll-x-contain scroll-smooth no-scrollbar px-4">
+  <div className="flex snap-x snap-mandatory gap-3 pr-6">
+          {pages.map((page, idx) => (
+            <div
+              key={idx}
+              className="w-[84%] shrink-0 snap-start"
+            >
+              <div className="grid grid-cols-4 gap-x-3 gap-y-4 py-2">
+                {page.map((cat) => (
+                  <Link
+                    key={cat.href}
+                    href={cat.href}
+                    className="flex flex-col items-center text-center select-none"
+                  >
+                    <div className="flex items-center justify-center h-[38px] w-[38px] rounded-full bg-[#EDF5F2] ring-1 ring-[#4F8F7A]/30 shadow-sm transition hover:bg-[#DCEEE8] overflow-visible [&_svg]:h-[16px] [&_svg]:w-[16px] [&_svg]:shrink-0">
+                      {cat.icon}
+                    </div>
 
-                      <div className="mt-2 max-w-[78px] min-h-[34px] text-[11px] leading-[1.15] text-[#1E3A41] text-center break-words">
-                        {cat.name}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+                    <div className="mt-2 max-w-[72px] min-h-[34px] text-[10.5px] leading-[1.15] text-[#1E3A41] text-center break-words">
+                      {cat.name}
+                    </div>
+                  </Link>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-
-        {pages.length > 1 && (
-          <>
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white via-white/80 to-transparent" />
-            <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-[#1E3A41]/65 shadow-sm">
-              Lisää →
             </div>
-          </>
-        )}
+          ))}
+        </div>
       </div>
     </section>
   )

@@ -2,8 +2,7 @@
 
 import type { SuosittuIlmoitus } from '@/features/home/types/home-types'
 import SectionHeader from '@/features/home/components/SectionHeader'
-import HomeListingCompactCard from './HomeListingCompactCard'
-import { registerView } from '@/features/listings/utils/viewTracker'
+import HomeListingCarouselCard from './HomeListingCarouselCard'
 
 type Props = {
   items: SuosittuIlmoitus[]
@@ -20,13 +19,6 @@ export default function LatestListingsSection({
 }: Props) {
   if (items.length === 0) return null
 
-  async function handleClick(id: string) {
-    const counted = await registerView(id)
-    if (counted) {
-      onViewed?.(id)
-    }
-  }
-
   return (
     <div className="w-full mt-2 sm:mt-4">
       <SectionHeader
@@ -40,22 +32,22 @@ export default function LatestListingsSection({
         }
       />
 
-      <div className="mt-2 relative">
+      <div className="mt-2 sm:mt-3 -mx-4 overflow-x-auto no-scrollbar px-4 pb-2">
         <div
           ref={sectionRef}
-          className="flex gap-3 scroll-x pr-6"
+          className="flex items-stretch gap-3 pr-4"
         >
           {items.map((ilmo) => (
             <div
-  key={ilmo.id}
-  onClick={() => handleClick(ilmo.id)}
-  className="min-w-[280px] max-w-[280px] snap-start shrink-0 rounded-[22px] overflow-hidden"
->
-  <HomeListingCompactCard
-    item={ilmo}
-    categoryLabel={ilmo.kategoria ?? undefined}
-  />
-</div>
+              key={ilmo.id}
+              className="min-w-[250px] max-w-[250px] snap-start shrink-0 self-stretch"
+            >
+              <HomeListingCarouselCard
+                item={ilmo}
+                onViewed={onViewed}
+                categoryLabel={ilmo.kategoria ?? undefined}
+              />
+            </div>
           ))}
         </div>
       </div>
