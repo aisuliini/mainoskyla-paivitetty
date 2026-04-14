@@ -13,16 +13,15 @@ if (!supabaseAnonKey) {
   throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY missing')
 }
 
-// Yleinen server-read client niille tiedostoille,
-// jotka tekevät serverissä normaaleja julkisia hakuja
-export const supabaseServer = createClient(supabaseUrl!, supabaseAnonKey!, {
+// Julkisiin server-hakuihin
+export const supabaseServer = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: false,
     autoRefreshToken: false,
   },
 })
 
-// Cookie-pohjainen server client kirjautuneen käyttäjän sessiota varten
+// Kirjautuneen käyttäjän server-client
 export async function getSupabaseServerClient() {
   const cookieStore = await cookies()
 
@@ -31,8 +30,30 @@ export async function getSupabaseServerClient() {
       get(name: string) {
         return cookieStore.get(name)?.value
       },
-      set() {},
-      remove() {},
+      set(name: string, value: string, options: Record<string, unknown>) {
+        try {
+          cookieStore.set({
+            name,
+            value,
+            ...options,
+          })
+        } catch {
+          // Server component -kontekstissa tämä voi joskus olla read-only.
+          // Middleware hoitaa varsinaisen session synkronoinnin.
+        }
+      },
+      remove(name: string, options: Record<string, unknown>) {
+        try {
+          cookieStore.set({
+            name,
+            value: '',
+            ...options,
+            maxAge: 0,
+          })
+        } catch {
+          // Middleware hoitaa varsinaisen session synkronoinnin.
+        }
+      },
     },
   })
 }

@@ -3,19 +3,31 @@
 import SafeCardImage from '@/components/shared/SafeCardImage'
 import Katselukerrat from '@/components/shared/Katselukerrat'
 import type { PremiumIlmoitus } from '@/features/home/types/home-types'
-
+import { registerView } from '@/features/listings/utils/viewTracker'
 
 type Props = {
   items: PremiumIlmoitus[]
   onOpenListing: (id: string) => void
   onAddListing: () => void
+  onViewed?: (id: string) => void
 }
 
 export default function PremiumListingsSection({
   items = [],
   onOpenListing,
   onAddListing,
+  onViewed,
 }: Props) {
+  async function handleClick(id: string) {
+    const counted = await registerView(id)
+
+    if (counted) {
+      onViewed?.(id)
+    }
+
+    onOpenListing(id)
+  }
+
   if (items.length === 0) return null
 
   return (
@@ -36,15 +48,15 @@ export default function PremiumListingsSection({
               role="button"
               tabIndex={0}
               onClick={() => {
-                if (!ilmo.id.startsWith('tyhja-')) {
-                  onOpenListing(ilmo.id)
-                }
+              if (!ilmo.id.startsWith('tyhja-')) {
+             handleClick(ilmo.id)
+              }
               }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !ilmo.id.startsWith('tyhja-')) {
-                  onOpenListing(ilmo.id)
-                }
-              }}
+  if (e.key === 'Enter' && !ilmo.id.startsWith('tyhja-')) {
+    handleClick(ilmo.id)
+  }
+}}
               className={`
                 group bg-white ring-1 ring-black/5
                 rounded-[22px] overflow-hidden

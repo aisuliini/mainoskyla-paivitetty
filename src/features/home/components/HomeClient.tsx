@@ -4,7 +4,6 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FaFacebookF, FaInstagram } from 'react-icons/fa'
-import CategoryCarousel from '@/components/CategoryCarousel'
 import { CATEGORY_CONFIG } from '@/features/categories/config/category-config'
 import PopularNowSection from '@/features/home/components/PopularNowSection'
 import LatestListingsSection from '@/features/home/components/LatestListingsSection'
@@ -12,7 +11,8 @@ import PremiumListingsSection from '@/features/home/components/PremiumListingsSe
 import type { HomeProps, PremiumIlmoitus, SuosittuIlmoitus } from '@/features/home/types/home-types'
 import { homeCategoryIcons } from '@/features/home/constants/home-category-icons'
 import HomeSearch from '@/features/home/components/HomeSearch'
-
+import HowItWorksSection from '@/features/home/components/HowItWorksSection'
+import PopularSearchesSection from '@/features/home/components/PopularSearchesSection'
 
 export default function HomeClient({
   initialPremiumIlmoitukset,
@@ -20,17 +20,29 @@ export default function HomeClient({
   initialUusimmat,
 }: HomeProps) {
   const router = useRouter()
-  const [premiumIlmoitukset] = useState<PremiumIlmoitus[]>(initialPremiumIlmoitukset ?? [])
+  const [premiumIlmoitukset, setPremiumIlmoitukset] = useState(initialPremiumIlmoitukset ?? [])
 
 
 
 
- const [nytSuosittua] = useState<SuosittuIlmoitus[]>(initialNytSuosittua ?? [])
-const nytSuosittuaRef = useRef<HTMLDivElement | null>(null)
-const [uusimmat] = useState<SuosittuIlmoitus[]>(initialUusimmat ?? [])
-const uusimmatRef = useRef<HTMLDivElement | null>(null)
+  const [nytSuosittua, setNytSuosittua] = useState(initialNytSuosittua ?? [])
+  const nytSuosittuaRef = useRef<HTMLDivElement | null>(null)
+  const [uusimmat, setUusimmat] = useState(initialUusimmat ?? [])
+  const uusimmatRef = useRef<HTMLDivElement | null>(null)
 
+function bumpViews<T extends { id: string; nayttoja?: number | null }>(items: T[], id: string): T[] {
+  return items.map((item) =>
+    item.id === id
+      ? { ...item, nayttoja: (item.nayttoja ?? 0) + 1 }
+      : item
+  )
+}
 
+function handleViewed(id: string) {
+  setPremiumIlmoitukset((prev) => bumpViews(prev, id))
+  setNytSuosittua((prev) => bumpViews(prev, id))
+  setUusimmat((prev) => bumpViews(prev, id))
+}
 
 
 const scrollUusimmat = (dir: 'left' | 'right') => {
@@ -124,51 +136,74 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
       <section className="bg-white px-4 sm:px-6 py-6 sm:py-8">
   <div className="max-w-screen-xl mx-auto">
 
-<PopularNowSection
-  items={nytSuosittua}
-  sectionRef={nytSuosittuaRef}
-  onScroll={scrollNytSuosittua}
-/>
-
-
-
-                {/* Pallokategoria nappulat */}
-{/* Mobiili: kategoriat Tori-tyyliin (2 riviä + sivutus vasemmalle) */}
-<div className="sm:hidden mt-6 px-1 py-2">
- <CategoryCarousel
-  categories={visibleKategoriat.map((k) => ({
-    name: k.nimi,
-    href: k.href, // ✅ käytä suoraan oikeaa polkua
-    icon: k.ikoni,
-  }))}
-/>
-
+<div className="relative z-0">
+  <PopularNowSection
+    items={nytSuosittua}
+    sectionRef={nytSuosittuaRef}
+    onScroll={scrollNytSuosittua}
+    onViewed={handleViewed}
+  />
 </div>
 
+<div className="h-1 sm:h-1.5" />
 
-{/* Desktop: kaikki samalla rivillä */}
-<div className="hidden sm:block mt-8 px-2 py-2">
-  <div className="flex flex-wrap gap-5 justify-center px-6 max-w-5xl mx-auto">
+{/* Kategoriat: mobiilissa 2 saraketta, desktopissa yhdellä rivillä */}
+<div className="mt-1 sm:mt-2 px-1 sm:px-2 pt-1 sm:pt-2 pb-2 sm:pb-3">
+  {/* Mobiili */}
+  <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:hidden max-w-sm mx-auto">
     {visibleKategoriat.map((k) => (
-  <div key={k.href} className="flex flex-col items-center shrink-0">
-        <button
+      <button
+        key={k.href}
+        type="button"
         onClick={() => router.push(k.href)}
-className="
-  flex items-center justify-center
-  w-14 h-14 rounded-full
-  bg-[#EDF5F2]
-  hover:bg-[#DCEEE8]
-  transition
-  ring-1 ring-[#4F8F7A]/30
-"
+        className="flex flex-col items-center text-center"
+      >
+        <div
+          className="
+            flex items-center justify-center
+            w-14 h-14 rounded-full
+            bg-[#EDF5F2]
+            hover:bg-[#DCEEE8]
+            transition
+            ring-1 ring-[#4F8F7A]/30
+          "
         >
           {k.ikoni}
-        </button>
+        </div>
 
-        <span className="mt-1 text-xs text-center text-[#1E3A41] max-w-[90px] leading-tight">
+        <span className="mt-2 text-xs leading-tight text-[#1E3A41] max-w-[88px]">
           {k.nimi}
         </span>
-      </div>
+      </button>
+    ))}
+  </div>
+
+  {/* Desktop */}
+  <div className="hidden sm:flex sm:justify-center sm:gap-5 lg:gap-6 xl:gap-7 sm:flex-nowrap sm:px-4 pt-2">
+    {visibleKategoriat.map((k) => (
+      <button
+        key={k.href}
+        type="button"
+        onClick={() => router.push(k.href)}
+        className="flex flex-col items-center text-center shrink-0"
+      >
+        <div
+          className="
+            flex items-center justify-center
+            w-14 h-14 rounded-full
+            bg-[#EDF5F2]
+            hover:bg-[#DCEEE8]
+            transition
+            ring-1 ring-[#4F8F7A]/30
+          "
+        >
+          {k.ikoni}
+        </div>
+
+        <span className="mt-2 text-xs leading-tight text-[#1E3A41] max-w-[92px]">
+          {k.nimi}
+        </span>
+      </button>
     ))}
   </div>
 </div>
@@ -178,10 +213,11 @@ className="
   <section className="bg-white px-4 sm:px-6 py-2 sm:py-4">
   <div className="max-w-screen-xl mx-auto">
     <LatestListingsSection
-      items={uusimmat}
-      sectionRef={uusimmatRef}
-      onScroll={scrollUusimmat}
-    />
+  items={uusimmat}
+  sectionRef={uusimmatRef}
+  onScroll={scrollUusimmat}
+  onViewed={handleViewed}
+/>
   </div>
 </section>
 
@@ -189,10 +225,15 @@ className="
   items={premiumIlmoitukset}
   onOpenListing={(id) => router.push(`/ilmoitukset/${id}`)}
   onAddListing={() => router.push('/lisaa')}
+  onViewed={handleViewed}
 />
 
+<PopularSearchesSection />
 
-<section className="bg-white px-4 sm:px-6 py-14 sm:py-16">
+<HowItWorksSection />
+
+
+<section className="bg-white px-4 sm:px-6 py-10 sm:py-12">
   <div className="max-w-screen-lg mx-auto rounded-[28px] bg-gradient-to-br from-[#F5FAF7] via-[#FAFCFB] to-[#FFF5F2] px-6 py-10 sm:px-10 sm:py-12 text-center ring-1 ring-black/5 shadow-[0_10px_30px_rgba(30,58,65,0.04)]">
     <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#1E3A41]">
       Haluatko näkyvyyttä omalle palvelullesi?

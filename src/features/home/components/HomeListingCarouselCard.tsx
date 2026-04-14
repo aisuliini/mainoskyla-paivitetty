@@ -2,21 +2,33 @@ import Link from 'next/link'
 import { Eye } from 'lucide-react'
 import SafeCardImage from '@/components/shared/SafeCardImage'
 import type { SuosittuIlmoitus } from '@/features/home/types/home-types'
+import { registerView } from '@/features/listings/utils/viewTracker'
 
 type Props = {
   item: SuosittuIlmoitus
+  onViewed?: (id: string) => void
   categoryLabel?: string
   imageOverlayClassName?: string
 }
 
 export default function HomeListingCarouselCard({
   item,
+  onViewed,
   categoryLabel,
   imageOverlayClassName = 'pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/20 to-transparent',
 }: Props) {
+  async function handleClick() {
+    const counted = await registerView(item.id)
+
+    if (counted) {
+      onViewed?.(item.id)
+    }
+  }
+
   return (
     <Link
       href={`/ilmoitukset/${item.id}`}
+      onClick={handleClick}
       className="
         group
         snap-start

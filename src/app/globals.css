@@ -24,13 +24,14 @@ body {
 }
 
 
-/* iOS + Android: sulava vaakascroll vain tälle riville */
 .scroll-x {
   overflow-x: auto;
   overflow-y: hidden;
-  -webkit-overflow-scrolling: touch; /* iOS momentum */
+  -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity; /* optional */
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding-bottom: 2px;
 }
 
 /* piilota scrollbar (safari/chrome) */

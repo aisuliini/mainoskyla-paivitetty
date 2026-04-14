@@ -3,19 +3,29 @@
 import type { SuosittuIlmoitus } from '@/features/home/types/home-types'
 import SectionHeader from '@/features/home/components/SectionHeader'
 import HomeListingCompactCard from './HomeListingCompactCard'
+import { registerView } from '@/features/listings/utils/viewTracker'
 
 type Props = {
   items: SuosittuIlmoitus[]
   sectionRef: React.RefObject<HTMLDivElement | null>
   onScroll: (dir: 'left' | 'right') => void
+  onViewed?: (id: string) => void
 }
 
 export default function LatestListingsSection({
   items = [],
   sectionRef,
   onScroll,
+  onViewed,
 }: Props) {
   if (items.length === 0) return null
+
+  async function handleClick(id: string) {
+    const counted = await registerView(id)
+    if (counted) {
+      onViewed?.(id)
+    }
+  }
 
   return (
     <div className="w-full mt-2 sm:mt-4">
@@ -24,36 +34,29 @@ export default function LatestListingsSection({
         description="Viimeksi lisätyt palvelut Mainoskylässä."
         actions={
           <>
-            <button
-              type="button"
-              onClick={() => onScroll('left')}
-              className="h-9 w-9 rounded-full bg-white ring-1 ring-black/10 hover:ring-black/20 flex items-center justify-center"
-            >
-              ‹
-            </button>
-            <button
-              type="button"
-              onClick={() => onScroll('right')}
-              className="h-9 w-9 rounded-full bg-white ring-1 ring-black/10 hover:ring-black/20 flex items-center justify-center"
-            >
-              ›
-            </button>
+            <button onClick={() => onScroll('left')}>‹</button>
+            <button onClick={() => onScroll('right')}>›</button>
           </>
         }
       />
 
-      <div className="mt-2">
+      <div className="mt-2 relative">
         <div
           ref={sectionRef}
-          className="w-full flex flex-nowrap gap-3 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar scroll-smooth"
+          className="flex gap-3 scroll-x pr-6"
         >
           {items.map((ilmo) => (
+            <div
+  key={ilmo.id}
+  onClick={() => handleClick(ilmo.id)}
+  className="min-w-[280px] max-w-[280px] snap-start shrink-0 rounded-[22px] overflow-hidden"
+>
   <HomeListingCompactCard
-    key={ilmo.id}
     item={ilmo}
     categoryLabel={ilmo.kategoria ?? undefined}
   />
-))}
+</div>
+          ))}
         </div>
       </div>
     </div>

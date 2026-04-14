@@ -25,6 +25,7 @@ export default function OmatIlmoituksetSivu() {
   const [ilmoitukset, setIlmoitukset] = useState<Ilmoitus[]>([])
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
 useEffect(() => {
   setMounted(true)
@@ -75,7 +76,7 @@ useEffect(() => {
       .eq('user_id', user.id)
       .order('luotu', { ascending: false })
 
-    // jos tuli uusi pyyntö tämän jälkeen, älä kirjoita vanhalla datalla
+    
     if (myReqId !== reqIdRef.current) return
 
     if (!activeRef.current) return
@@ -151,29 +152,32 @@ useEffect(() => {
   )
 
   const poistaIlmoitus = useCallback(
-    async (ilmo: Ilmoitus) => {
-      if (!confirm('Poistetaanko ilmoitus pysyvästi?')) return
+  async (ilmo: Ilmoitus) => {
+    if (!confirm('Poistetaanko ilmoitus pysyvästi?')) return
 
-      const user = await getUserOrRedirect()
-      if (!user) return
+    const user = await getUserOrRedirect()
+    if (!user) return
 
-      const { error } = await supabase
-        .from('ilmoitukset')
-        .delete()
-        .eq('id', ilmo.id)
-        .eq('user_id', user.id)
+    setDeletingId(ilmo.id)
 
-      if (error) {
-        console.error('Virhe poistossa:', error.message)
-        alert(error.message)
-        return
-      }
+    const { error } = await supabase
+      .from('ilmoitukset')
+      .delete()
+      .eq('id', ilmo.id)
+      .eq('user_id', user.id)
 
-      // pro: refetch, ettei jää “vanha lista” näkyviin BFCache-tilassa
-      await haeIlmoitukset()
-    },
-    [getUserOrRedirect, haeIlmoitukset]
-  )
+    if (error) {
+      console.error('Virhe poistossa:', error.message)
+      alert(error.message)
+      setDeletingId(null)
+      return
+    }
+
+    setIlmoitukset((prev) => prev.filter((item) => item.id !== ilmo.id))
+    setDeletingId(null)
+  },
+  [getUserOrRedirect]
+)
 
   const onVanhentunut = (ilmo: Ilmoitus) => {
   if (!ilmo.voimassa_loppu) return false
@@ -281,15 +285,16 @@ useEffect(() => {
                   </button>
 
                   <button
-                    type="button"
-                    onClick={(e) => {
-                        e.stopPropagation()
-                        poistaIlmoitus(ilmo)
-                      }}
-                    className="w-full px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
-                  >
-                    Poista
-                  </button>
+  type="button"
+  onClick={(e) => {
+    e.stopPropagation()
+    poistaIlmoitus(ilmo)
+  }}
+  disabled={deletingId === ilmo.id}
+  className="w-full px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed"
+>
+  {deletingId === ilmo.id ? 'Poistetaan...' : 'Poista'}
+</button>
                 </div>
               </div>
             )
