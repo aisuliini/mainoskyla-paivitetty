@@ -276,72 +276,16 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
   <div className="max-w-screen-md mx-auto text-center text-sm text-charcoal/70">
     Turvallinen asiointi on tärkeää.{" "}
     <Link
-      href="/turvallisuus"
-      className="font-medium text-[#1E3A41] underline underline-offset-2 hover:opacity-70 transition"
-    >
-      Lue turvallisuusohjeet
-    </Link>
+        href="/turvallisuus"
+        className="font-medium text-[#9F3A32] underline underline-offset-2 hover:opacity-70 transition"
+      >
+        Lue turvallisuusohjeet
+      </Link>
   </div>
 </section>
 
 
-      <footer className="bg-[#EAF1EE] text-[#1E3A41] mt-0 border-t border-black/5">
-  <div className="max-w-screen-xl mx-auto px-6 py-10 sm:py-12">
-    <div className="flex flex-col items-center text-center">
-      <nav className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm sm:text-[15px] font-medium">
-        <Link href="/tietoa" className="text-[#1E3A41] hover:opacity-70 transition">
-          Tietoa meistä
-        </Link>
-        <Link href="/hinnasto" className="text-[#1E3A41] hover:opacity-70 transition">
-          Hinnasto
-        </Link>
-        <Link href="/ehdot" className="text-[#1E3A41] hover:opacity-70 transition">
-          Käyttöehdot
-        </Link>
-        <Link href="/tietosuoja" className="text-[#1E3A41] hover:opacity-70 transition">
-          Tietosuoja
-        </Link>
-        <Link href="/turvallisuus" className="text-[#1E3A41] hover:opacity-70 transition">
-          Turvallisuusohjeet
-        </Link>
-        <Link href="/yhteystiedot" className="text-[#1E3A41] hover:opacity-70 transition">
-          Yhteystiedot
-        </Link>
-      </nav>
-
-      <div className="mt-6 flex justify-center gap-5 text-[22px]">
-        <a
-          href="https://facebook.com/mainoskyla"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Facebook"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/95 ring-1 ring-black/5 hover:bg-white hover:-translate-y-0.5 hover:shadow-sm transition"
-        >
-          <FaFacebookF />
-        </a>
-
-        <a
-          href="https://instagram.com/mainoskyla"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Instagram"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/95 ring-1 ring-black/5 hover:bg-white hover:-translate-y-0.5 hover:shadow-sm transition"
-        >
-          <FaInstagram />
-        </a>
-      </div>
-
-      <div className="mt-6 space-y-2 text-center">
-  <p className="text-xs sm:text-sm text-charcoal/60">
-    Ilmoituksen lisääminen on ilmaista – tuo palvelusi näkyville paikallisesti.
-  </p>
-  <p className="text-sm text-[#1E3A41]/80">
-    &copy; {new Date().getFullYear()} Mainoskylä
-  </p>
-</div>
-    </div>
-  </div>
-</footer>
+      
     </main>
   )
 }

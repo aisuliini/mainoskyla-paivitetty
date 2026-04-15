@@ -84,7 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <AuthProvider>
           <Header />
-          <main className="flex-grow w-full pb-24">{children}</main>
+          <main className="flex-grow w-full">{children}</main>
           <Footer />
           <CookieBanner />
           <ConsentScripts />
