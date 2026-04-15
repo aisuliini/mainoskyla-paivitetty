@@ -3,7 +3,6 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { FaFacebookF, FaInstagram } from 'react-icons/fa'
 import { CATEGORY_CONFIG } from '@/features/categories/config/category-config'
 import PopularNowSection from '@/features/home/components/PopularNowSection'
 import LatestListingsSection from '@/features/home/components/LatestListingsSection'
