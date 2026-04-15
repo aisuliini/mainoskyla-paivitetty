@@ -40,7 +40,7 @@ export default function LatestListingsSection({
           {items.map((ilmo) => (
             <div
               key={ilmo.id}
-              className="min-w-[250px] max-w-[250px] snap-start shrink-0 self-stretch"
+              className="min-w-[232px] max-w-[232px] snap-start shrink-0 self-stretch"
             >
               <HomeListingCarouselCard
                 item={ilmo}

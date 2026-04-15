@@ -1,10 +1,9 @@
 // src/app/layout.tsx
 import './globals.css'
-import Script from 'next/script'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import CookieBanner from '@/components/layout/CookieBanner'
-import { Analytics } from '@vercel/analytics/react'
+import ConsentScripts from '@/components/layout/ConsentScripts'
 import { AuthProvider } from '@/context/AuthContext'
 import { Inter } from 'next/font/google'
 import type { Metadata, Viewport } from 'next'
@@ -79,26 +78,6 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fi" suppressHydrationWarning>
-      <head>
-        {/* small perf win */}
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
-      </head>
-
-      {/* Google tag (gtag.js) */}
-      <Script async src="https://www.googletagmanager.com/gtag/js?id=AW-17851457912" />
-      <Script
-        id="google-ads-gtag"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'AW-17851457912');
-          `,
-        }}
-      />
-
       <body
         suppressHydrationWarning
         className={`${inter.className} bg-[#F6F7F7] text-charcoal min-h-screen flex flex-col overflow-x-hidden`}
@@ -108,7 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="flex-grow w-full pb-24">{children}</main>
           <Footer />
           <CookieBanner />
-          <Analytics />
+          <ConsentScripts />
         </AuthProvider>
       </body>
     </html>

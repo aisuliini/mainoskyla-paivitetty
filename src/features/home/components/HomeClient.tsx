@@ -83,55 +83,47 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
 
 
   
-<section className="relative overflow-hidden px-4 sm:px-6 pt-[88px] sm:pt-16 pb-12 sm:pb-14">
-  <div className="absolute inset-0 overflow-hidden">
-  <div
-    className="absolute inset-0"
-    style={{
-      background: 'linear-gradient(135deg, #F8FBF9 0%, #EEF6F2 45%, #FFF6F2 100%)',
-    }}
-  />
+<section className="relative overflow-hidden px-4 sm:px-6 pt-5 sm:pt-10 pb-4 sm:pb-10">
+  <div className="absolute inset-0 pointer-events-none">
+    <div
+      className="absolute inset-0"
+      style={{
+        background:
+          'linear-gradient(180deg, rgba(220,238,232,0.95) 0%, rgba(237,245,242,0.75) 24%, rgba(248,251,249,0.45) 50%, rgba(255,255,255,0.96) 82%, #ffffff 100%)',
+      }}
+    />
 
-  <div className="absolute -top-16 -left-10 h-56 w-56 rounded-full blur-3xl bg-[#DCEEE8]/70" />
-  <div className="absolute top-10 right-0 h-64 w-64 rounded-full blur-3xl bg-[#FCE3DB]/55" />
-  <div className="absolute bottom-0 left-1/3 h-52 w-52 rounded-full blur-3xl bg-white/60" />
+    <div className="absolute top-[-90px] left-1/2 -translate-x-1/2 h-[240px] w-[240px] rounded-full bg-[#BFD9D0]/55 blur-3xl sm:h-[320px] sm:w-[320px]" />
+    <div className="absolute top-0 left-[-40px] h-[140px] w-[140px] rounded-full bg-[#DCEEE8]/60 blur-3xl sm:h-[180px] sm:w-[180px]" />
+    <div className="absolute top-6 right-[-30px] h-[120px] w-[120px] rounded-full bg-[#EAF4F0]/65 blur-3xl sm:h-[160px] sm:w-[160px]" />
+  </div>
+
+  <div className="relative z-10 max-w-screen-xl mx-auto">
+    <div className="flex flex-col items-center text-center">
+      <div className="w-full max-w-3xl mx-auto">
+        <h1
+          className="
+            text-[26px] sm:text-4xl md:text-5xl
+            font-semibold
+            text-[#1E3A41]
+            tracking-tight
+            leading-[1.06]
+          "
+        >
+          Löydä paikalliset palvelut – tai lisää omasi ilmaiseksi
+        </h1>
+
+        <p className="mt-2 sm:mt-3 text-sm sm:text-base text-charcoal/70 leading-relaxed max-w-2xl text-center mx-auto">
+          Löydä läheltä tekijä tai tuo oma palvelusi näkyville Mainoskylässä.
+        </p>
+      </div>
+
+      <div className="mt-4 sm:mt-6 w-full">
+  <HomeSearch />
 </div>
-  
-        <div className="relative z-10 max-w-screen-xl mx-auto">
-<div className="flex flex-col items-center gap-4 text-center">
-<div className="w-full text-center flex flex-col items-center">
-<h1
-  className="
-    text-2xl sm:text-4xl md:text-5xl
-    font-medium
-    text-[#1E3A41]
-    mb-1
-    tracking-tight
-    leading-tight
-    max-w-3xl
-  "
->
-  Löydä paikalliset palvelut – tai lisää omasi ilmaiseksi
-</h1>
-
-<p className="hidden sm:block mt-2 text-sm sm:text-base text-charcoal/70 leading-relaxed max-w-2xl text-center mx-auto">
-  Ilmainen ilmoitus • valmis 2 minuutissa • näkyvyys paikallisille heti
-</p>
-
-
-</div>
-
-
-<HomeSearch />
-
-</div>
-
-<div className="mt-4 text-xs sm:text-sm text-charcoal/60 text-center mx-auto max-w-md sm:max-w-2xl px-4">
-  💚 Paikallisille tekijöille reilu näkyvyys – ei algoritmimörköä, vaan löydettävyys paikallisesti.
-</div>
-
-        </div>
-      </section>
+    </div>
+  </div>
+</section>
 
       <section className="bg-white px-4 sm:px-6 py-6 sm:py-8">
   <div className="max-w-screen-xl mx-auto">
@@ -150,8 +142,8 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
 {/* Kategoriat: mobiilissa 2 saraketta, desktopissa yhdellä rivillä */}
 <div className="relative mt-1 sm:mt-2 px-0 sm:px-2 pt-1 sm:pt-2 pb-2 sm:pb-3">
   {/* Mobiili: 2 vaakariviä, swipe-karuselli */}
-<div className="sm:hidden overflow-x-auto no-scrollbar px-4">
-  <div className="inline-grid grid-flow-col grid-rows-2 gap-x-4 gap-y-4 pr-8 min-w-max">
+<div className="sm:hidden overflow-x-auto no-scrollbar pl-4 pr-0">
+  <div className="inline-grid grid-flow-col grid-rows-2 gap-x-4 gap-y-4 pr-14 min-w-max">
     {visibleKategoriat.map((k) => (
       <button
         key={k.href}
@@ -214,7 +206,15 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
  </div>
 </section>
 
-  <section className="bg-white px-4 sm:px-6 py-2 sm:py-4">
+
+<PremiumListingsSection
+  items={premiumIlmoitukset}
+  onOpenListing={(id) => router.push(`/ilmoitukset/${id}`)}
+  onAddListing={() => router.push('/lisaa')}
+  onViewed={handleViewed}
+/>
+
+<section className="bg-white px-4 sm:px-6 py-2 sm:py-4">
   <div className="max-w-screen-xl mx-auto">
     <LatestListingsSection
   items={uusimmat}
@@ -224,13 +224,6 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
 />
   </div>
 </section>
-
-<PremiumListingsSection
-  items={premiumIlmoitukset}
-  onOpenListing={(id) => router.push(`/ilmoitukset/${id}`)}
-  onAddListing={() => router.push('/lisaa')}
-  onViewed={handleViewed}
-/>
 
 <PopularSearchesSection />
 

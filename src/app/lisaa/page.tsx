@@ -765,6 +765,9 @@ if (replaceIndex !== null) {
       Etusivu-ilmoitus näkyy etusivulla sekä lisäksi kategorioissa ja hauissa, kunnes poistat sen.
     </p>
   )}
+  <div className="rounded-xl border border-[#4F8F7A]/15 bg-[#F5FAF7] px-4 py-3 text-sm text-[#1E3A41]">
+  Ilmoituksen lisääminen on ilmaista. Mainoskylä ei pyydä pankkitunnuksia viesteillä, sähköpostilla tai linkkien kautta.
+</div>
 </div>
 
 <div className={sectionClass}>

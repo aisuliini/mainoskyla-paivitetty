@@ -116,9 +116,9 @@ export default function Tietosuoja() {
         <div className="rounded-2xl border bg-gray-50 p-4">
           <p className="text-gray-800 font-medium mb-1">Suostumus</p>
           <p className="text-gray-700">
-            Pyydämme suostumuksen ennen ei-välttämättömien evästeiden asettamista. Voit muuttaa evästeasetuksia myöhemmin
-            selaimen asetuksista ja (jos käytössä) sivuston evästevalinnoista.
-          </p>
+  Pyydämme suostumuksen ennen ei-välttämättömien evästeiden asettamista. Voit hallita evästevalintoja
+  sivustolla näytettävän evästebannerin kautta sekä selaimesi asetuksista.
+</p>
         </div>
       </section>
 

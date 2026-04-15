@@ -40,7 +40,7 @@ export default function PopularNowSection({
   {items.map((ilmo) => (
     <div
       key={ilmo.id}
-      className="min-w-[250px] max-w-[250px] snap-start shrink-0 self-stretch"
+      className="min-w-[244px] max-w-[244px] snap-start shrink-0 self-stretch"
     >
       <HomeListingCarouselCard
         item={ilmo}
