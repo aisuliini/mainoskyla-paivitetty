@@ -88,24 +88,38 @@ export default function RekisteroidyClient() {
       })
 
       if (error) {
-        console.error('Rekisteröityminen epäonnistui:', error)
+  console.error('Rekisteröityminen epäonnistui:', error)
 
-        if (error.message.toLowerCase().includes('already registered')) {
-          setViesti('⚠️ Tällä sähköpostilla on jo tili. Kokeile kirjautumista.')
-        } else {
-          setViesti(`⚠️ Rekisteröityminen epäonnistui: ${error.message}`)
-        }
+  const message = error.message.toLowerCase()
 
-        return
-      }
+  if (
+    message.includes('already registered') ||
+    message.includes('user already registered') ||
+    message.includes('already been registered')
+  ) {
+    setDone(true)
+    setViesti(
+      '⚠️ Tällä sähköpostiosoitteella saattaa jo olla tili. Kokeile kirjautumista tai salasanan palautusta.'
+    )
+  } else {
+    setViesti('⚠️ Rekisteröityminen epäonnistui. Yritä uudelleen.')
+  }
 
-      if (!data.session) {
-        setDone(true)
-        setViesti(
-          '✅ Rekisteröityminen onnistui! Lähetimme vahvistuslinkin sähköpostiisi. Avaa linkki, niin kirjautuminen vahvistuu Mainoskylään.'
-        )
-        return
-      }
+  return
+}
+
+if (!data.user) {
+  setViesti('⚠️ Rekisteröityminen epäonnistui. Yritä uudelleen.')
+  return
+}
+
+if (!data.session) {
+  setDone(true)
+  setViesti(
+    '✅ Tarkista sähköpostisi. Jos vahvistusviestiä ei näy, tarkista roskaposti tai kokeile kirjautumista / salasanan palautusta, koska tällä osoitteella saattaa jo olla tili.'
+  )
+  return
+}
 
       router.replace('/profiili')
       router.refresh()
@@ -193,22 +207,24 @@ export default function RekisteroidyClient() {
           <p>{viesti}</p>
 
           {done && (
-            <div className="mt-3 flex gap-3">
-              <button
-                type="button"
-                onClick={() => router.push('/kirjaudu')}
-                className="rounded-full px-5 py-2 text-sm font-semibold bg-[#1E3A41] text-white"
-              >
-                Siirry kirjautumaan
-              </button>
-              <a
-                className="rounded-full px-5 py-2 text-sm font-semibold bg-white ring-1 ring-black/10"
-                href="mailto:"
-              >
-                Avaa sähköpostisovellus
-              </a>
-            </div>
-          )}
+  <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+    <button
+      type="button"
+      onClick={() => router.push('/kirjaudu')}
+      className="rounded-full px-5 py-2 text-sm font-semibold bg-[#1E3A41] text-white"
+    >
+      Siirry kirjautumaan
+    </button>
+
+    <button
+      type="button"
+      onClick={() => router.push('/unohtuiko-salasana')}
+      className="rounded-full px-5 py-2 text-sm font-semibold bg-white ring-1 ring-black/10"
+    >
+      Palauta salasana
+    </button>
+  </div>
+)}
         </div>
       )}
 

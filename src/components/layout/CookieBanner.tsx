@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { OPEN_COOKIE_SETTINGS_EVENT } from '@/lib/consent/events'
 import Link from 'next/link'
+import { OPEN_COOKIE_SETTINGS_EVENT } from '@/lib/consent/events'
 import {
   getAcceptAllConsent,
   getNecessaryOnlyConsent,
@@ -17,24 +17,24 @@ export default function CookieBanner() {
   const [marketing, setMarketing] = useState(false)
 
   useEffect(() => {
-  const openSettings = () => {
-    const saved = readConsent()
+    const openSettings = () => {
+      const saved = readConsent()
 
-    if (saved) {
-      setAnalytics(saved.analytics)
-      setMarketing(saved.marketing)
+      if (saved) {
+        setAnalytics(saved.analytics)
+        setMarketing(saved.marketing)
+      }
+
+      setVisible(true)
+      setShowSettings(true)
     }
 
-    setVisible(true)
-    setShowSettings(true)
-  }
+    window.addEventListener(OPEN_COOKIE_SETTINGS_EVENT, openSettings)
 
-  window.addEventListener(OPEN_COOKIE_SETTINGS_EVENT, openSettings)
-
-  return () => {
-    window.removeEventListener(OPEN_COOKIE_SETTINGS_EVENT, openSettings)
-  }
-}, [])
+    return () => {
+      window.removeEventListener(OPEN_COOKIE_SETTINGS_EVENT, openSettings)
+    }
+  }, [])
 
   useEffect(() => {
     const saved = readConsent()
@@ -80,31 +80,88 @@ export default function CookieBanner() {
   if (!visible) return null
 
   return (
-    <div
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-black/10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-    >
-      <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-5">
-        <div className="flex flex-col gap-4">
-          <div className="max-w-3xl">
-            <h2 className="text-sm sm:text-base font-semibold text-[#1E3A41]">
-              Evästeasetukset
-            </h2>
+    <>
+      {!showSettings && (
+        <div
+          className="fixed inset-x-0 bottom-0 z-50 px-3 sm:px-4"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}
+        >
+          <div className="mx-auto w-full max-w-md sm:max-w-xl rounded-[28px] border border-black/10 bg-white/95 p-4 shadow-[0_-10px_30px_rgba(0,0,0,0.10)] backdrop-blur supports-[backdrop-filter]:bg-white/88">
+            <div className="flex flex-col gap-4">
+              <div>
+                <h2 className="text-[15px] sm:text-base font-semibold text-[#1E3A41]">
+                  Evästeasetukset
+                </h2>
 
-            <p className="mt-1 text-sm leading-relaxed text-charcoal/75">
-              {description}{' '}
-              <Link
-                href="/tietosuoja"
-                className="font-medium text-[#1E3A41] underline underline-offset-2"
-              >
-                Lue lisää tietosuojasta
-              </Link>
-              .
-            </p>
+                <p className="mt-1 text-sm leading-relaxed text-charcoal/75">
+                  {description}{' '}
+                  <Link
+                    href="/tietosuoja"
+                    className="font-medium text-[#1E3A41] underline underline-offset-2"
+                  >
+                    Lue lisää tietosuojasta
+                  </Link>
+                  .
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSettings(true)}
+                  className="inline-flex min-h-[48px] w-full items-center justify-center rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-[#1E3A41] transition hover:bg-[#F5F8F6]"
+                >
+                  Muokkaa asetuksia
+                </button>
+
+                <button
+                  type="button"
+                  onClick={acceptNecessaryOnly}
+                  className="inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-[#EDF5F2] px-5 py-3 text-sm font-semibold text-[#1E3A41] ring-1 ring-[#4F8F7A]/20 transition hover:bg-[#DCEEE8]"
+                >
+                  Salli vain välttämättömät
+                </button>
+
+                <button
+                  type="button"
+                  onClick={acceptAll}
+                  className="inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-[#4F6763] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95"
+                >
+                  Hyväksy kaikki
+                </button>
+              </div>
+            </div>
           </div>
+        </div>
+      )}
 
-          {showSettings && (
-            <div className="grid gap-3 sm:grid-cols-3">
+      {showSettings && (
+        <div
+          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/35 px-3 sm:px-4"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
+          <div className="mb-0 w-full max-w-2xl rounded-t-[28px] sm:rounded-[28px] border border-black/10 bg-white p-4 sm:p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-base sm:text-lg font-semibold text-[#1E3A41]">
+                  Evästeasetukset
+                </h2>
+                <p className="mt-1 text-sm leading-relaxed text-charcoal/75">
+                  Valitse, mitä evästeitä haluat sallia. Välttämättömät evästeet ovat aina käytössä.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowSettings(false)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 text-[#1E3A41] transition hover:bg-[#F5F8F6]"
+                aria-label="Sulje evästeasetukset"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="mt-4 grid gap-3">
               <div className="rounded-2xl border border-black/10 bg-[#FAFCFB] p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -115,7 +172,8 @@ export default function CookieBanner() {
                       Tarvitaan sivuston perustoimintoihin, kuten kirjautumiseen ja turvallisuuteen.
                     </p>
                   </div>
-                  <span className="rounded-full bg-[#EDF5F2] px-2.5 py-1 text-xs font-medium text-[#1E3A41]">
+
+                  <span className="shrink-0 rounded-full bg-[#EDF5F2] px-2.5 py-1 text-xs font-medium text-[#1E3A41]">
                     Aina käytössä
                   </span>
                 </div>
@@ -123,7 +181,7 @@ export default function CookieBanner() {
 
               <label className="rounded-2xl border border-black/10 bg-[#FAFCFB] p-4 cursor-pointer">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
+                  <div className="pr-3">
                     <h3 className="text-sm font-semibold text-[#1E3A41]">
                       Analytiikka
                     </h3>
@@ -131,6 +189,7 @@ export default function CookieBanner() {
                       Auttaa ymmärtämään, miten sivustoa käytetään ja mitä kannattaa parantaa.
                     </p>
                   </div>
+
                   <input
                     type="checkbox"
                     checked={analytics}
@@ -142,7 +201,7 @@ export default function CookieBanner() {
 
               <label className="rounded-2xl border border-black/10 bg-[#FAFCFB] p-4 cursor-pointer">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
+                  <div className="pr-3">
                     <h3 className="text-sm font-semibold text-[#1E3A41]">
                       Markkinointi
                     </h3>
@@ -150,6 +209,7 @@ export default function CookieBanner() {
                       Käytetään mainonnan mittaamiseen ja mahdolliseen kohdentamiseen.
                     </p>
                   </div>
+
                   <input
                     type="checkbox"
                     checked={marketing}
@@ -159,47 +219,35 @@ export default function CookieBanner() {
                 </div>
               </label>
             </div>
-          )}
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            {!showSettings && (
-              <button
-                type="button"
-                onClick={() => setShowSettings(true)}
-                className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-[#1E3A41] hover:bg-[#F5F8F6] transition"
-              >
-                Muokkaa asetuksia
-              </button>
-            )}
-
-            {showSettings && (
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={saveCustom}
-                className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-[#1E3A41] hover:bg-[#F5F8F6] transition"
+                className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-[#1E3A41] transition hover:bg-[#F5F8F6]"
               >
                 Tallenna valinnat
               </button>
-            )}
 
-            <button
-              type="button"
-              onClick={acceptNecessaryOnly}
-              className="inline-flex items-center justify-center rounded-full bg-[#EDF5F2] px-4 py-2.5 text-sm font-semibold text-[#1E3A41] ring-1 ring-[#4F8F7A]/20 hover:bg-[#DCEEE8] transition"
-            >
-              Salli vain välttämättömät
-            </button>
+              <button
+                type="button"
+                onClick={acceptNecessaryOnly}
+                className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-[#EDF5F2] px-5 py-3 text-sm font-semibold text-[#1E3A41] ring-1 ring-[#4F8F7A]/20 transition hover:bg-[#DCEEE8]"
+              >
+                Salli vain välttämättömät
+              </button>
 
-            <button
-              type="button"
-              onClick={acceptAll}
-              className="inline-flex items-center justify-center rounded-full bg-[#4F6763] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-95 transition"
-            >
-              Hyväksy kaikki
-            </button>
+              <button
+                type="button"
+                onClick={acceptAll}
+                className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-[#4F6763] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95"
+              >
+                Hyväksy kaikki
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   )
 }
