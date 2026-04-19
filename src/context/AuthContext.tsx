@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import type { User } from '@supabase/supabase-js'
 
@@ -19,38 +19,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    let alive = true
-
-    // 1) Alkusessio
-    supabase.auth.getSession().then(({ data, error }) => {
-      if (!alive) return
-      if (error) {
-        setUser(null)
-        setLoading(false)
-        return
-      }
-      setUser(data.session?.user ?? null)
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser()
+      setUser(data.user ?? null)
       setLoading(false)
-    })
+    }
 
-    // 2) Kuuntele muutoksia
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!alive) return
+    void getUser()
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
-      setLoading(false) // varmistus
     })
 
     return () => {
-      alive = false
-      sub.subscription.unsubscribe()
+      listener.subscription.unsubscribe()
     }
   }, [])
 
-  const value = useMemo(() => ({ user, loading }), [user, loading])
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ user, loading }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
-export function useAuth() {
-  return useContext(AuthContext)
-}
+export const useAuth = () => useContext(AuthContext)

@@ -141,14 +141,14 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
 {/* Kategoriat: mobiilissa 2 saraketta, desktopissa yhdellä rivillä */}
 <div className="relative mt-1 sm:mt-2 px-0 sm:px-2 pt-1 sm:pt-2 pb-2 sm:pb-3">
   {/* Mobiili: 2 vaakariviä, swipe-karuselli */}
-<div className="sm:hidden overflow-x-auto no-scrollbar pl-4 pr-0">
-  <div className="inline-grid grid-flow-col grid-rows-2 gap-x-4 gap-y-4 pr-14 min-w-max">
+<div className="sm:hidden overflow-x-auto no-scrollbar pl-2 pr-0">
+  <div className="inline-grid grid-flow-col grid-rows-2 gap-x-3 gap-y-4 pr-10 min-w-max">
     {visibleKategoriat.map((k) => (
       <button
         key={k.href}
         type="button"
         onClick={() => router.push(k.href)}
-        className="flex w-[78px] flex-col items-center text-center shrink-0"
+        className="flex w-[74px] flex-col items-center text-center shrink-0"
       >
         <div
   className="
@@ -165,7 +165,7 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
   {k.ikoni}
 </div>
 
-        <span className="mt-2 text-[12px] leading-snug text-[#1E3A41] max-w-[78px]">
+        <span className="mt-2 text-[12px] leading-snug text-[#1E3A41] max-w-[74px]">
           {k.nimi}
         </span>
       </button>

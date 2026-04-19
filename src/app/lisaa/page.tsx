@@ -16,8 +16,9 @@ import { CATEGORY_CONFIG } from '@/features/categories/config/category-config'
 
 export default function LisaaIlmoitus() {
   const wrapperRef = useRef<HTMLDivElement>(null)
-  const router = useRouter()
-  const [otsikko, setOtsikko] = useState('')
+const router = useRouter()
+
+const [otsikko, setOtsikko] = useState('')
   const [kuvaus, setKuvaus] = useState('')
   const [sijainti, setSijainti] = useState('')
   const [kuvat, setKuvat] = useState<File[]>([])
@@ -34,6 +35,9 @@ export default function LisaaIlmoitus() {
   const [tapahtumaAlku, setTapahtumaAlku] = useState<Date | null>(null)
   const [tapahtumaLoppu, setTapahtumaLoppu] = useState<Date | null>(null)
   const [user, setUser] = useState<{ id: string } | null>(null)
+  const draftKey = user
+  ? `mainoskyla:add-listing:draft:v1:${user.id}`
+  : 'mainoskyla:add-listing:draft:v1:guest'
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -47,6 +51,7 @@ export default function LisaaIlmoitus() {
   const [publishedId, setPublishedId] = useState<string | null>(null)
   const [saaJakaaSomessa, setSaaJakaaSomessa] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
+  const [draftRestored, setDraftRestored] = useState(false)
   
 
   const inputClass =
@@ -54,6 +59,39 @@ export default function LisaaIlmoitus() {
 
 const sectionClass =
   'rounded-2xl border border-black/5 bg-[#FAFCFB] p-4 sm:p-5 space-y-4'
+
+  type ListingDraft = {
+  otsikko: string
+  kuvaus: string
+  sijainti: string
+  kategoria: string
+  tyyppi: 'perus' | 'premium'
+  puhelin: string
+  sahkoposti: string
+  linkki: string
+  saaJakaaSomessa: boolean
+  tapahtumaAlku: string | null
+  tapahtumaLoppu: string | null
+}
+
+const clearDraft = () => {
+  if (typeof window === 'undefined') return
+  window.localStorage.removeItem(draftKey)
+}
+
+const buildDraft = (): ListingDraft => ({
+  otsikko,
+  kuvaus,
+  sijainti,
+  kategoria,
+  tyyppi,
+  puhelin,
+  sahkoposti,
+  linkki,
+  saaJakaaSomessa,
+  tapahtumaAlku: tapahtumaAlku ? tapahtumaAlku.toISOString() : null,
+  tapahtumaLoppu: tapahtumaLoppu ? tapahtumaLoppu.toISOString() : null,
+})
 
 const validateAll = () => {
   const e: Record<string, string> = {}
@@ -131,9 +169,11 @@ const submitNow = async () => {
 
   setIsSubmitting(true)
   try {
-    await handleUpload()
-    setSubmitSuccess('Ilmoitus julkaistu!')
-  } catch (err: unknown) {
+  await handleUpload()
+  clearDraft()
+  setDraftRestored(false)
+  setSubmitSuccess('Ilmoitus julkaistu!')
+} catch (err: unknown) {
     console.error('Julkaisu epäonnistui:', err)
     const message = err instanceof Error ? err.message : 'Julkaisu epäonnistui. Yritä uudelleen.'
     setSubmitError(message)
@@ -172,7 +212,40 @@ useEffect(() => {
   }
 }, [esikatselut])
 
+useEffect(() => {
+  if (typeof window === 'undefined') return
 
+  const raw = window.localStorage.getItem(draftKey)
+  if (!raw) return
+
+  try {
+    const draft = JSON.parse(raw) as Partial<ListingDraft>
+
+    if (draft.otsikko) setOtsikko(draft.otsikko)
+    if (draft.kuvaus) setKuvaus(draft.kuvaus)
+    if (draft.sijainti) setSijainti(draft.sijainti)
+    if (draft.kategoria) setKategoria(draft.kategoria)
+    if (draft.tyyppi === 'premium' || draft.tyyppi === 'perus') {
+      setTyyppi(draft.tyyppi)
+    }
+
+    if (draft.puhelin) setPuhelin(draft.puhelin)
+    if (draft.sahkoposti) setSahkoposti(draft.sahkoposti)
+    if (draft.linkki) setLinkki(draft.linkki)
+    if (typeof draft.saaJakaaSomessa === 'boolean') {
+      setSaaJakaaSomessa(draft.saaJakaaSomessa)
+    }
+
+    if (draft.tapahtumaAlku) setTapahtumaAlku(new Date(draft.tapahtumaAlku))
+    if (draft.tapahtumaLoppu) setTapahtumaLoppu(new Date(draft.tapahtumaLoppu))
+
+    setSubmitSuccess('Keskeneräinen ilmoitus palautettu. Lisää kuvat tarvittaessa uudelleen.')
+    setDraftRestored(true)
+  } catch (error) {
+    console.error('Luonnoksen palautus epäonnistui:', error)
+    window.localStorage.removeItem(draftKey)
+  }
+}, [])
 
 
 // Päivitä sijaintiehdotukset, kun käyttäjä kirjoittaa
@@ -243,6 +316,29 @@ useEffect(() => {
   setTapahtumaLoppu(null)
 }
 }, [kategoria])
+
+useEffect(() => {
+  if (typeof window === 'undefined') return
+  if (!user) return
+  if (publishedId) return
+
+  const draft = buildDraft()
+  window.localStorage.setItem(draftKey, JSON.stringify(draft))
+}, [
+  user,
+  publishedId,
+  otsikko,
+  kuvaus,
+  sijainti,
+  kategoria,
+  tyyppi,
+  puhelin,
+  sahkoposti,
+  linkki,
+  saaJakaaSomessa,
+  tapahtumaAlku,
+  tapahtumaLoppu,
+])
 
 
 const isSafeUrl = (raw: string) => {
@@ -431,6 +527,22 @@ return
           
   <div className="border border-red-200 bg-red-50 text-red-800 rounded p-3 text-sm">
     {submitError}
+  </div>
+)}
+
+{draftRestored && (
+  <div className="flex justify-end">
+    <button
+      type="button"
+      onClick={() => {
+        clearDraft()
+        setDraftRestored(false)
+        window.location.reload()
+      }}
+      className="text-sm font-medium text-[#1E3A41] underline underline-offset-2"
+    >
+      Poista palautettu luonnos
+    </button>
   </div>
 )}
 
