@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -114,10 +115,15 @@ export async function PATCH(req: NextRequest) {
   }
 
   if (!data) {
-    return NextResponse.json({ error: 'Listing not found' }, { status: 404 })
-  }
+  return NextResponse.json({ error: 'Listing not found' }, { status: 404 })
+}
 
-  return NextResponse.json({ ok: true })
+revalidatePath('/')
+revalidatePath('/ilmoitukset')
+revalidatePath('/haku')
+revalidatePath('/aluehaku')
+
+return NextResponse.json({ ok: true })
 }
 
 export async function DELETE(req: NextRequest) {

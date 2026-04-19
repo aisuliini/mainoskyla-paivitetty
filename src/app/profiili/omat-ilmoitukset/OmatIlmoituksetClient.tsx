@@ -185,6 +185,7 @@ if (!session) {
 
     setIlmoitukset((prev) => prev.filter((item) => item.id !== ilmo.id))
     setDeletingId(null)
+    router.refresh()
   },
   [getUserOrRedirect]
 )
