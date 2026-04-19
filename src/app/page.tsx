@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import HomeClient from '@/features/home/components/HomeClient'
 import { getHomePageData } from '@/features/home/server/home'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Mainoskylä – Löydä tai mainosta paikallisesti',
   description:
