@@ -27,8 +27,9 @@ function ProfiiliContent() {
     let mounted = true
 
     const init = async () => {
-      const { data: authData } = await supabase.auth.getSession()
-      const user = authData?.session?.user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
       if (!user) {
         router.replace('/kirjaudu')
@@ -57,8 +58,25 @@ function ProfiiliContent() {
 
     init()
 
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setEmail(null)
+        setNimi(null)
+        setLoading(false)
+        router.replace('/kirjaudu')
+        router.refresh()
+        return
+      }
+
+      if (session?.user) {
+        void init()
+        router.refresh()
+      }
+    })
+
     return () => {
       mounted = false
+      listener.subscription.unsubscribe()
     }
   }, [router])
 

@@ -6,6 +6,13 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
 import { getSiteUrl } from '@/features/auth/utils/getSiteUrl'
 
+function getSafeRedirectPath(rawRedirect: string | null): string {
+  if (!rawRedirect) return '/profiili'
+  if (!rawRedirect.startsWith('/')) return '/profiili'
+  if (rawRedirect.startsWith('//')) return '/profiili'
+
+  return rawRedirect
+}
 
 export default function KirjauduClient() {
   const router = useRouter()
@@ -14,6 +21,7 @@ export default function KirjauduClient() {
   const loggedOut = searchParams.get('logout') === '1'
   const idleLogout = searchParams.get('reason') === 'idle'
   const logoutError = searchParams.get('logout_error') === '1'
+  const redirectPath = getSafeRedirectPath(searchParams.get('redirect'))
 
   // Salasana login
   const [sahkoposti, setSahkoposti] = useState('')
@@ -34,13 +42,13 @@ const [passwordLoading, setPasswordLoading] = useState(false)
   useEffect(() => {
   let mounted = true
 
-  const checkSession = async () => {
-    const { data, error } = await supabase.auth.getSession()
-    if (error) console.warn('getSession error', error)
+  const checkUser = async () => {
+    const { data, error } = await supabase.auth.getUser()
+    if (error) console.warn('getUser error', error)
     if (!mounted) return
 
-    if (data.session?.user) {
-      router.replace('/profiili')
+    if (data.user) {
+      router.replace(redirectPath)
       router.refresh()
       return
     }
@@ -53,15 +61,15 @@ const [passwordLoading, setPasswordLoading] = useState(false)
   }
 
   // 1) eka tarkistus kun sivu aukeaa
-  void checkSession()
+  void checkUser()
 
   // 2) kun käyttäjä palaa takaisin (Safari back cache / OAuth cancel)
   const onReturn = () => {
-    void checkSession()
+    void checkUser()
   }
 
   const onVisibility = () => {
-    if (document.visibilityState === 'visible') void checkSession()
+    if (document.visibilityState === 'visible') void checkUser()
   }
 
   window.addEventListener('pageshow', onReturn) // tärkein Safariin
@@ -71,7 +79,7 @@ const [passwordLoading, setPasswordLoading] = useState(false)
   // 3) normaali auth-listener
   const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
     if (session?.user) {
-      router.replace('/profiili')
+      router.replace(redirectPath)
       router.refresh()
     }
   })
@@ -83,10 +91,11 @@ const [passwordLoading, setPasswordLoading] = useState(false)
     window.removeEventListener('focus', onReturn)
     document.removeEventListener('visibilitychange', onVisibility)
   }
-}, [router])
+}, [redirectPath, router])
     
 
 const siteUrl = getSiteUrl()
+const callbackUrl = `${siteUrl}/auth/callback?next=${encodeURIComponent(redirectPath)}`
 
   const kirjauduSalasanalla = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault()
@@ -107,7 +116,7 @@ const siteUrl = getSiteUrl()
       return
     }
 
-    router.replace('/profiili')
+    router.replace(redirectPath)
     router.refresh()
   } catch (err) {
     console.error(err)
@@ -129,7 +138,7 @@ const siteUrl = getSiteUrl()
     const { error } = await supabase.auth.signInWithOtp({
       email: magicEmail.trim(),
       options: {
-        emailRedirectTo: `${siteUrl}/auth/callback`,
+        emailRedirectTo: callbackUrl,
       },
     })
 
@@ -159,7 +168,7 @@ const siteUrl = getSiteUrl()
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${siteUrl}/auth/callback`,
+        redirectTo: callbackUrl,
         queryParams: { prompt: 'select_account' },
       },
     })

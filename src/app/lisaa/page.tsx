@@ -152,7 +152,7 @@ const scrollToFirstError = (errs: Record<string, string>) => {
 
 
 const submitNow = async () => {
-  if (isSubmitting) return
+  if (isSubmitting || publishedId) return
 
   setPublishedId(null)
   setSubmitError(null)
@@ -901,9 +901,9 @@ if (replaceIndex !== null) {
   <button
     type="button"
     onClick={submitNow}
-    disabled={isSubmitting}
+    disabled={isSubmitting || !!publishedId}
     className={`rounded-xl px-6 py-3 font-semibold text-white bg-[#4F6763] ${
-      isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-95'
+      isSubmitting || publishedId ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-95'
     }`}
   >
     {isSubmitting ? 'Julkaistaan...' : 'Julkaise ilmoitus'}

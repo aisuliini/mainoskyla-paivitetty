@@ -7,28 +7,22 @@ export default function DeleteAccountButton() {
   const router = useRouter()
 
   const poistaTili = async () => {
-    const { data: sessionData } = await supabase.auth.getSession()
-    const user = sessionData?.session?.user
-
-    if (!user) {
-      alert('Et ole kirjautunut sisään.')
-      return
-    }
-
     if (
       !confirm('Haluatko varmasti poistaa tilisi ja kaikki ilmoituksesi? Tätä ei voi perua.')
     ) {
       return
     }
 
-    const { error: delError } = await supabase
-      .from('ilmoitukset')
-      .delete()
-      .eq('user_id', user.id)
+    const res = await fetch('/api/profiili/poista-tili', {
+      method: 'DELETE',
+    })
 
-    if (delError) {
-      console.error('Virhe poistossa:', delError.message)
-      alert('Virhe poistossa. Yritä uudelleen.')
+    const data = await res.json().catch(() => null)
+
+    if (!res.ok) {
+      const message = data?.error || 'Virhe poistossa. Yritä uudelleen.'
+      console.error('Virhe poistossa:', message)
+      alert(message)
       return
     }
 

@@ -31,21 +31,6 @@ useEffect(() => {
   setMounted(true)
 }, [])
 
-
-useEffect(() => {
-  const { data: listener } = supabase.auth.onAuthStateChange(
-    (event) => {
-      if (event === 'SIGNED_IN') {
-        router.refresh()
-      }
-    }
-  )
-
-  return () => {
-    listener.subscription.unsubscribe()
-  }
-}, [router])
-
   // estää vanhojen requestien tulosten “ylikirjoituksen”
   const reqIdRef = useRef(0)
   // estää setState unmountin jälkeen
@@ -53,23 +38,23 @@ useEffect(() => {
 
 
   const getUserOrRedirect = useCallback(async () => {
-  let session = null
+  let user = null
 
 for (let i = 0; i < 5; i++) {
-  const { data } = await supabase.auth.getSession()
-  session = data.session
+  const { data } = await supabase.auth.getUser()
+  user = data.user
 
-  if (session) break
+  if (user) break
 
   await new Promise((res) => setTimeout(res, 200))
 }
 
-if (!session) {
+if (!user) {
   router.replace('/kirjaudu?redirect=/profiili/omat-ilmoitukset')
   return null
 }
 
-  return session.user
+  return user
 }, [router])
 
   const haeIlmoitukset = useCallback(async () => {
@@ -100,6 +85,31 @@ if (!session) {
 
     setLoading(false)
   }, [getUserOrRedirect])
+
+useEffect(() => {
+  const { data: listener } = supabase.auth.onAuthStateChange(
+    (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        reqIdRef.current += 1
+        setIlmoitukset([])
+        setDeletingId(null)
+        setLoading(false)
+        router.replace('/kirjaudu?redirect=/profiili/omat-ilmoitukset')
+        router.refresh()
+        return
+      }
+
+      if (session?.user) {
+        void haeIlmoitukset()
+        router.refresh()
+      }
+    }
+  )
+
+  return () => {
+    listener.subscription.unsubscribe()
+  }
+}, [haeIlmoitukset, router])
 
   useEffect(() => {
     activeRef.current = true
@@ -165,29 +175,32 @@ if (!session) {
   async (ilmo: Ilmoitus) => {
     if (!confirm('Poistetaanko ilmoitus pysyvästi?')) return
 
-    const user = await getUserOrRedirect()
-    if (!user) return
-
     setDeletingId(ilmo.id)
 
-    const { error } = await supabase
-      .from('ilmoitukset')
-      .delete()
-      .eq('id', ilmo.id)
-      .eq('user_id', user.id)
+    try {
+      const res = await fetch(`/api/ilmoitukset/${encodeURIComponent(ilmo.id)}`, {
+        method: 'DELETE',
+      })
 
-    if (error) {
-      console.error('Virhe poistossa:', error.message)
-      alert(error.message)
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        const message = data?.error || 'Poisto epäonnistui'
+        console.error('Virhe poistossa:', message)
+        alert(message)
+        return
+      }
+
+      setIlmoitukset((prev) => prev.filter((item) => item.id !== ilmo.id))
+      router.refresh()
+    } catch (error) {
+      console.error('Virhe poistossa:', error)
+      alert('Poisto epäonnistui')
+    } finally {
       setDeletingId(null)
-      return
     }
-
-    setIlmoitukset((prev) => prev.filter((item) => item.id !== ilmo.id))
-    setDeletingId(null)
-    router.refresh()
   },
-  [getUserOrRedirect]
+  [router]
 )
 
   const onVanhentunut = (ilmo: Ilmoitus) => {

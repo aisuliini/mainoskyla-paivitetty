@@ -23,12 +23,12 @@ export default function RekisteroidyClient() {
   useEffect(() => {
     let mounted = true
 
-    const checkSession = async () => {
-      const { data, error } = await supabase.auth.getSession()
-      if (error) console.warn('getSession error', error)
+    const checkUser = async () => {
+      const { data, error } = await supabase.auth.getUser()
+      if (error) console.warn('getUser error', error)
       if (!mounted) return
 
-      if (data.session?.user) {
+      if (data.user) {
         router.replace('/profiili')
         router.refresh()
         return
@@ -37,7 +37,7 @@ export default function RekisteroidyClient() {
       setAuthLoading(false)
     }
 
-    void checkSession()
+    void checkUser()
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
@@ -218,7 +218,7 @@ if (!data.session) {
 
     <button
       type="button"
-      onClick={() => router.push('/unohtuiko-salasana')}
+      onClick={() => router.push('/unohditko-salasanan')}
       className="rounded-full px-5 py-2 text-sm font-semibold bg-white ring-1 ring-black/10"
     >
       Palauta salasana

@@ -23,6 +23,7 @@ type IlmoitusRow = {
   sijainti: string | null
   kategoria: string | null
   maksuluokka: string | null
+    visible?: boolean | null
 
   kuva_url: string | null
   kuvat?: string | null // JSON string array
@@ -79,6 +80,7 @@ export default function MuokkaaIlmoitusta() {
   // Näkyvyys
   const [tyyppi, setTyyppi] = useState<'perus' | 'premium'>('perus')
   const [originalTyyppi, setOriginalTyyppi] = useState<'perus' | 'premium'>('perus')
+  const [currentVisible, setCurrentVisible] = useState(true)
   
 
   // Tapahtumat
@@ -265,6 +267,7 @@ if (kategoria === 'tapahtumat-ja-juhlapalvelut') {
     const rowTyyppi = row.maksuluokka === 'premium' ? 'premium' : 'perus'
     setTyyppi(rowTyyppi)
     setOriginalTyyppi(rowTyyppi)
+    setCurrentVisible(row.visible ?? true)
 
     setPuhelin(row.puhelin ?? '')
     setSahkoposti(row.sahkoposti ?? '')
@@ -434,7 +437,7 @@ if (kategoria === 'tapahtumat-ja-juhlapalvelut') {
   kuvaus,
   sijainti,
   kategoria,
-  visible: true,
+  visible: isAdmin ? true : currentVisible,
   maksuluokka: tyyppi,
 
   kuva_url: finalUrls[0] || null,
@@ -475,9 +478,12 @@ if (!isAdmin && user?.id) {
   updateQuery = updateQuery.eq('user_id', user.id)
 }
 
-const { error } = await updateQuery
+const { data: updatedRow, error } = await updateQuery
+  .select('id')
+  .maybeSingle()
 
 if (error) throw new Error(error.message)
+if (!updatedRow) throw new Error('Ilmoitusta ei löytynyt tai sinulla ei ole oikeutta muokata sitä.')
 
       setSubmitSuccess('Ilmoitus päivitetty!')
       await new Promise((r) => setTimeout(r, 700))
