@@ -96,6 +96,7 @@ const [passwordLoading, setPasswordLoading] = useState(false)
 
 const siteUrl = getSiteUrl()
 const callbackUrl = `${siteUrl}/auth/callback?next=${encodeURIComponent(redirectPath)}`
+const magicLinkUrl = `${siteUrl}/auth/confirm?next=${encodeURIComponent(redirectPath)}`
 
   const kirjauduSalasanalla = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault()
@@ -136,11 +137,11 @@ const callbackUrl = `${siteUrl}/auth/callback?next=${encodeURIComponent(redirect
 
   try {
     const { error } = await supabase.auth.signInWithOtp({
-      email: magicEmail.trim(),
-      options: {
-        emailRedirectTo: callbackUrl,
-      },
-    })
+    email: magicEmail.trim(),
+    options: {
+    emailRedirectTo: magicLinkUrl,
+  },
+})
 
     if (error) {
   console.error('Magic link error:', error)
