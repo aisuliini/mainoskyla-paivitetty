@@ -5,12 +5,19 @@ import Footer from '@/components/layout/Footer'
 import CookieBanner from '@/components/layout/CookieBanner'
 import ConsentScripts from '@/components/layout/ConsentScripts'
 import { AuthProvider } from '@/context/AuthContext'
-import { Inter } from 'next/font/google'
+import { Inter, Manrope } from 'next/font/google'
 import type { Metadata, Viewport } from 'next'
 
 const inter = Inter({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
+  variable: '--font-inter',
+})
+
+const manrope = Manrope({
+  subsets: ['latin'],
+  weight: ['500', '600', '700', '800'],
+  variable: '--font-manrope',
 })
 
 export const viewport: Viewport = {
@@ -80,7 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fi" suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={`${inter.className} bg-[#F6F7F7] text-charcoal min-h-screen flex flex-col overflow-x-hidden`}
+        className={`${inter.variable} ${manrope.variable} font-sans bg-[#F6F7F7] text-charcoal min-h-screen flex flex-col overflow-x-hidden`}
       >
         <AuthProvider>
           <Header />

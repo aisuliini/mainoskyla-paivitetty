@@ -82,7 +82,7 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
 
 
   
-<section className="relative overflow-hidden px-4 sm:px-6 pt-5 sm:pt-10 pb-4 sm:pb-10">
+<section className="relative overflow-hidden px-4 sm:px-6 pt-5 sm:pt-8 pb-2 sm:pb-4">
   <div className="absolute inset-0 pointer-events-none">
     <div
       className="absolute inset-0"
@@ -101,23 +101,23 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
     <div className="flex flex-col items-center text-center">
       <div className="w-full max-w-3xl mx-auto">
         <h1
-          className="
-            text-[26px] sm:text-4xl md:text-5xl
-            font-semibold
-            text-[#1E3A41]
-            tracking-tight
-            leading-[1.06]
-          "
-        >
-          Löydä paikalliset palvelut – tai lisää omasi ilmaiseksi
-        </h1>
+  className="
+    text-[28px] sm:text-4xl md:text-5xl
+    font-semibold
+    text-[#1E3A41]
+    tracking-tight
+    leading-[1.06]
+  "
+>
+  Hyvä palvelu ansaitsee tulla löydetyksi
+</h1>
 
-        <p className="mt-2 sm:mt-3 text-sm sm:text-base text-charcoal/70 leading-relaxed max-w-2xl text-center mx-auto">
-          Löydä läheltä tekijä tai tuo oma palvelusi näkyville Mainoskylässä.
-        </p>
+<p className="mt-3 sm:mt-4 text-sm sm:text-base text-charcoal/70 leading-relaxed max-w-2xl text-center mx-auto">
+  Löydä paikalliset tekijät läheltäsi — tai tuo oma palvelusi näkyville Mainoskylässä maksutta.
+</p>
       </div>
 
-      <div className="mt-4 sm:mt-6 w-full">
+      <div className="mt-4 sm:mt-5 w-full">
   <HomeSearch />
 </div>
     </div>
@@ -206,6 +206,8 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
 </section>
 
 
+
+
 <PremiumListingsSection
   items={premiumIlmoitukset}
   onOpenListing={(id) => router.push(`/ilmoitukset/${id}`)}
@@ -244,7 +246,7 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
         onClick={() => router.push('/lisaa')}
         className="bg-[#F29C8F] text-white px-7 py-3.5 rounded-full hover:bg-[#e78e81] transition shadow-sm hover:shadow-md font-semibold"
       >
-        Lisää ilmoitus ilmaiseksi
+        Lisää palvelusi ilmaiseksi
       </button>
     </div>
   </div>
@@ -253,12 +255,13 @@ const visibleKategoriat = CATEGORY_CONFIG.map((category) => ({
 <section className="bg-[#F8FBF9] px-4 sm:px-6 py-12 border-t border-black/5">
   <div className="max-w-screen-md mx-auto text-center">
     <h3 className="text-xl sm:text-2xl font-semibold text-[#1E3A41] tracking-tight">
-      Rakennamme Mainoskylästä yhä parempaa paikallista palvelua 💚
-    </h3>
+  Rakennamme Mainoskylästä paikkaa, josta paikalliset palvelut löytyvät
+</h3>
 
-    <p className="mt-3 text-sm sm:text-base text-charcoal/70 max-w-2xl mx-auto leading-relaxed">
-      Kehitämme palvelua jatkuvasti käyttäjien palautteen pohjalta. Jos haluat ehdottaa parannusta tai antaa palautetta, kuulemme mielellämme.
-    </p>
+<p className="mt-3 text-sm sm:text-base text-charcoal/70 max-w-2xl mx-auto leading-relaxed">
+  Kehitämme palvelua käyttäjien ja yrittäjien palautteen pohjalta. Kerro meille,
+  mikä auttaisi sinua löytämään tai tuomaan palveluita paremmin esille.
+</p>
 
     <div className="mt-6">
       <Link

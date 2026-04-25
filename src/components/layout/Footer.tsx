@@ -62,7 +62,7 @@ export default function Footer() {
 
           <div className="mt-5 space-y-1 text-center">
             <p className="text-xs sm:text-sm text-charcoal/60">
-              Ilmoituksen lisääminen on ilmaista – tuo palvelusi näkyville paikallisesti.
+              Tuo palvelusi näkyville siellä, missä paikalliset asiakkaat etsivät tekijöitä.
             </p>
             <p className="text-sm text-[#1E3A41]/80">
               &copy; {new Date().getFullYear()} Mainoskylä
